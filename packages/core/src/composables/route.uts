@@ -1,0 +1,17 @@
+/**
+ * useRoute 组合式 API
+ *
+ * 返回全局活跃路由位置的响应式引用。在路由器导航与状态同步时会自动更新。
+ */
+import type { ComputedRef, Ref } from 'vue'
+import type { RouteLocation } from '../types'
+import { currentRoute } from '../store'
+
+/**
+ * 获取当前响应式路由
+ * @returns 响应式 RouteLocation 引用
+ */
+export function useRoute(): ComputedRef<RouteLocation> {
+	// 返回由 store 维护的响应式当前路由；直接以 Ref 形态返回
+	return currentRoute as Ref<RouteLocation> as unknown as ComputedRef<RouteLocation>
+}

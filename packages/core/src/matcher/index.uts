@@ -1,0 +1,157 @@
+/**
+ * 路由匹配器实现
+ *
+ * 基于 path / name 双索引，将字符串路径、路径对象、命名对象解析为完整 RouteLocation。
+ * 采用扁平页面模型（uni-app x），不支持嵌套/动态路由。
+ *
+ * params 适配：对象位置的对象参数直接挂到 RouteLocation.params；由路由器在拼 URL 时
+ * 通过 encodeParamsToQuery 编码进查询，字符串路径解析时据保留前缀重建 params。
+ */
+import type { RouteConfig, RouteLocation, RouteLocationNamedRaw, RouteLocationPathRaw, RouteLocationRaw, RouteMeta } from '../types'
+import { RouterErrorCode } from '../enums'
+import { RouterError } from '../errors'
+import { buildFullPath, normalizePath, parseQuery, isObject, warn, extractParamsFromQuery } from '../utils'
+import type { RouteMatcher } from './type'
+
+/**
+ * 创建路由匹配器
+ * @param routes - 路由配置列表
+ * @param strict - 是否严格模式（未匹配的命名路由抛错）
+ * @returns 路由匹配器实例
+ */
+export function createRouteMatcher(routes: RouteConfig[], strict: boolean): RouteMatcher {
+	const pathMap: Map<string, RouteConfig> = new Map()
+	const nameMap: Map<string, RouteConfig> = new Map()
+	const routeList: RouteConfig[] = []
+
+	for (var i = 0; i < routes.length; i++) {
+		const route = routes[i]
+		const normalizedPath = normalizePath(route.path)
+		if (route.name && nameMap.has(route.name)) {
+			warn(`检测到重复路由名称 "${route.name}"，后者将覆盖前者。`)
+		}
+		if (pathMap.has(normalizedPath)) {
+			warn(`检测到重复路由路径 "${normalizedPath}"，后者将覆盖前者。`)
+		}
+		pathMap.set(normalizedPath, route)
+		if (route.name) {
+			nameMap.set(route.name, route)
+		}
+		routeList.push(route)
+	}
+
+	function getRoutes(): RouteConfig[] {
+		return [...routeList]
+	}
+
+	function hasRoute(name: string): boolean {
+		return nameMap.has(name)
+	}
+
+	function getRouteConfig(path: string): RouteConfig | undefined {
+		return pathMap.get(normalizePath(path))
+	}
+
+	/** 构造 RouteLocation */
+	function createLocation(path: string, name: string | undefined, meta: RouteMeta, query: Map<string, string>, params: Map<string, string>): RouteLocation {
+		return {
+			path,
+			name: name ?? undefined,
+			meta,
+			query,
+			params,
+			fullPath: buildFullPath(path, query),
+			hash: '',
+			matched: []
+		}
+	}
+
+	function resolveFromPathString(path: string): RouteLocation {
+		const parsed = parsePathUrl(path)
+		const config = pathMap.get(normalizePath(parsed.path))
+		const meta: RouteMeta = config && config.meta ? config.meta : {}
+		const params = extractParamsFromQuery(parsed.query)
+		const location = createLocation(normalizePath(parsed.path), config ? config.name : undefined, meta, parsed.query, params)
+		location.matched = config ? [config] : []
+		return location
+	}
+
+	function resolveFromPathRaw(location: RouteLocationPathRaw): RouteLocation {
+		const query: Map<string, string> = location.query ? new Map(location.query) : new Map()
+		const params: Map<string, string> = location.params ? new Map(location.params) : new Map()
+		const config = pathMap.get(normalizePath(location.path))
+		const meta: RouteMeta = config && config.meta ? config.meta : {}
+		const loc = createLocation(normalizePath(location.path), config ? config.name : undefined, meta, query, params)
+		loc.matched = config ? [config] : []
+		return loc
+	}
+
+	function resolveFromName(location: RouteLocationNamedRaw): RouteLocation {
+		const config = nameMap.get(location.name)
+		if (!config) {
+			if (strict) {
+				throw new RouterError(RouterErrorCode.ROUTE_NOT_FOUND, `未找到命名路由 "${location.name}"。`, emptyLocation(''), emptyLocation(''))
+			}
+			warn(`未找到命名路由 "${location.name}"，将按路径处理。`)
+			const query: Map<string, string> = location.query ? new Map(location.query) : new Map()
+			const params: Map<string, string> = location.params ? new Map(location.params) : new Map()
+			const loc = createLocation(`/${location.name}`, undefined, {}, query, params)
+			loc.matched = []
+			return loc
+		}
+		const query: Map<string, string> = location.query ? new Map(location.query) : new Map()
+		const params: Map<string, string> = location.params ? new Map(location.params) : new Map()
+		const meta: RouteMeta = config.meta ? config.meta : {}
+		const loc = createLocation(normalizePath(config.path), config.name, meta, query, params)
+		loc.matched = [config]
+		return loc
+	}
+
+	/** 解析原始位置 */
+	function resolve(location: RouteLocationRaw): RouteLocation {
+		if (typeof location === 'string') {
+			return resolveFromPathString(location)
+		}
+		if (isObject(location)) {
+			const named = location as RouteLocationNamedRaw
+			if (named.name !== undefined && named.name !== null) {
+				return resolveFromName(named)
+			}
+			const pathRaw = location as RouteLocationPathRaw
+			if (pathRaw.path !== undefined && pathRaw.path !== null && pathRaw.path.length > 0) {
+				return resolveFromPathRaw(pathRaw)
+			}
+		}
+		throw new RouterError(RouterErrorCode.ROUTE_NOT_FOUND, `非法的路由位置: ${JSON.stringify(location)}。`, emptyLocation(''), emptyLocation(''))
+	}
+
+	return {
+		getRoutes,
+		hasRoute,
+		resolve,
+		getRouteConfig
+	}
+}
+
+/** 解析完整 URL 字符串为路径 + 查询（内部工具） */
+function parsePathUrl(full: string): { path: string; query: Map<string, string> } {
+	const qIndex = full.indexOf('?')
+	if (qIndex === -1) {
+		return { path: full, query: new Map() }
+	}
+	return { path: full.substring(0, qIndex), query: parseQuery(full.substring(qIndex + 1)) }
+}
+
+/** 构造空 RouteLocation（供错误场景占位） */
+function emptyLocation(path: string): RouteLocation {
+	return {
+		path: normalizePath(path),
+		meta: {},
+		name: undefined,
+		query: new Map(),
+		params: new Map(),
+		fullPath: normalizePath(path),
+		hash: '',
+		matched: []
+	}
+}

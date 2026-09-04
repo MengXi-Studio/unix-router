@@ -1,0 +1,47 @@
+<template>
+	<view class="page">
+		<text class="title">登录页</text>
+		<text class="desc">点击登录后将重新跳回目标页（若有 redirect），否则回到首页。</text>
+		<button class="btn" type="primary" @click="doLogin">登录并跳转</button>
+		<button class="btn" @click="goBack">返回</button>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { useRouter, useRoute } from '@meng-xi/unix-router'
+import { authStore } from '../../router.config'
+
+const router = useRouter()
+const route = useRoute()
+
+const doLogin = () => {
+	authStore.login()
+	const redirect = route.query.get('redirect')
+	if (redirect && redirect.length > 0) {
+		router.relaunch(redirect)
+	} else {
+		router.relaunch('/pages/index/index')
+	}
+}
+const goBack = () => router.back()
+</script>
+
+<style scoped>
+.page {
+	padding: 24rpx;
+	flex-direction: column;
+}
+.title {
+	font-size: 40rpx;
+	font-weight: bold;
+	color: #333333;
+}
+.desc {
+	margin-top: 12rpx;
+	font-size: 24rpx;
+	color: #666666;
+}
+.btn {
+	margin-top: 24rpx;
+}
+</style>

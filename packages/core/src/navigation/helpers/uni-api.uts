@@ -1,0 +1,80 @@
+/**
+ * uni.* 原生导航 API 的 Promise 化封装
+ */
+import { buildFullPath } from '../../utils'
+
+/** uni.* API 失败回调负载 */
+export interface UniFailure {
+	errMsg?: string
+}
+
+/**
+ * 将回调风格的 uni API 转换为 Promise
+ * @param api - uni API 名称（仅用于错误提示）
+ * @param executor - 包含 success/fail 回调的执行函数
+ * @returns 成功 resolve、失败 reject 的 Promise
+ */
+export function promisifyUniApi(api: string, executor: (resolve: () => void, reject: (err: Error) => void) => void): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		try {
+			executor(
+				() => resolve(),
+				(err: UniFailure) => {
+					const message = `${api} 调用失败: ${err && err.errMsg ? err.errMsg : ''}`
+					reject(new Error(message))
+				}
+			)
+		} catch (e) {
+			reject(e instanceof Error ? e : new Error(`${api} 调用异常`))
+		}
+	})
+}
+
+/**
+ * 调用 uni.navigateTo 跳转到普通页面
+ */
+export function uniNavigateTo(path: string, query: Map<string, string>): Promise<void> {
+	const url = buildFullPath(path, query)
+	return promisifyUniApi('navigateTo', (resolve, reject) => {
+		uni.navigateTo({ url, success: () => resolve(), fail: err => reject(err as UniFailure) })
+	})
+}
+
+/**
+ * 调用 uni.switchTab 切换 tabBar 页面
+ */
+export function uniSwitchTab(path: string): Promise<void> {
+	return promisifyUniApi('switchTab', (resolve, reject) => {
+		uni.switchTab({ url: path, success: () => resolve(), fail: err => reject(err as UniFailure) })
+	})
+}
+
+/**
+ * 调用 uni.redirectTo 替换当前页面
+ */
+export function uniRedirectTo(path: string, query: Map<string, string>): Promise<void> {
+	const url = buildFullPath(path, query)
+	return promisifyUniApi('redirectTo', (resolve, reject) => {
+		uni.redirectTo({ url, success: () => resolve(), fail: err => reject(err as UniFailure) })
+	})
+}
+
+/**
+ * 调用 uni.reLaunch 关闭所有页面并打开目标页面
+ */
+export function uniReLaunch(path: string, query: Map<string, string>): Promise<void> {
+	const url = buildFullPath(path, query)
+	return promisifyUniApi('reLaunch', (resolve, reject) => {
+		uni.reLaunch({ url, success: () => resolve(), fail: err => reject(err as UniFailure) })
+	})
+}
+
+/**
+ * 调用 uni.navigateBack 返回上一页
+ * @param delta - 返回层级，需为正整数
+ */
+export function uniNavigateBack(delta: number): Promise<void> {
+	return promisifyUniApi('navigateBack', (resolve, reject) => {
+		uni.navigateBack({ delta, success: () => resolve(), fail: err => reject(err as UniFailure) })
+	})
+}

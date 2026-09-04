@@ -1,0 +1,26 @@
+{
+	"name": "unix-router-playground",
+	"appid": "",
+	"description": "unix-router uni-app x 测试工程",
+	"versionName": "0.1.0",
+	"versionCode": "100",
+	"transformPx": false,
+	"uni-app-x": {},
+	"app": {
+		"usingComponents": true,
+		"nvueStyleCompiler": "uni-app x"
+	},
+	"h5": {
+		"title": "unix-router 示例",
+		"router": {
+			"mode": "hash"
+		}
+	},
+	"mp-weixin": {
+		"appid": "",
+		"setting": {
+			"urlCheck": false
+		},
+		"usingComponents": true
+	}
+}

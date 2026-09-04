@@ -1,0 +1,7 @@
+/**
+ * 内部保留 key 定义
+ *
+ * uni-app x 静态页面模型不支持路径参数，vue-router 风格的 params
+ * 通过"保留前缀编码进查询参数"在页面 URL 间传递，目标页据此前缀重建 params。
+ */
+export const PARAMS_QUERY_PREFIX: string = '__p_'

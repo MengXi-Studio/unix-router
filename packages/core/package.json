@@ -1,0 +1,26 @@
+{
+	"name": "@meng-xi/unix-router",
+	"version": "0.1.0",
+	"type": "module",
+	"description": "为 uni-app x 提供类似 vue-router 风格的路由库（UTS 源分发）。",
+	"main": "src/index.uts",
+	"module": "src/index.uts",
+	"types": "src/index.uts",
+	"exports": {
+		".": "./src/index.uts",
+		"./types": "./src/types/index.uts"
+	},
+	"files": [
+		"src"
+	],
+	"sideEffects": false,
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"keywords": [
+		"unix-router",
+		"uni-app-x",
+		"router"
+	],
+	"license": "MIT"
+}

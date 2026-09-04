@@ -1,0 +1,59 @@
+/**
+ * 页面栈上下文工具
+ *
+ * 封装 uni-app x 逻辑层的 getCurrentPages()，读取当前页面信息（当前页 path / query），
+ * 用于路由状态初始化与同步。非 uni 环境（纯 Node 等）下安全回退。
+ */
+
+/** 页面实例的等价类型（保留 route 与 options 字段读取） */
+export interface UniPageLike {
+	route: string
+	options?: {
+		[key: string]: string
+	}
+}
+
+/**
+ * 获取当前页面栈（存在 uni 环境时）
+ * 返回扁平化页面实例数组，异常或非 uni 环境返回空数组
+ */
+export function getCurrentPagesSafe(): UniPageLike[] {
+	try {
+		const pages = getCurrentPages()
+		return pages as UniPageLike[]
+	} catch (e) {
+		return []
+	}
+}
+
+/** 获取页面栈长度 */
+export function getPageStackLength(): number {
+	return getCurrentPagesSafe().length
+}
+
+/** 获取当前页面路径（带前导斜杠；无页面时返回 '/'） */
+export function getCurrentPagePath(): string {
+	const pages = getCurrentPagesSafe()
+	if (pages.length === 0) {
+		return '/'
+	}
+	return '/' + pages[pages.length - 1].route
+}
+
+/** 获取当前页面 onLoad 接收的 query 参数对象 */
+export function getCurrentPageQuery(): Map<string, string> {
+	const result = new Map<string, string>()
+	const pages = getCurrentPagesSafe()
+	if (pages.length === 0) {
+		return result
+	}
+	const options = pages[pages.length - 1].options
+	if (options) {
+		for (const key in options) {
+			if (Object.prototype.hasOwnProperty.call(options, key)) {
+				result.set(key, options[key])
+			}
+		}
+	}
+	return result
+}

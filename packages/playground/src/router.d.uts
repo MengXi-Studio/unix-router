@@ -1,0 +1,17 @@
+/**
+ * 路由名称类型增强：将从 RouteNameMap 填充路由名称，获得按名导航的类型提示。
+ */
+import type { RouteNameMap } from '@meng-xi/unix-router'
+
+declare module '@meng-xi/unix-router' {
+	interface RouteNameMap {
+		index: void
+		about: void
+		test: void
+		guards: void
+		login: void
+		navigation: void
+		params: void
+		notFound: void
+	}
+}

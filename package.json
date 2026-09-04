@@ -1,0 +1,24 @@
+{
+	"name": "unix-router",
+	"type": "module",
+	"version": "0.1.0",
+	"private": false,
+	"description": "为 uni-app x 提供类似 vue-router 风格的路由库（monorepo）。",
+	"packageManager": "pnpm@10.31.0",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"dev:playground:h5": "pnpm --filter @meng-xi/unix-router-playground dev:h5",
+		"dev:playground:mp-weixin": "pnpm --filter @meng-xi/unix-router-playground dev:mp-weixin",
+		"build:playground:h5": "pnpm --filter @meng-xi/unix-router-playground build:h5",
+		"build:playground:mp-weixin": "pnpm --filter @meng-xi/unix-router-playground build:mp-weixin",
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"clean": "rimraf --glob node_modules packages/**/node_modules packages/**/dist packages/**/unpackage"
+	},
+	"devDependencies": {
+		"prettier": "^3.8.1",
+		"rimraf": "^6.1.0",
+		"typescript": "^5.9.3"
+	}
+}

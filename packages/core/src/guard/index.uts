@@ -1,0 +1,43 @@
+/**
+ * 守卫管理器实现
+ */
+import type { NavigationGuard, PostNavigationGuard, RouteConfig, RouteLocation } from '../types'
+import { runGuardQueue, runBeforeEnterGuards, runAfterGuards } from './helpers/run'
+import type { GuardManager, GuardResult } from './type'
+
+/**
+ * 创建守卫管理器，维护 beforeEach / beforeResolve / afterEach 队列并暴露执行方法
+ */
+export function createGuardManager(): GuardManager {
+	const beforeEachGuards: NavigationGuard[] = []
+	const beforeResolveGuards: NavigationGuard[] = []
+	const afterGuards: PostNavigationGuard[] = []
+
+	function register(list: NavigationGuard[], guard: NavigationGuard): () => void {
+		list.push(guard)
+		return () => {
+			const index = list.indexOf(guard)
+			if (index > -1) {
+				list.splice(index, 1)
+			}
+		}
+	}
+
+	return {
+		beforeEach: guard => register(beforeEachGuards, guard),
+		beforeResolve: guard => register(beforeResolveGuards, guard),
+		afterEach: (guard: PostNavigationGuard) => {
+			afterGuards.push(guard)
+			return () => {
+				const index = afterGuards.indexOf(guard)
+				if (index > -1) {
+					afterGuards.splice(index, 1)
+				}
+			}
+		},
+		runBeforeEach: (to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult> => runGuardQueue(beforeEachGuards, to, from, timeout),
+		runBeforeResolve: (to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult> => runGuardQueue(beforeResolveGuards, to, from, timeout),
+		runAfter: (to: RouteLocation, from: RouteLocation, failure?: Error | null): void => runAfterGuards(afterGuards, to, from, failure),
+		runBeforeEnter: (config: RouteConfig, to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult> => runBeforeEnterGuards(config, to, from, timeout)
+	}
+}

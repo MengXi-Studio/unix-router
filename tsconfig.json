@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"noUnusedLocals": true,
+		"resolveJsonModule": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["packages/core/src/*"]
+		},
+		"types": ["@dcloudio/types"]
+	},
+	"include": [
+		"packages/**/*.ts",
+		"packages/**/*.d.ts"
+	],
+	"exclude": ["node_modules", "packages/**/dist", "packages/**/unpackage"]
+}

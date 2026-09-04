@@ -1,0 +1,4 @@
+export { useRouter } from './router'
+export { useRoute } from './route'
+export { useLink } from './link'
+export { onBeforeRouteLeave, onBeforeRouteEnter, onBeforeRouteUpdate } from './guard/route-guards'

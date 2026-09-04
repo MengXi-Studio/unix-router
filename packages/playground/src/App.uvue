@@ -1,0 +1,25 @@
+<script lang="uts">
+import { router } from './router'
+
+/**
+ * 根组件：应用启动后等待路由器就绪，并对冷启动直达的页面补执行守卫链。
+ * 若守卫将已加载的 requireAuth 页面拦截，会重定向到登录页。
+ */
+export default {
+	onLaunch() {
+		router.isReady().then(() => {
+			router.guardRoute(undefined, {
+				onAbort: failure => {
+					console.warn('[App][guardRoute] 冷启动守卫中止: ' + failure.message)
+				}
+			})
+		})
+	}
+}
+</script>
+
+<style>
+page {
+	background-color: #f7f8fa;
+}
+</style>

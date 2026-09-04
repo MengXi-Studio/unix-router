@@ -1,0 +1,16 @@
+{
+	"name": "@meng-xi/unix-router-playground",
+	"version": "0.1.0",
+	"private": true,
+	"description": "unix-router（uni-app x 路由库）测试与演示工程。基于 uni-app x，页面为 .uvue。",
+	"scripts": {
+		"dev:h5": "uni",
+		"dev:mp-weixin": "uni -p mp-weixin",
+		"build:h5": "uni build",
+		"build:mp-weixin": "uni build -p mp-weixin"
+	},
+	"dependencies": {
+		"@meng-xi/unix-router": "workspace:*",
+		"vue": "^3.4.0"
+	}
+}

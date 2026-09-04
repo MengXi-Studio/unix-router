@@ -1,0 +1,106 @@
+<template>
+	<view class="page">
+		<text class="title">unix-router 示例</text>
+		<text class="desc">当前路由：{{ route.fullPath }}</text>
+
+		<view class="group">
+			<text class="group-title">编程式导航</text>
+			<button class="btn" type="primary" @click="goRich">push + 参数</button>
+			<button class="btn" type="warn" @click="goNonexistent">push 未注册路径（演示 404）</button>
+			<button class="btn" @click="goTabAbout">switchTab 到「关于」</button>
+			<button class="btn" @click="doReplace">replace 到「导航方式」</button>
+			<button class="btn" @click="doRelaunch">relaunch 到「关于」</button>
+		</view>
+
+		<view class="group">
+			<text class="group-title">守卫示例</text>
+			<button class="btn" type="primary" @click="goGuards">进入受保护页面（需登录）</button>
+		</view>
+
+		<view class="group">
+			<text class="group-title">组件导航</text>
+			<RouterLink to="/pages/about/about">
+				<view class="link-box">RouterLink → 关于</view>
+			</RouterLink>
+			<RouterLink to="/pages/params/params?from=index">
+				<view class="link-box">RouterLink + query → 参数页</view>
+			</RouterLink>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { useRouter, useRoute } from '@meng-xi/unix-router'
+
+const router = useRouter()
+const route = useRoute()
+
+const goRich = () => {
+	router.push({
+		name: 'params',
+		query: new Map([['keyword', 'hello']]),
+		params: new Map([['from', '首页'], ['id', '42']])
+	})
+}
+const goNonexistent = async () => {
+	try {
+		await router.push('/pages/not-exist/not-exist')
+	} catch (e) {
+		// 未注册路径由严格模式抛错；此处捕获展示
+		console.warn('[index] push 未注册路径失败: ' + (e as Error).message)
+		uni.showToast({ title: '路径未注册解析失败', icon: 'none' })
+	}
+}
+const goTabAbout = () => {
+	router.push('/pages/about/about')
+}
+const doReplace = () => {
+	router.replace('/pages/navigation/navigation')
+}
+const doRelaunch = () => {
+	router.relaunch('/pages/about/about')
+}
+const goGuards = () => {
+	router.push('/pages/guards/guards')
+}
+</script>
+
+<style scoped>
+.page {
+	padding: 24rpx;
+	flex-direction: column;
+}
+.title {
+	font-size: 40rpx;
+	font-weight: bold;
+	color: #333333;
+}
+.desc {
+	margin-top: 12rpx;
+	font-size: 24rpx;
+	color: #888888;
+}
+.group {
+	margin-top: 32rpx;
+	background-color: #ffffff;
+	border-radius: 16rpx;
+	padding: 24rpx;
+}
+.group-title {
+	font-size: 28rpx;
+	font-weight: 600;
+	color: #007aff;
+	margin-bottom: 16rpx;
+}
+.btn {
+	margin-top: 16rpx;
+}
+.link-box {
+	margin-top: 16rpx;
+	padding: 20rpx;
+	background-color: #f0f4ff;
+	border-radius: 12rpx;
+	color: #007aff;
+	text-align: center;
+}
+</style>

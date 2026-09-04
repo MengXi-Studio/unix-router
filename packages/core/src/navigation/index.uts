@@ -1,0 +1,48 @@
+/**
+ * 导航分发器
+ *
+ * 根据目标是否为 tabBar 页面（meta.isTab）在 uni.* 各导航 API 间分发：
+ * - push(normal) → uni.navigateTo；push(tab) → uni.switchTab
+ * - replace(normal) → uni.redirectTo；replace(tab) → uni.switchTab
+ * - relaunch(normal) → uni.reLaunch；relaunch(tab) → uni.switchTab
+ * - back → uni.navigateBack
+ */
+import type { UniNavigationOptions } from './type'
+import { uniNavigateTo, uniSwitchTab, uniRedirectTo, uniReLaunch, uniNavigateBack } from './helpers/uni-api'
+
+/**
+ * 执行前进导航（push）
+ */
+export function navigateTo(options: UniNavigationOptions): Promise<void> {
+	if (options.isTab) {
+		return uniSwitchTab(options.path)
+	}
+	return uniNavigateTo(options.path, options.query)
+}
+
+/**
+ * 执行替换导航（replace）
+ */
+export function replaceTo(options: UniNavigationOptions): Promise<void> {
+	if (options.isTab) {
+		return uniSwitchTab(options.path)
+	}
+	return uniRedirectTo(options.path, options.query)
+}
+
+/**
+ * 执行重启动导航（relaunch）
+ */
+export function relaunchTo(options: UniNavigationOptions): Promise<void> {
+	if (options.isTab) {
+		return uniSwitchTab(options.path)
+	}
+	return uniReLaunch(options.path, options.query)
+}
+
+/**
+ * 执行返回导航（back）
+ */
+export function goBack(delta: number): Promise<void> {
+	return uniNavigateBack(delta)
+}

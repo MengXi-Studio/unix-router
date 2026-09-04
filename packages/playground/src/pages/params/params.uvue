@@ -1,0 +1,68 @@
+<template>
+	<view class="page">
+		<text class="title">参数与查询</text>
+		<text class="desc">展示通过 query（URL）与 params（对象参数）传递的数据。</text>
+		<view class="card">
+			<text class="card-title">query（来自 URL / onLoad options）</text>
+			<text class="line">keyword = {{ queryKeyword }}</text>
+			<text class="line">from = {{ queryFrom }}</text>
+			<text class="line">raw: {{ route.fullPath }}</text>
+		</view>
+		<view class="card">
+			<text class="card-title">params（对象参数，经查询编码传递）</text>
+			<text class="line">from = {{ paramFrom }}</text>
+			<text class="line">id = {{ paramId }}</text>
+		</view>
+		<button class="btn" @click="goBack">返回</button>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { computed } from 'vue'
+import { useRouter, useRoute } from '@meng-xi/unix-router'
+
+const router = useRouter()
+const route = useRoute()
+
+const queryKeyword = computed(() => route.value.query.get('keyword') ?? '')
+const queryFrom = computed(() => route.value.query.get('from') ?? '')
+const paramFrom = computed(() => route.value.params.get('from') ?? '')
+const paramId = computed(() => route.value.params.get('id') ?? '')
+const goBack = () => router.back()
+</script>
+
+<style scoped>
+.page {
+	padding: 24rpx;
+	flex-direction: column;
+}
+.title {
+	font-size: 40rpx;
+	font-weight: bold;
+	color: #333333;
+}
+.desc {
+	margin-top: 12rpx;
+	font-size: 24rpx;
+	color: #666666;
+}
+.card {
+	margin-top: 24rpx;
+	background-color: #ffffff;
+	border-radius: 16rpx;
+	padding: 24rpx;
+}
+.card-title {
+	font-size: 26rpx;
+	font-weight: 600;
+	color: #007aff;
+}
+.line {
+	margin-top: 12rpx;
+	font-size: 26rpx;
+	color: #333333;
+}
+.btn {
+	margin-top: 32rpx;
+}
+</style>

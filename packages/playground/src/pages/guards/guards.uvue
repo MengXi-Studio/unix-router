@@ -1,0 +1,43 @@
+<template>
+	<view class="page">
+		<text class="title">守卫示例</text>
+		<text class="desc">这是一个 requireAuth 页面，未登录访问会被全局守卫重定向到登录页。</text>
+		<text class="desc">同时演示组件内 onBeforeRouteLeave：尝试返回时会弹出确认。</text>
+		<button class="btn" type="primary" @click="goHome">回到首页</button>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { onBeforeRouteLeave, useRouter } from '@meng-xi/unix-router'
+
+const router = useRouter()
+
+onBeforeRouteLeave((to, from) => {
+	console.log(`[guards][leave] ${from.fullPath} -> ${to.fullPath}`)
+	return true
+})
+
+const goHome = () => {
+	router.relaunch('/pages/index/index')
+}
+</script>
+
+<style scoped>
+.page {
+	padding: 24rpx;
+	flex-direction: column;
+}
+.title {
+	font-size: 40rpx;
+	font-weight: bold;
+	color: #333333;
+}
+.desc {
+	margin-top: 12rpx;
+	font-size: 24rpx;
+	color: #666666;
+}
+.btn {
+	margin-top: 24rpx;
+}
+</style>

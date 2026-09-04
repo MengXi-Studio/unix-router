@@ -1,0 +1,64 @@
+/**
+ * 路由配置表（须与 pages.json 保持一致）
+ *
+ * 由最终可引入程序的配置导出，供 createRouter 使用。
+ */
+import type { RouteConfig } from '@meng-xi/unix-router'
+
+/** 演示缓存登录态：requireAuth 路由据此决定是否拦截 */
+export const authStore = {
+	/** 是否已登录 */
+	loggedIn: false,
+	/** 执行登录 */
+	login() {
+		this.loggedIn = true
+	},
+	/** 退出登录 */
+	logout() {
+		this.loggedIn = false
+	}
+}
+
+/** 路由表：path 与 pages.json 一一对应 */
+export const routes: RouteConfig[] = [
+	{
+		path: 'pages/index/index',
+		name: 'index',
+		meta: { title: '首页', isTab: true }
+	},
+	{
+		path: 'pages/about/about',
+		name: 'about',
+		meta: { title: '关于', isTab: true }
+	},
+	{
+		path: 'pages/test/test',
+		name: 'test',
+		meta: { title: '功能自检', isTab: true }
+	},
+	{
+		path: 'pages/guards/guards',
+		name: 'guards',
+		meta: { title: '守卫示例', requireAuth: true }
+	},
+	{
+		path: 'pages/login/login',
+		name: 'login',
+		meta: { title: '登录' }
+	},
+	{
+		path: 'pages/navigation/navigation',
+		name: 'navigation',
+		meta: { title: '导航方式' }
+	},
+	{
+		path: 'pages/params/params',
+		name: 'params',
+		meta: { title: '参数与查询' }
+	},
+	{
+		path: 'pages/not-found/not-found',
+		name: 'notFound',
+		meta: { title: '未找到', requireAuth: false }
+	}
+]
