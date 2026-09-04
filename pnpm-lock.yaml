@@ -50,15 +50,6 @@ importers:
         specifier: ^3.5.0
         version: 3.5.42(typescript@5.9.3)
 
-  packages/playground:
-    dependencies:
-      '@meng-xi/unix-router':
-        specifier: workspace:*
-        version: link:../core
-      vue:
-        specifier: ^3.4.0
-        version: 3.5.42(typescript@5.9.3)
-
 packages:
 
   '@algolia/abtesting@1.23.0':
