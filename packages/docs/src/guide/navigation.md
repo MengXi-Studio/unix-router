@@ -28,7 +28,7 @@ router.push({ path: '/pages/about/about', params: new Map([['from', '首页']]) 
 
 ## params（对象参数）
 
-uni-app x 静态页面模型不支持路径参数，unix-router 将 `params` 经**查询编码**（`__p_` 保留前缀）在页面 URL 间传递，目标页 `route.params` 可读取：
+uni-app x 静态页面模型不支持路径参数，unix-router 将 `params` 经**查询编码**（`__unixr_p_` 保留前缀）在页面 URL 间传递，目标页 `route.params` 可读取：
 
 ```ts
 router.push({ path: '/pages/params/params', params: new Map([['id', '42']]) })

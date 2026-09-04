@@ -38,7 +38,7 @@ Pages must first be registered in `pages.json`; at runtime, `addRoute` cannot co
 
 ### 3. How params Are Implemented
 
-The native platform doesn't support path parameters (the path is the page path). unix-router passes `params` between page URLs through **query encoding** (reserved `__p_` prefix), and the target page can read them from `route.params`. Therefore:
+The native platform doesn't support path parameters (the path is the page path). unix-router passes `params` between page URLs through **query encoding** (reserved `__unixr_p_` prefix), and the target page can read them from `route.params`. Therefore:
 - params are shaped like `Map<string,string>` (string values).
 - params appear in the URL query in an encoded form (keys are not exposed in plaintext).
 

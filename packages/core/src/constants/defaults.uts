@@ -6,3 +6,6 @@ export const DEFAULT_GUARD_TIMEOUT: number = 10000
 
 /** 路由器就绪超时（毫秒）：0 表示永不超时（默认） */
 export const DEFAULT_READY_TIMEOUT: number = 0
+
+/** 导航 API 受理后的页面栈确认超时（毫秒）：等待目标页真实进入栈顶的时限 */
+export const DEFAULT_NAV_VERIFY_TIMEOUT: number = 500

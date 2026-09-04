@@ -40,7 +40,7 @@ uni-app x 无浏览器 URL；"历史"由原生页面栈（`getCurrentPages`）�
 ### 3. params 的实现
 
 原生不支持路径参数（路径即页面路径）。unix-router 将 `params` 经**查询编码**
-（`__p_` 保留前缀）在页面 URL 间传递，目标页 `route.params` 可读取。因此：
+（`__unixr_p_` 保留前缀）在页面 URL 间传递，目标页 `route.params` 可读取。因此：
 - params 形如 `Map<string,string>`（字符串值）。
 - params 会以编码形式出现在 URL 查询中（不暴露明文键名）。
 

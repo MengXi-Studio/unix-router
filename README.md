@@ -84,7 +84,7 @@ router.push({ name: 'guards', query: new Map([['a','1']]), params: new Map([['fr
 | 命名视图 / `RouterView` | 不支持（无页内渲染占位） |
 | `scrollBehavior` | 不支持（滚动由 uni-app 原生管理） |
 | `go(n)` / hash 路由 | 语义受限；`back(delta)` 对应 `uni.navigateBack` |
-| `route.params` 对象参数 | 通过"查询编码"在页面 URL 间传递（`__p_` 前缀保留键） |
+| `route.params` 对象参数 | 通过"查询编码"在页面 URL 间传递（`__unixr_p_` 前缀保留键） |
 | `onBeforeRouteEnter/Update` | 静态页模型下触发受限（页面每次导航新建实例） |
 
 ## 脚本

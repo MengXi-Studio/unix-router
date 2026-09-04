@@ -57,3 +57,31 @@ export function getCurrentPageQuery(): Map<string, string> {
 	}
 	return result
 }
+
+/** 短暂休眠（用于栈顶轮询），毫秒 */
+function sleep(ms: number): Promise<void> {
+	return new Promise<void>(resolve => {
+		setTimeout(() => resolve(), ms)
+	})
+}
+
+/**
+ * 轮询等待指定页面路径成为页面栈顶，用于确认导航目标已真实入栈。
+ * uni api 的 success 仅代表跳转被受理，不代表目标页已入栈；此函数以页面栈为唯一真实来源。
+ * @param targetPath - 目标页规范化路径（如 /pages/index/index）
+ * @param timeout - 总等待时限（毫秒）
+ * @param interval - 轮询间隔（毫秒，默认 50）
+ * @returns 时限内确认到栈顶为 true，否则 false
+ */
+export async function waitForTopPage(targetPath: string, timeout: number, interval: number = 50): Promise<boolean> {
+	const deadline = Date.now() + timeout
+	while (true) {
+		if (getCurrentPagePath() === targetPath) {
+			return true
+		}
+		if (Date.now() >= deadline) {
+			return false
+		}
+		await sleep(interval)
+	}
+}

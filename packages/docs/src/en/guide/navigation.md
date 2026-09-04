@@ -28,7 +28,7 @@ router.push({ path: '/pages/about/about', params: new Map([['from', 'Home']]) })
 
 ## params (Object Parameters)
 
-uni-app x's static page model does not support path parameters, so unix-router passes `params` between page URLs through **query encoding** (with the reserved `__p_` prefix). The target page can read them from `route.params`:
+uni-app x's static page model does not support path parameters, so unix-router passes `params` between page URLs through **query encoding** (with the reserved `__unixr_p_` prefix). The target page can read them from `route.params`:
 
 ```ts
 router.push({ path: '/pages/params/params', params: new Map([['id', '42']]) })
