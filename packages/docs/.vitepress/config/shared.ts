@@ -17,7 +17,9 @@ export const sharedConfig = defineConfig({
 		theme: {
 			dark: 'one-dark-pro',
 			light: 'github-light'
-		}
+		},
+		/** UTS 是 TypeScript 的超集，按 TypeScript 高亮 */
+		languageAlias: { uts: 'typescript' }
 	},
 
 	/** 网站头标签 */

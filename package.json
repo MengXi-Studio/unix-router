@@ -9,6 +9,8 @@
 		"packages/*"
 	],
 	"scripts": {
+		"dev:docs": "pnpm --filter @meng-xi/unix-router-docs dev",
+		"build:docs": "pnpm --filter @meng-xi/unix-router-docs build",
 		"dev:playground:h5": "pnpm --filter @meng-xi/unix-router-playground dev:h5",
 		"dev:playground:mp-weixin": "pnpm --filter @meng-xi/unix-router-playground dev:mp-weixin",
 		"build:playground:h5": "pnpm --filter @meng-xi/unix-router-playground build:h5",
