@@ -15,7 +15,7 @@ export const router: Router = createRouter({
 })
 
 // 全局前置守卫：未登录访问 requireAuth 页面时重定向到登录页
-router.beforeEach((to, from) => {
+router.beforeEach((to, _from) => {
 	if (to.meta && to.meta.requireAuth && !authStore.loggedIn) {
 		return {
 			name: 'login',
@@ -26,8 +26,8 @@ router.beforeEach((to, from) => {
 })
 
 // 全局后置守卫：打印导航日志
-router.afterEach((to, from) => {
-	console.log(`[unix-router][afterEach] ${from.fullPath} -> ${to.fullPath}`)
+router.afterEach((to, _from) => {
+	console.log(`[unix-router][afterEach] ${to.fullPath}`)
 })
 
 // 错误处理：重复导航等信息以警告形式输出，便于调试

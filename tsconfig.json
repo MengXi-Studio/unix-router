@@ -13,12 +13,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["packages/core/src/*"]
-		},
-		"types": ["@dcloudio/types"]
+		}
 	},
-	"include": [
-		"packages/**/*.ts",
-		"packages/**/*.d.ts"
-	],
+	"include": ["packages/**/*.ts", "packages/**/*.d.ts"],
 	"exclude": ["node_modules", "packages/**/dist", "packages/**/unpackage"]
 }
