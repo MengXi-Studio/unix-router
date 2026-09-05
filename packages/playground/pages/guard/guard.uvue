@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="uts">
-import { useRouter } from '@/uni_modules/unix-router/utssdk/index.uts'
+import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 import { isLoggedIn } from '../../router.uts'
 
 const router = useRouter()

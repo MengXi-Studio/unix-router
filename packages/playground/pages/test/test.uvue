@@ -27,7 +27,7 @@ import {
 	NavigationFailure,
 	RouterError,
 	RouterErrorCode
-} from '@/uni_modules/unix-router/utssdk/index.uts'
+} from '@/uni_modules/ux-router/utssdk/index.uts'
 
 type Case = {
 	name: string

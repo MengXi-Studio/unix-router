@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="uts">
-import { useRoute, useRouter } from '@/uni_modules/unix-router/utssdk/index.uts'
+import { useRoute, useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 const route = useRoute()
 const router = useRouter()

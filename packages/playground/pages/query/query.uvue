@@ -29,7 +29,7 @@
 </template>
 
 <script lang="uts">
-import { useRouter, useRoute } from '@/uni_modules/unix-router/utssdk/index.uts'
+import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 export default {
 	data() {

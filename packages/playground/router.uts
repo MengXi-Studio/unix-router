@@ -1,6 +1,6 @@
 // 路由配置（unix-router 演示）
-// 通过 uni_modules/unix-router/utssdk 引入自包含的 core 源码
-import { createRouter } from '@/uni_modules/unix-router/utssdk/index.uts'
+// 通过 uni_modules/ux-router/utssdk 引入自包含的 core 源码
+import { createRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 // 简单的登录态（配合守卫演示；仅为示例，非真实鉴权）
 let loggedIn: boolean = false

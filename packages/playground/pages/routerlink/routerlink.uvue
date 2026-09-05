@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="uts">
-import { useLink } from '@/uni_modules/unix-router/utssdk/index.uts'
+import { useLink } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 // 目标为详情页的链接
 const link = useLink({ to: '/pages/detail/detail' })
