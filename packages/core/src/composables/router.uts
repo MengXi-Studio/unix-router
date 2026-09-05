@@ -14,12 +14,12 @@ import { activeGlobalRouter } from '../store'
  * @throws 当既未注入也未被全局安装时抛出
  */
 export function useRouter(): Router {
-	const injected = inject<Router>(ROUTER_SYMBOL, null)
-	if (injected) {
+	const injected = inject<Router | null>(ROUTER_SYMBOL, null)
+	if (injected !== null) {
 		return injected
 	}
 	const global = activeGlobalRouter()
-	if (global) {
+	if (global !== null) {
 		return global
 	}
 	throw new Error('未找到路由器实例，请稍 app.use(router) 并确保在组件 setup 或含 provide 上下文中调用 useRouter()')

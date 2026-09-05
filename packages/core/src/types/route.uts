@@ -18,9 +18,9 @@ export type RoutePath = string
 /**
  * 路由元信息
  *
- * 内置常见字段，用户可通过对该接口做模块增强（declare module）扩展自定义 meta。
+ * 内置常见字段。UTS 不支持接口声明合并，自定义 meta 请直接在此处追加字段。
  */
-export interface RouteMeta {
+export type RouteMeta = {
 	/** 页面标题 */
 	title?: string
 	/** 是否为 tabBar 页面（决定使用 switchTab 导航） */
@@ -38,7 +38,7 @@ export type NavigationRedirectMode = 'push' | 'replace' | 'relaunch'
 /**
  * 原始路由位置对象（push/replace 的目标描述）
  */
-export interface RawLocation {
+export type RawLocation = {
 	/** 目标路径（优先级高于 name） */
 	path?: string
 	/** 命名路由名 */
@@ -55,7 +55,7 @@ export interface RawLocation {
 export type RouteLocationRaw = string | RawLocation
 
 /** 命名路由输入（只允许 name 形式的对象） */
-export interface RouteLocationNamedRaw {
+export type RouteLocationNamedRaw = {
 	name: string
 	query?: Map<string, string>
 	params?: ParamObject
@@ -63,7 +63,7 @@ export interface RouteLocationNamedRaw {
 }
 
 /** 路径式路由输入（只允许 path 形式的对象） */
-export interface RouteLocationPathRaw {
+export type RouteLocationPathRaw = {
 	path: string
 	query?: Map<string, string>
 	params?: ParamObject
@@ -71,7 +71,7 @@ export interface RouteLocationPathRaw {
 }
 
 /** 导航重定向指令（守卫返回此对象以重定向到其他路由） */
-export interface NavigationRedirect {
+export type NavigationRedirect = {
 	/** 重定向目标位置 */
 	location: RouteLocationRaw
 	/** 重定向导航方式，默认沿用原始导航方式或 relaunch */
@@ -82,11 +82,11 @@ export interface NavigationRedirect {
  * 已解析并规范化的路由位置
  * 对应 vue-router 中 useRoute() / currentRoute 返回的对象
  */
-export interface RouteLocation {
+export type RouteLocation = {
 	/** 页面路径（带前导斜杠，如 /pages/index/index） */
 	path: string
-	/** 命名路由名 */
-	name?: string
+	/** 命名路由名（未命名时为 null） */
+	name: string | null
 	/** 路由元信息 */
 	meta: RouteMeta
 	/** 查询参数 */
@@ -102,7 +102,7 @@ export interface RouteLocation {
 }
 
 /** 路由配置记录（uni-app x 中 path 须与 pages.json 注册一致） */
-export interface RouteConfig {
+export type RouteConfig = {
 	/** 页面路径（与 pages.json 一致，如 pages/index/index） */
 	path: string
 	/** 命名路由名（用于按名导航） */
@@ -126,16 +126,15 @@ export interface RouteNameMap {}
 /* -------------------------------------------------------------------------- */
 
 /** 守卫返回的对象位置形式 */
-export interface RawLocationLike {
+export type RawLocationLike = {
 	path?: string
 	name?: string
 	query?: Map<string, string>
 	params?: Map<string, string>
 }
 
-/** 守卫返回结果类型 */
+/** 守卫返回结果类型（null 表示放行；不留 undefined，符合 UTS 可空语义） */
 export type NavigationGuardReturn =
-	| void
 	| boolean
 	| string
 	| RawLocationLike

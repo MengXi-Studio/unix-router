@@ -6,6 +6,8 @@ import type { RouteLocation } from '../types'
 import { warn } from '../utils'
 import type { RouteChangeListener, RouteState } from './type'
 
+export type { RouteState } from './type'
+
 /**
  * 创建路由状态管理器
  * @param readyTimeout - 就绪超时（毫秒，0 表示永不超时）
@@ -15,7 +17,7 @@ export function createRouteState(readyTimeout: number = 0): RouteState {
 	// 起始路由：路径 '/' 的空位置。uni-app x 页面栈通常非空，首次导航/同步前置为占位。
 	const initial: RouteLocation = {
 		path: '/',
-		name: undefined,
+		name: null,
 		meta: {},
 		query: new Map(),
 		params: new Map(),

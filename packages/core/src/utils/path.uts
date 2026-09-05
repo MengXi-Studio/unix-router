@@ -103,13 +103,14 @@ export function parseUrl(full: string): ParsedUrl {
 }
 
 /**
- * 安全 decodeURIComponent，解码失败时原样返回
+ * 安全 decodeURIComponent，解码失败或返回空时原样返回
  * @param value - 待解码字符串
  * @returns 解码结果
  */
 export function decodeURIComponentSafe(value: string): string {
 	try {
-		return decodeURIComponent(value)
+		const decoded = decodeURIComponent(value)
+		return decoded !== null && decoded !== undefined ? decoded : value
 	} catch (e) {
 		return value
 	}

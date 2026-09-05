@@ -11,7 +11,7 @@ import type { RouteLocation } from '../types'
 export type RouteChangeListener = (to: RouteLocation, from: RouteLocation) => void
 
 /** 路由状态管理器接口 */
-export interface RouteState {
+export type RouteState = {
 	/** 当前路由位置（响应式） */
 	readonly currentRoute: Ref<RouteLocation>
 	/** 设置当前路由位置（触发 route change 通知） */

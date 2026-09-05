@@ -2,12 +2,12 @@
  * 守卫返回结果解析
  *
  * 将守卫函数返回值转换为统一的 GuardResult：
- * - null / undefined / true → next（继续）
+ * - null / true → next（继续）
  * - false → abort（ABORTED）
  * - Error → abort（CANCELLED）
  * - string / 对象位置 / NavigationRedirect → redirect
  */
-import type { NavigationGuardReturn, RawLocationLike, NavigationRedirect, NavigationRedirectMode, RouteLocation } from '../../types'
+import type { NavigationGuardReturn, RawLocationLike, NavigationRedirect, NavigationRedirectMode, RouteLocation, RouteLocationRaw } from '../../types'
 import { RouterErrorCode } from '../../enums'
 import type { GuardResult } from '../type'
 
@@ -18,7 +18,7 @@ import type { GuardResult } from '../type'
  * @returns 解析后的守卫结果
  */
 export function resolveGuardReturn(value: NavigationGuardReturn, to: RouteLocation): GuardResult {
-	if (value === undefined || value === null || value === true) {
+	if (value === null || value === true) {
 		return next()
 	}
 	if (value === false) {
@@ -28,30 +28,37 @@ export function resolveGuardReturn(value: NavigationGuardReturn, to: RouteLocati
 		return abort(RouterErrorCode.CANCELLED, value)
 	}
 	if (typeof value === 'string') {
-		return redirect(value, undefined)
+		return redirect(value, null)
 	}
-	if (isRedirectObject(value)) {
-		return redirect(value.location, value.mode)
+	if (typeof value === 'object' && isRedirectObject(value)) {
+		const nav = value as NavigationRedirect
+		return redirect(nav.location, nav.mode ?? null)
 	}
 	// 普通对象位置
 	const raw = value as RawLocationLike
-	return redirect(raw, undefined)
+	return redirect(raw as RouteLocationRaw, null)
 }
 
-/** 判断是否为拖带模式的对象 */
+/** 判断是否为重定向对象（依据是否携带 location 字段） */
 function isRedirectObject(value: object): boolean {
 	const obj = value as NavigationRedirect
-	return obj !== null && 'location' in obj && (obj.mode === 'push' || obj.mode === 'replace' || obj.mode === 'relaunch' || obj.mode === undefined)
+	return obj !== null && 'location' in obj
 }
 
 export function next(): GuardResult {
 	return { kind: 'next' }
 }
 
-export function abort(code: RouterErrorCode, error?: Error): GuardResult {
-	return { kind: 'abort', code, error }
+export function abort(code: RouterErrorCode, error: Error | null = null): GuardResult {
+	if (error !== null) {
+		return { kind: 'abort', code, error }
+	}
+	return { kind: 'abort', code }
 }
 
-export function redirect(location: object | string, mode: NavigationRedirectMode | undefined): GuardResult {
-	return { kind: 'redirect', redirect: location as never, mode }
+export function redirect(location: RouteLocationRaw, mode: NavigationRedirectMode | null): GuardResult {
+	if (mode !== null) {
+		return { kind: 'redirect', redirect: location, mode }
+	}
+	return { kind: 'redirect', redirect: location }
 }

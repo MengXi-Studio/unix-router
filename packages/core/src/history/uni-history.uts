@@ -16,9 +16,7 @@ export class UniHistory {
 		this.matcher = matcher
 	}
 
-	/**
-	 * 获取当前页原始信息（页面栈顶）
-	 */
+	/** 获取当前页原始信息（页面栈顶） */
 	currentStack(): { path: string; query: Map<string, string> } {
 		const pages = getCurrentPagesSafe()
 		if (pages.length === 0) {
@@ -28,7 +26,7 @@ export class UniHistory {
 		const path = '/' + page.route
 		const query = new Map<string, string>()
 		const options = page.options
-		if (options) {
+		if (options !== undefined && options !== null) {
 			for (const key in options) {
 				if (Object.prototype.hasOwnProperty.call(options, key)) {
 					query.set(key, options[key])

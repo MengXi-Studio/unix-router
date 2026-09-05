@@ -54,7 +54,7 @@ export async function runGuardQueue(guards: NavigationGuard[], to: RouteLocation
  */
 export async function runBeforeEnterGuards(config: RouteConfig, to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult> {
 	const beforeEnter = config.beforeEnter
-	if (!beforeEnter) {
+	if (beforeEnter === null || beforeEnter === undefined) {
 		return { kind: 'next' }
 	}
 	const list: NavigationGuard[] = Array.isArray(beforeEnter) ? beforeEnter : [beforeEnter]
@@ -64,7 +64,7 @@ export async function runBeforeEnterGuards(config: RouteConfig, to: RouteLocatio
 /**
  * 触发全部后置守卫（不参与导航流程控制），异常被隔离
  */
-export function runAfterGuards(guards: PostNavigationGuard[], to: RouteLocation, from: RouteLocation, failure?: Error | null): void {
+export function runAfterGuards(guards: PostNavigationGuard[], to: RouteLocation, from: RouteLocation, failure: Error | null = null): void {
 	for (var i = 0; i < guards.length; i++) {
 		try {
 			guards[i](to, from, failure)

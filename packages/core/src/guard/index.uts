@@ -5,6 +5,8 @@ import type { NavigationGuard, PostNavigationGuard, RouteConfig, RouteLocation }
 import { runGuardQueue, runBeforeEnterGuards, runAfterGuards } from './helpers/run'
 import type { GuardManager, GuardResult } from './type'
 
+export type { GuardManager, GuardResult } from './type'
+
 /**
  * 创建守卫管理器，维护 beforeEach / beforeResolve / afterEach 队列并暴露执行方法
  */

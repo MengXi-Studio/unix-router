@@ -31,9 +31,10 @@ export function getPlatform(): PlatformInfo {
 	}
 	const info = new PlatformInfo()
 	try {
-		const appBase = uni.getAppBaseInfo() as Map<string, unknown>
-		const platform = appBase.get('uniPlatform') as string
-		info.uniPlatform = platform ? platform : 'web'
+		// uni.getAppBaseInfo() 返回 GetAppBaseInfoResult 对象，uniPlatform 为对象字段（非 Map）
+		const appBase = uni.getAppBaseInfo()
+		const platform: string | null = appBase.uniPlatform === undefined ? null : appBase.uniPlatform
+		info.uniPlatform = platform !== null && platform.length > 0 ? platform : 'web'
 		info.isApp = platform === 'app'
 		info.isH5 = platform === 'web'
 		info.isMpWeixin = platform === 'mp-weixin'

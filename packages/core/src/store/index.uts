@@ -4,14 +4,14 @@
  * 供组合式 API（useRoute / useRouter）在非 provide/inject 作用下或跨页读取
  * 当前活跃路由与路由器。单路由应用下足够；如多实例请依赖 provide/inject。
  */
-import { shallowRef, type Ref } from 'vue'
+import { reactive } from 'vue'
 import type { RouteLocation, Router } from '../types'
 
 /** 空路由（占位） */
 function emptyRoute(): RouteLocation {
 	return {
 		path: '/',
-		name: undefined,
+		name: null,
 		meta: {},
 		query: new Map(),
 		params: new Map(),
@@ -21,17 +21,27 @@ function emptyRoute(): RouteLocation {
 	}
 }
 
-/** 全局响应式当前路由 */
-export const currentRoute: Ref<RouteLocation> = shallowRef<RouteLocation>(emptyRoute())
+/**
+ * 全局响应式当前路由（reactive 对象，脚本/模板中可直接访问字段）
+ * uni-app x 官方推荐用全局 reactive 变量做跨页响应式状态
+ */
+export const currentRoute: RouteLocation = reactive<RouteLocation>(emptyRoute())
 
 /** 全局活跃路由器 */
 let globalRouter: Router | null = null
 
 /**
- * 更新全局当前路由
+ * 更新全局当前路由（按字段更新以保持 reactive 对象的响应性）
  */
 export function setGlobalCurrentRoute(to: RouteLocation): void {
-	currentRoute.value = to
+	currentRoute.path = to.path
+	currentRoute.name = to.name
+	currentRoute.meta = to.meta
+	currentRoute.query = to.query
+	currentRoute.params = to.params
+	currentRoute.fullPath = to.fullPath
+	currentRoute.hash = to.hash
+	currentRoute.matched = to.matched
 }
 
 /**

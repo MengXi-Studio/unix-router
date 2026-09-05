@@ -15,17 +15,17 @@ export function warn(message: string): void {
 }
 
 /** 判断值是否为非 null 的对象 */
-export function isObject(value: unknown): boolean {
+export function isObject(value: any): boolean {
 	return value !== null && typeof value === 'object'
 }
 
 /** 判断是否为字符串 */
-export function isString(value: unknown): boolean {
+export function isString(value: any): boolean {
 	return typeof value === 'string'
 }
 
 /** 判断是否为 Error 实例 */
-export function isError(value: unknown): boolean {
+export function isError(value: any): boolean {
 	return value instanceof Error
 }
 

@@ -36,9 +36,9 @@ class UniRouter implements Router {
 	private strict: boolean
 
 	constructor(options: RouterOptions) {
-		this.strict = options.strict !== undefined ? options.strict : true
-		this.guardTimeout = options.guardTimeout !== undefined ? options.guardTimeout : DEFAULT_GUARD_TIMEOUT
-		this.readyTimeout = options.readyTimeout !== undefined ? options.readyTimeout : DEFAULT_READY_TIMEOUT
+		this.strict = options.strict === null || options.strict === undefined ? true : options.strict
+		this.guardTimeout = options.guardTimeout === null || options.guardTimeout === undefined ? DEFAULT_GUARD_TIMEOUT : options.guardTimeout
+		this.readyTimeout = options.readyTimeout === null || options.readyTimeout === undefined ? DEFAULT_READY_TIMEOUT : options.readyTimeout
 		this.guardManager = createGuardManager()
 		this.matcher = createRouteMatcher(options.routes, this.strict)
 		this.routeState = createRouteState(this.readyTimeout)
@@ -314,11 +314,11 @@ class UniRouter implements Router {
 	 */
 	private async handleGuardResult(result: GuardResult, to: RouteLocation, from: RouteLocation, mode: NavigationMode, redirectDepth: number = 0): Promise<NavigationResult | null> {
 		if (result.kind === 'abort') {
-			const message = result.code === RouterErrorCode.CANCELLED && result.error ? `导航取消: ${result.error.message}` : '导航被中止'
+			const message = result.code === RouterErrorCode.CANCELLED && result.error !== null && result.error !== undefined ? `导航取消: ${result.error.message}` : '导航被中止'
 			const failure = new NavigationFailure(result.code ?? RouterErrorCode.CANCELLED, message, to, from)
 			return this.failNavigation(to, from, failure)
 		}
-		if (result.kind === 'redirect' && result.redirect) {
+		if (result.kind === 'redirect' && result.redirect !== null && result.redirect !== undefined) {
 			const redirectMode: NavigationMode = result.mode === 'replace' ? 'replace' : result.mode === 'push' ? 'push' : mode
 			const redirectTarget = this.matcher.resolve(result.redirect)
 			return this.executeNavigation(redirectTarget, from, redirectMode, redirectDepth + 1)

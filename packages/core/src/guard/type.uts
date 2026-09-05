@@ -8,7 +8,7 @@ import { RouterErrorCode } from '../enums'
 export type GuardResultKind = 'next' | 'abort' | 'redirect'
 
 /** 守卫执行结果 */
-export interface GuardResult {
+export type GuardResult = {
 	kind: GuardResultKind
 	/** 中止时的错误码 */
 	code?: RouterErrorCode
@@ -21,7 +21,7 @@ export interface GuardResult {
 }
 
 /** 守卫管理器实例 */
-export interface GuardManager {
+export type GuardManager = {
 	/** 注册全局前置守卫，返回取消函数 */
 	beforeEach(guard: NavigationGuard): () => void
 	/** 注册全局解析守卫，返回取消函数 */

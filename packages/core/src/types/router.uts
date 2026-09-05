@@ -9,13 +9,13 @@ import type { NavigationGuard, PostNavigationGuard } from './guard'
 export type RouterOnError = (error: Error, to: RouteLocation, from: RouteLocation) => void
 
 /** guardRoute 方法的选项 */
-export interface GuardRouteOptions {
+export type GuardRouteOptions = {
 	/** 守卫中止时的回调（冷启动场景页面已加载，无法真正阻止，可在此跳转到安全页） */
 	onAbort?: (failure: Error) => void
 }
 
 /** 路由器初始化选项 */
-export interface RouterOptions {
+export type RouterOptions = {
 	/** 路由配置列表，须与 pages.json 中的页面声明保持一致 */
 	routes: RouteConfig[]
 	/** 是否启用严格模式，启用后未匹配的命名路由将抛出异常（默认 true） */

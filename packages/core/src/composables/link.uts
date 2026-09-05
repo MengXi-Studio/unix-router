@@ -33,14 +33,14 @@ export function useLink(options: UseLinkOptions): UseLinkReturn {
 	})
 
 	/** 执行导航函数 */
-	const navigate = async (): Promise<void | RouteLocation> => {
-		if (options.relaunch) {
+	const navigate = async (): Promise<RouteLocation | null> => {
+		if (options.relaunch === true) {
 			await router.relaunch(options.to)
-			return
+			return null
 		}
-		if (options.replace) {
+		if (options.replace === true) {
 			await router.replace(options.to)
-			return
+			return null
 		}
 		return router.push(options.to)
 	}

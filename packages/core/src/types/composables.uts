@@ -5,7 +5,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { RouteLocation, RouteLocationRaw } from './route'
 
 /** useLink 选项 */
-export interface UseLinkOptions {
+export type UseLinkOptions = {
 	/** 目标路由位置 */
 	to: RouteLocationRaw
 	/** 是否使用替换导航（replace）而非 push */
@@ -15,7 +15,7 @@ export interface UseLinkOptions {
 }
 
 /** useLink 返回值 */
-export interface UseLinkReturn {
+export type UseLinkReturn = {
 	/** 返回的目标路由位置 */
 	route: ComputedRef<RouteLocation>
 	/** 是否为当前激活路由（路径前缀匹配） */
@@ -25,5 +25,5 @@ export interface UseLinkReturn {
 	/** 响应式目标 href（等于 route.fullPath） */
 	href: ComputedRef<string>
 	/** 执行导航的函数 */
-	navigate: () => Promise<void | RouteLocation>
+	navigate: () => Promise<RouteLocation | null>
 }

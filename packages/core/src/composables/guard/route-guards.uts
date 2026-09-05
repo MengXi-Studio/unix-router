@@ -23,7 +23,7 @@ export function onBeforeRouteLeave(guard: BeforeRouteLeaveGuard): void {
 		if (from.path !== currentPath) {
 			return true
 		}
-		return guard(to, from) as never
+		return guard(to, from)
 	})
 }
 
@@ -38,7 +38,7 @@ export function onBeforeRouteEnter(guard: BeforeRouteEnterGuard): void {
 		if (to.path !== path) {
 			return true
 		}
-		return guard(to, from) as never
+		return guard(to, from)
 	})
 }
 
@@ -53,6 +53,6 @@ export function onBeforeRouteUpdate(guard: BeforeRouteUpdateGuard): void {
 		if (to.path !== path || from.path !== path) {
 			return true
 		}
-		return guard(to, from) as never
+		return guard(to, from)
 	})
 }
