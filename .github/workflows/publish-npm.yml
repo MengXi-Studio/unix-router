@@ -54,19 +54,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile # 严格按 lockfile 安装，确保依赖一致性
 
-      # 步骤5：构建 @meng-xi/vite-plugin 核心包
-      - name: Build core package
-        run: pnpm run build:core # 执行构建脚本
+      # 步骤5：校验核心包源码（UTS 源分发包，无需构建 dist）
+      - name: Typecheck core package
+        working-directory: packages/core
+        run: pnpm run typecheck # 仅做静态类型校验
 
-      # 步骤6：验证构建产物是否存在
-      - name: Verify build output
-        run: |
-          if [ ! -d "packages/core/dist" ]; then # 检查 dist 目录是否存在
-            echo "::error::Build output not found: packages/core/dist" # 输出 GitHub Actions 错误注解
-            exit 1 # 以非零状态退出，标记步骤失败
-          fi
-
-      # 步骤7：检查版本号是否与 npm 已发布版本重复
+      # 步骤6：检查版本号是否与 npm 已发布版本重复
       - name: Check version
         if: ${{ !inputs.skip_publish }} # 仅在不跳过发布时执行
         id: version # 步骤 ID，后续步骤通过 steps.version.outputs 引用输出
@@ -77,7 +70,7 @@ jobs:
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
           # 查询 npm 注册表中已发布的最新版本，查询失败则返回 "none"
-          PUBLISHED_VERSION=$(npm view @meng-xi/uni-router version --registry ${{ env.NPM_REGISTRY }} 2>/dev/null || echo "none")
+          PUBLISHED_VERSION=$(npm view @meng-xi/unix-router version --registry ${{ env.NPM_REGISTRY }} 2>/dev/null || echo "none")
           # 将已发布版本号写入步骤输出
           echo "published_version=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
 
@@ -88,7 +81,7 @@ jobs:
             echo "should_publish=true" >> $GITHUB_OUTPUT # 版本不存在，执行发布
           fi
 
-      # 步骤8：发布到 npm（OIDC 受信任发布者 + Provenance 签名）
+      # 步骤7：发布到 npm（OIDC 受信任发布者 + Provenance 签名）
       - name: Publish to npm
         if: ${{ !inputs.skip_publish && steps.version.outputs.should_publish == 'true' }} # 不跳过且版本未发布时执行
         env:
@@ -97,13 +90,13 @@ jobs:
         run: npm publish --provenance --access public --tag "$DIST_TAG" # --provenance 附加 Sigstore 签名，--access public 公开访问，--tag 指定 npm dist-tag
         working-directory: packages/core # 在核心包目录下执行
 
-      # 步骤9：发布成功摘要，写入 GitHub Actions Summary 页面
+      # 步骤8：发布成功摘要，写入 GitHub Actions Summary 页面
       - name: Publish summary
         if: ${{ !inputs.skip_publish && steps.version.outputs.should_publish == 'true' }} # 发布成功时执行
         env:
           DIST_TAG: ${{ github.ref_name == 'v1' && 'v1-lts' || 'latest' }}
         run: |
-          echo "## 📦 Published @meng-xi/uni-router@${{ steps.version.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY # 标题
+          echo "## 📦 Published @meng-xi/unix-router@${{ steps.version.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY # 标题
           echo "" >> $GITHUB_STEP_SUMMARY # 空行
           echo "- **Version**: \`${{ steps.version.outputs.current_version }}\`" >> $GITHUB_STEP_SUMMARY # 版本号
           echo "- **Dist Tag**: \`$DIST_TAG\`" >> $GITHUB_STEP_SUMMARY # npm dist-tag
@@ -112,7 +105,7 @@ jobs:
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY # 关联的 commit SHA
           echo "- **Environment**: \`uni-router\`" >> $GITHUB_STEP_SUMMARY # 关联的 GitHub Environment
 
-      # 步骤10：跳过发布摘要，写入 GitHub Actions Summary 页面
+      # 步骤9：跳过发布摘要，写入 GitHub Actions Summary 页面
       - name: Skip publish summary
         if: ${{ inputs.skip_publish || steps.version.outputs.should_publish != 'true' }} # 跳过发布时执行
         run: |
@@ -120,5 +113,7 @@ jobs:
           if [ "${{ inputs.skip_publish }}" = "true" ]; then # 判断跳过原因
             echo "- Reason: skip_publish enabled" >> $GITHUB_STEP_SUMMARY # 手动跳过
           else
-            echo "- Reason: version ${{ steps.version.outputs.current_version }} already published" >> $GITHUB_STEP_SUMMARY # 版本已存在
+            # 从 package.json 读取当前版本（version 步骤可能被跳过，避免依赖其输出）
+            CURRENT=$(node -p "require('./packages/core/package.json').version")
+            echo "- Reason: version $CURRENT already published" >> $GITHUB_STEP_SUMMARY # 版本已存在
           fi
