@@ -1,8 +1,5 @@
 # ux-router
 
-[![license](https://img.shields.io/github/license/MengXi-Studio/unix-router.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-router?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-router)
-![npm](https://img.shields.io/npm/dt/@meng-xi/unix-router?color=green)
-
 为 **uni-app x** 提供的、API 对标 **vue-router 4** 的路由管理库。以 **UTS** 源码（`.uts`）形式随 uni_modules 分发，由 uni-app x 编译链按平台现场编译（Web / 小程序 → JS，Android → Kotlin，iOS → Swift），无需预编译。
 
 ## 简介
@@ -214,18 +211,6 @@ const flag  = useRoute().queryBool('vip', false) // 便捷解析布尔
 - iOS（VDOM）：编译为 Swift
 - 底层仅依赖 `uni.*` 原生导航 API（`navigateTo / redirectTo / reLaunch / navigateBack / switchTab`）
 - 物理返回键 / TabBar 切换不经过路由器，通过 `syncRoute()` 在 `onShow` 自动对齐
-
-## 文档
-
-📖 从**入门到精通**的完整文档（🟢 入门 → 🟡 进阶 → 🔴 精通）：
-
-**[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
-
-阅读建议：先看[介绍与学习路径](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/introduction.md)，再按[快速开始](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/getting-started.md) → [路由配置](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/route-config.md) → [路由导航](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/navigation.md) 的顺序上手，进阶看[守卫](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/guards.md)，最后用[完整实战](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/recipes.md)收尾。
-
-## 更新日志
-
-📝 **[https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/changelog.md](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/changelog.md)**
 
 ## License
 
