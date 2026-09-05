@@ -1,6 +1,8 @@
-# 实战指南
+# 完整实战
 
 本章汇集真实业务场景的常见方案，均可直接用于项目。结合 unix-router 特性与 uni-app x 的限制提供最佳实践。
+
+> **先看完整可运行版**：仓库 [`packages/playground`](https://github.com/MengXi-Studio/unix-router/tree/master/packages/playground) 是集成了「首页入口 + query/params 传参 + 登录守卫 + useLink + 功能自检」的完整 uni-app x 工程，可直接对照本文各节验证。
 
 ## 登录认证
 
@@ -65,9 +67,8 @@ onLoginSuccess(async () => {
 通过扩展 `RouteMeta` 与守卫实现基于角色的访问控制。
 
 ```ts
-// types/router.d.ts
+// types/router.d.ts（仅对 TS / 编辑器生效）
 import '@meng-xi/unix-router'
-
 declare module '@meng-xi/unix-router' {
 	interface RouteMeta {
 		roles?: string[]
@@ -86,8 +87,11 @@ router.beforeEach((to, from) => {
 		uni.showToast({ title: '无权访问', icon: 'none' })
 		return { name: 'home' }
 	}
+	return true
 })
 ```
+
+> ⚠️ **UTS 限制**：上述 `declare module` 增强仅对 TS/编辑器补全有效；uni-app x 原生端不支持接口声明合并。若字段需在 App 原生编译期可用，请直接在类型声明处扩展，见[路由元信息](./meta#自定义-meta-字段)。
 
 ## 表单离开确认
 

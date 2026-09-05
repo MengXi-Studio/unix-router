@@ -60,3 +60,38 @@ An `Error` thrown by a guard cancels the navigation (`CANCELLED`) and triggers `
 - Guard **aborts/cancels**: `afterEach(to, from, failure)` and each `onError` callback are invoked.
 - Native API **call fails**: `currentRoute` rolls back to the source route, and error handling is triggered.
 - **Duplicate navigation**: only throws `DUPLICATED`, without extra logic outside `onError` (can be ignored as needed).
+
+## Practical Handling Strategy
+
+Navigation failures fall into roughly three categories with different goals:
+
+| Scenario | Code | How to handle |
+| --- | --- | --- |
+| Duplicate navigation | `DUPLICATED` | Ignore (already on the target page) |
+| Guard aborted | `ABORTED` / `CANCELLED` | Stay silent or prompt "action cancelled"; the guard already handled the redirect, don't navigate again |
+| Real error | `ROUTE_NOT_FOUND` / `NAVIGATION_API_ERROR` etc. | Report + prompt the user |
+
+**Recommended** — wrap `push` in try/catch, branch by code, and let the rest reach `onError`:
+
+```ts
+async function safePush(location: RouteLocationRaw) {
+	try {
+		await router.push(location)
+		return true
+	} catch (e) {
+		const failure = e as NavigationFailure
+		if (isNavigationFailure(failure, RouterErrorCode.DUPLICATED)) {
+			return false          // already on the target page, not a failure
+		}
+		if (isNavigationFailure(failure, RouterErrorCode.ABORTED)) {
+			return false          // guard proactively aborted; expected
+		}
+		console.error('navigation failed', (e as Error).message)
+		return false
+	}
+}
+```
+
+**Universal fallback**: register all unexpected failures centrally in `onError` (analytics / logging) to avoid repeating it at every call site.
+
+> Tip: in `try/catch`, `catch (e)` is `unknown`/`Error` in UTS; read it via `(e as Error).message` or narrow with `(e as NavigationFailure)`.

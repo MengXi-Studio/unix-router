@@ -61,3 +61,37 @@ uni-app x 的物理返回键、tab 切换等**不经过路由器**。`install` �
 用户直接进入页面（H5 URL / 场景值 / deeplink）时页面已加载，守卫未执行。
 `guardRoute()` 对当前路由补跑守卫链：放行即返回；重定向则跳转；
 中止则触发 `onAbort`，可转跳安全页。
+
+## 你的代码分别在哪一步执行
+
+| 你的代码 | 在哪一步 |
+| --- | --- |
+| `matcher.resolve` 的解析逻辑 | 决定 `to`（你的 `routes` 配置） |
+| `beforeEach` | 全局前置（排队后、解析后、重复检测后） |
+| `beforeEnter` | 路由独享前置（beforeEach 之后） |
+| `beforeResolve` | 真正导航前的最后一道闸 |
+| `uni.*` 原生导航 | 内部调度（根据 `meta.isTab` 分发） |
+| `afterEach` / `onRouteChange` | 导航记账完成后 |
+| `syncRoute` | 页面 `onShow`，从页面栈重建 `currentRoute` |
+
+## 调度代码速览（对应内部实现）
+
+一次 `push` 大致经历（伪代码级）：
+
+```
+push(location)
+  → 若存在 pendingNavigation，等待其完成（并发排队）
+  → matcher.resolve(location)             // 产出 to
+  → push 到相同地址?  → 抛 DUPLICATED
+  → runBeforeEach(to, from)               // 全局前置
+  → runBeforeEnter(config, to, from)      // 路由独享
+  → runBeforeResolve(to, from)            // 全局解析
+  → navigateTo / switchTab / ...          // 真正导航
+  → 更新 currentRoute + runAfter(to, from) // 记账 + 后置
+```
+
+要点：
+
+- 进入真正的 `uni.*` 导航前，`to` 已经过全部守卫确认。
+- 任一守卫返回非"放行"都会提前返回（`abort` / `redirect`），不会触达原生导航。
+- `afterEach` 在`currentRoute` 更新后触发，`onRouteChange` 监听也在此收到通知。

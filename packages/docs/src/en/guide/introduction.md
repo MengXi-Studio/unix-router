@@ -1,23 +1,43 @@
 # Introduction
 
-`@meng-xi/unix-router` is a routing management library for **uni-app x**. Its API style fully mirrors **vue-router 4**, but it builds on uni-app x's **static page model** (`.uvue` pages + `pages.json` registration + `uni.*` native navigation).
+`@meng-xi/unix-router` is a routing library for **uni-app x**, with an API style that mirrors **vue-router 4**. It is built on uni-app x's **static page model** (`.uvue` pages + `pages.json` registration + `uni.*` native navigation) and written in **UTS** (`.uts`).
 
-## Why Do You Need It
+## Why You Need It
 
-uni-app x natively provides `uni.navigateTo / redirectTo / reLaunch / navigateBack / switchTab`, but once your pages grow, using these APIs directly has clear pain points:
+uni-app x natively provides `uni.navigateTo / redirectTo / reLaunch / navigateBack / switchTab`. As pages grow, using these directly has obvious pain points:
 
-- **No route table**: page paths are scattered around with no centralized management; there are no named routes or type hints.
-- **No guards**: you cannot run unified login checks, analytics, or other logic before navigation.
-- **No route state**: there is no unified reactive `currentRoute` object, making it hard to track the current page in the Composition API.
-- **Cumbersome parameter passing**: object-type parameters are hard to pass between pages, and query parsing has to be handwritten.
+- **No route table**: page paths are scattered with no centralized management and no named routes or type hints.
+- **No guards**: you cannot run login checks or analytics before navigation.
+- **No route state**: there is no unified reactive `currentRoute`, making it hard to track the current page in the Composition API.
+- **Cumbersome parameter passing**: object parameters are hard to pass across pages, and query parsing has to be handwritten.
 
-unix-router smooths over these differences with an API set that matches vue-router.
+unix-router smooths over these differences with an API set consistent with vue-router.
 
-## Core Capabilities at a Glance
+## Who Is It For
+
+- **Migrating from uni-app (Vue 3) to uni-app x**: get familiar quickly with a routing style you already know.
+- **Pages have grown and need centralized navigation & auth**: a route table plus guards make the flow clear and controllable.
+- **You want consistent routing behavior across web / Mini Program / App**: one API spans all platforms.
+
+## How This Guide Takes You from Beginner to Master
+
+The docs are organized progressively. Read them in order:
+
+| Stage | Topics | What you'll master |
+| --- | --- | --- |
+| 🟢 **Beginner** | [Quick Start](./getting-started) → [Route Configuration](./route-config) → [Navigation](./navigation) | Run your first navigation from scratch; understand the route table, four navigation modes, and parameter passing |
+| 🟢 **Beginner** | [Reading the route](../api/use-route) / [Composables](./composables) | `useRouter` / `useRoute` / `useLink` and their lifecycle interaction |
+| 🟡 **Intermediate** | [Route Guards](./guards) → [Route Meta](./meta) | Login auth, `beforeEnter`, cold-start guards, dynamic titles |
+| 🟡 **Intermediate** | [Error Handling](./error-handling) → [Navigation Flow](./navigation-flow) | Failure detection, global error capture, understanding the internals of a navigation |
+| 🔴 **Master** | [Recipes](./recipes) → [Platform Compatibility](./compatibility) | Build a complete login + TabBar + detail app with one pattern; master platform differences and common pitfalls |
+
+> **Tip**: the [`packages/playground`](https://github.com/MengXi-Studio/unix-router/tree/master/packages/playground) in the repo is a runnable uni-app x project that includes a `pages/test` self-check page (programmatic PASS/FAIL output). Use it to verify alongside the docs.
+
+## Capabilities at a Glance
 
 | Capability | Description |
 | --- | --- |
-| Route matching | `path` / `name` dual index, string / object / named three resolution modes, strict mode |
+| Route matching | `path` / `name` dual index, string / object / named resolution, strict mode |
 | Navigation | push / replace / relaunch / back, auto-detects TabBar |
 | Guards | beforeEach / beforeResolve / afterEach / beforeEnter / onBeforeRouteLeave, etc. |
 | Composition API | useRouter / useRoute / useLink |
@@ -26,5 +46,5 @@ unix-router smooths over these differences with an API set that matches vue-rout
 
 ## Next Steps
 
-- Want to use it right away? Go to [Installation](./installation) or [Getting Started](./getting-started).
+- Want to start right away? Go to [Installation](./installation) or [Quick Start](./getting-started).
 - Want to understand the design trade-offs? See [Differences from vue-router](./differences).

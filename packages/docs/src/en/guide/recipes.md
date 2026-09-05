@@ -2,6 +2,8 @@
 
 This chapter collects common solutions for real business scenarios, all of which can be used directly in your projects. It combines unix-router's features with uni-app x's limitations to provide best practices.
 
+> **See the full runnable version first**: the repo's [`packages/playground`](https://github.com/MengXi-Studio/unix-router/tree/master/packages/playground) is a complete uni-app x project integrating "home entry + query/params passing + login guard + useLink + self-check", ready to verify against each section here.
+
 ## Login Authentication
 
 Redirect unauthenticated users to the login page when they visit a protected page, and return to the original page after login.
@@ -86,8 +88,11 @@ router.beforeEach((to, from) => {
 		uni.showToast({ title: 'No access', icon: 'none' })
 		return { name: 'home' }
 	}
+	return true
 })
 ```
+
+> ⚠️ **UTS limitation**: the `declare module` augmentation above only works for TS/editor autocomplete; uni-app x native does not support interface declaration merging. If a field must be usable at App native compile time, extend the type declaration directly (see [Route Meta](./meta#custom-meta-fields)).
 
 ## Leaving a Form Confirmation
 

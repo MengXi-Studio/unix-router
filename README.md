@@ -137,7 +137,11 @@ route.query.get('id') // '1'
 
 ## 文档
 
-📖 **[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+📖 从**入门到精通**的完整文档（🟢 入门 → 🟡 进阶 → 🔴 精通）：
+
+**[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+
+阅读建议：先看[介绍与学习路径](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/introduction.md)，再按[快速开始](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/getting-started.md) → [路由配置](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/route-config.md) → [路由导航](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/navigation.md) 的顺序上手，进阶看[守卫](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/guards.md)，最后用[完整实战](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/recipes.md)收尾。
 
 ## 更新日志
 

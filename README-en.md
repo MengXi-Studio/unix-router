@@ -137,7 +137,11 @@ Common options of `createRouter`:
 
 ## Documentation
 
-📖 **[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+📖 Complete docs from **beginner to master** (🟢 Beginner → 🟡 Intermediate → 🔴 Master):
+
+**[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+
+Reading guide: start with the [Introduction & learning path](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/en/guide/introduction.md), then follow [Quick Start](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/en/guide/getting-started.md) → [Route Configuration](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/en/guide/route-config.md) → [Navigation](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/en/guide/navigation.md); go deeper with [Guards](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/en/guide/guards.md), and finish with [Recipes](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/en/guide/recipes.md).
 
 ## Changelog
 

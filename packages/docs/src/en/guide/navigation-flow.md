@@ -56,3 +56,37 @@ uni-app x's physical back button, tab switches, and so on do **not pass through 
 ## Cold Start guardRoute
 
 When a user enters a page directly (H5 URL / scene value / deeplink), the page is already loaded and the guards haven't run. `guardRoute()` re-runs the guard chain for the current route: if allowed it returns; if redirected it navigates; if aborted it triggers `onAbort`, which can redirect to a safe page.
+
+## Where Your Code Runs
+
+| Your code | Step |
+| --- | --- |
+| `matcher.resolve` resolution | determines `to` (your `routes` config) |
+| `beforeEach` | global before (after queueing, resolution, duplicate check) |
+| `beforeEnter` | route-local before (after `beforeEach`) |
+| `beforeResolve` | the last gate before the real navigation |
+| `uni.*` native navigation | internal scheduling (dispatched by `meta.isTab`) |
+| `afterEach` / `onRouteChange` | after the navigation is committed |
+| `syncRoute` | page `onShow`, rebuilds `currentRoute` from the page stack |
+
+## Internal Scheduling at a Glance
+
+A simple `push` roughly undergoes (pseudo-code):
+
+```
+push(location)
+  → if there is a pendingNavigation, wait for it (concurrent queueing)
+  → matcher.resolve(location)                 // produce to
+  → push to the same address?  → throw DUPLICATED
+  → runBeforeEach(to, from)                   // global before
+  → runBeforeEnter(config, to, from)          // route-local
+  → runBeforeResolve(to, from)                // global resolve
+  → navigateTo / switchTab / ...              // the real navigation
+  → update currentRoute + runAfter(to, from)  // commit + after
+```
+
+Key points:
+
+- Before any real `uni.*` navigation, `to` has passed all guards.
+- Any guard returning a non-"continue" result returns early (`abort` / `redirect`) and never reaches the native navigation.
+- `afterEach` fires after `currentRoute` is updated; `onRouteChange` listeners are notified here too.

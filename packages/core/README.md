@@ -1,15 +1,15 @@
 **中文** | [English](./README-en.md)
 
 <div align="center">
-	<a href="https://github.com/MengXi-Studio/unix-router">
-		<img alt="梦曦工作室 Logo" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/logo.png">
-	</a>
-	<a href="https://github.com/MengXi-Studio/unix-router">
-		<img alt="微信公众号 二维码" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/QR_code.jpg">
-	</a>
-	<br>
-	<h1>@meng-xi/unix-router</h1>
-	<p>为 uni-app x 提供类似 vue-router 风格的路由管理系统（UTS 编写，双模式兼容）</p>
+  <a href="https://github.com/MengXi-Studio/unix-router">
+    <img alt="梦曦工作室 Logo" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/logo.png">
+  </a>
+  <a href="https://github.com/MengXi-Studio/unix-router">
+    <img alt="微信公众号 二维码" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/QR_code.jpg">
+  </a>
+  <br>
+  <h1>@meng-xi/unix-router</h1>
+  <p>为 uni-app x 提供类似 vue-router 风格的路由管理系统（UTS 编写，双模式兼容）</p>
 
 [![license](https://img.shields.io/github/license/MengXi-Studio/unix-router.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-router?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-router)
 ![npm](https://img.shields.io/npm/dt/@meng-xi/unix-router?color=green)
@@ -47,8 +47,8 @@ import { createRouter } from '@meng-xi/unix-router'
 import type { RouteConfig } from '@meng-xi/unix-router'
 
 export const routes: RouteConfig[] = [
-	{ path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
-	{ path: 'pages/about/about', name: 'about', meta: { title: '关于', requireAuth: true } }
+  { path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
+  { path: 'pages/about/about', name: 'about', meta: { title: '关于', requireAuth: true } }
 ]
 
 export const router = createRouter({ routes, strict: true })
@@ -59,9 +59,9 @@ import App from './App.uvue'
 import { router } from './router'
 
 export function createApp() {
-	const app = createSSRApp(App)
-	app.use(router) // 注入全局 mixin，onShow 时自动 syncRoute()
-	return { app }
+  const app = createSSRApp(App)
+  app.use(router) // 注入全局 mixin，onShow 时自动 syncRoute()
+  return { app }
 }
 ```
 
@@ -85,26 +85,26 @@ await router.back(2)     // 返回两级
 
 ```typescript
 router.beforeEach((to, from) => {
-	if (to.meta.requireAuth && !isLoggedIn()) {
-		return { name: 'login' } // 重定向
-	}
-	return true // null / true 表示放行
+  if (to.meta.requireAuth && !isLoggedIn()) {
+    return { name: 'login' } // 重定向
+  }
+  return true // null / true 表示放行
 })
 
 // 组件内离开守卫
 import { onBeforeRouteLeave } from '@meng-xi/unix-router'
 
 onBeforeRouteLeave((to, from) => {
-	if (hasUnsavedChanges) {
-		return false // 中止导航
-	}
+  if (hasUnsavedChanges) {
+    return false // 中止导航
+  }
 })
 
 // 冷启动守卫（guardRoute）：H5 直达 / 场景值 / deeplink 页面补执行守卫链
 router.isReady().then(() => {
-	router.guardRoute(undefined, {
-		onAbort: () => router.relaunch('/pages/index/index')
-	})
+  router.guardRoute(undefined, {
+    onAbort: () => router.relaunch('/pages/index/index')
+  })
 })
 ```
 
@@ -137,7 +137,11 @@ route.query.get('id') // '1'
 
 ## 文档
 
-📖 **[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+📖 从**入门到精通**的完整文档（🟢 入门 → 🟡 进阶 → 🔴 精通）：
+
+**[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+
+阅读建议：先看[介绍与学习路径](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/introduction.md)，再按[快速开始](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/getting-started.md) → [路由配置](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/route-config.md) → [路由导航](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/navigation.md) 的顺序上手，进阶看[守卫](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/guards.md)，最后用[完整实战](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/recipes.md)收尾。
 
 ## 更新日志
 

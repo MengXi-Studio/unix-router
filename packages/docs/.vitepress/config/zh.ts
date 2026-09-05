@@ -58,9 +58,9 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					items: [
 						{ text: '路由配置', link: '/guide/route-config' },
 						{ text: '路由导航', link: '/guide/navigation' },
-						{ text: '路由守卫', link: '/guide/guards' },
+						{ text: '组合式 API', link: '/guide/composables' },
 						{ text: '路由元信息', link: '/guide/meta' },
-						{ text: '组合式 API', link: '/guide/composables' }
+						{ text: '路由守卫', link: '/guide/guards' }
 					]
 				},
 				{
@@ -71,11 +71,11 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				},
 				{
-					text: '进阶',
+					text: '精通',
 					items: [
+						{ text: '完整实战', link: '/guide/recipes' },
 						{ text: '平台兼容性', link: '/guide/compatibility' },
 						{ text: '与 vue-router 的差异', link: '/guide/differences' },
-						{ text: '实战指南', link: '/guide/recipes' },
 						{ text: '常见问题', link: '/guide/faq' }
 					]
 				}

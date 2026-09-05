@@ -57,9 +57,9 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					items: [
 						{ text: 'Route Configuration', link: '/en/guide/route-config' },
 						{ text: 'Navigation', link: '/en/guide/navigation' },
-						{ text: 'Route Guards', link: '/en/guide/guards' },
+						{ text: 'Composables', link: '/en/guide/composables' },
 						{ text: 'Route Meta', link: '/en/guide/meta' },
-						{ text: 'Composables', link: '/en/guide/composables' }
+						{ text: 'Route Guards', link: '/en/guide/guards' }
 					]
 				},
 				{
@@ -70,11 +70,11 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				},
 				{
-					text: 'Advanced',
+					text: 'Mastery',
 					items: [
+						{ text: 'Recipes', link: '/en/guide/recipes' },
 						{ text: 'Platform Compatibility', link: '/en/guide/compatibility' },
 						{ text: 'Differences from vue-router', link: '/en/guide/differences' },
-						{ text: 'Recipes', link: '/en/guide/recipes' },
 						{ text: 'FAQ', link: '/en/guide/faq' }
 					]
 				}
