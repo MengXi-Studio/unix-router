@@ -9,7 +9,7 @@
  */
 import type { RouteConfig, RouteLocation, RouteLocationNamedRaw, RouteLocationPathRaw, RouteLocationRaw, RouteMeta } from '../types'
 import { RouterErrorCode } from '../enums'
-import { RouterError } from '../errors'
+import { RouterError } from '../errors/router-error'
 import { buildFullPath, normalizePath, parseQuery, isObject, warn, extractParamsFromQuery } from '../utils'
 import type { RouteMatcher } from './type'
 

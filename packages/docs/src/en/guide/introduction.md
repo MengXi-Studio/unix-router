@@ -21,13 +21,8 @@ unix-router smooths over these differences with an API set that matches vue-rout
 | Navigation | push / replace / relaunch / back, auto-detects TabBar |
 | Guards | beforeEach / beforeResolve / afterEach / beforeEnter / onBeforeRouteLeave, etc. |
 | Composition API | useRouter / useRoute / useLink |
-| Components | RouterLink (declarative navigation based on useLink) |
 | Error system | RouterError / NavigationFailure / isNavigationFailure |
 | Extensions | guardRoute cold-start guard, duplicate-navigation interception, guard redirect + depth limit |
-
-## Relationship with uni-router
-
-This project's **monorepo structure references** [uni-router](https://github.com/MengXi-Studio/uni-router), but the target platform is changed to **uni-app x**, the core language is **UTS** (`.uts`), and it **only replicates the features of vue-router 4**, without including uni-router's own plugins/interceptors and other extensions.
 
 ## Next Steps
 

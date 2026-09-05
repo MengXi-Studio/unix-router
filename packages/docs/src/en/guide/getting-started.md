@@ -64,7 +64,7 @@ router.beforeEach((to, from) => {
 })
 ```
 
-That's it. You can now call `router.push('/pages/about/about')` or use `<RouterLink to="...">` in any `.uvue` page.
+That's it. You can now call `router.push('/pages/about/about')` in any `.uvue` page.
 
 ## Complete Example
 

@@ -25,7 +25,7 @@ hero:
 features:
   - icon: 🧭
     title: 路由导航
-    details: push / replace / relaunch / back 四种导航，自动识别 TabBar（switchTab），声明式 RouterLink
+    details: push / replace / relaunch / back 四种导航，自动识别 TabBar（switchTab），useLink 声明式导航
   - icon: 🛡️
     title: 路由守卫
     details: 全局前置/解析/后置守卫 + 路由独享 beforeEnter + 组件内守卫，guardRoute 冷启动补执行，重定向与深度上限保护

@@ -80,12 +80,6 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				}
 			],
-			'/component/': [
-				{
-					text: '导航组件',
-					items: [{ text: 'RouterLink', link: '/component/router-link' }]
-				}
-			],
 			'/api/': [
 				{
 					text: '核心 API',

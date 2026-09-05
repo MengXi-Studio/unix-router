@@ -3,7 +3,6 @@
 为 **uni-app x** 提供的、**功能对标 vue-router 4**（基于 .uvue 与 .uts / UTS 源分发）的路由库。
 
 - 技术根基：[uni-app x](https://doc.dcloud.net.cn/uni-app-x/)
-- 架构参考：[uni-router](https://github.com/MengXi-Studio/uni-router)（仅参考其 monorepo 设计）
 - 核心语言：**UTS**（`.uts`），VDOM 模式 → Kotlin/Swift 原生，蒸汽模式 / Web / 小程序 → JS，双模式兼容。
 
 ## monorepo 结构
@@ -15,7 +14,7 @@
 
 ## 核心定位
 
-- **功能基准 = vue-router 4**：`createRouter`、路由匹配（path/name/query/params）、全部守卫（`beforeEach`/`beforeResolve`/`afterEach`/`beforeEnter`/组件内 `onBeforeRouteLeave` 等）、编程式导航（`push`/`replace`/`relaunch`/`back`）、`useRouter`/`useRoute`/`useLink`、`RouterLink` 组件、错误体系（`NavigationFailure`/`isNavigationFailure`）、`currentRoute` 响应式、`isReady`/`onError`/`onRouteChange`、`resolve`/`getRoutes`/`hasRoute`、`guardRoute`（冷启动守卫）、`strict` 严格模式、守卫重定向 + 深度上限、重复导航拦截。
+- **功能基准 = vue-router 4**：`createRouter`、路由匹配（path/name/query/params）、全部守卫（`beforeEach`/`beforeResolve`/`afterEach`/`beforeEnter`/组件内 `onBeforeRouteLeave` 等）、编程式导航（`push`/`replace`/`relaunch`/`back`）、`useRouter`/`useRoute`/`useLink`、错误体系（`NavigationFailure`/`isNavigationFailure`）、`currentRoute` 响应式、`isReady`/`onError`/`onRouteChange`、`resolve`/`getRoutes`/`hasRoute`、`guardRoute`（冷启动守卫）、`strict` 严格模式、守卫重定向 + 深度上限、重复导航拦截。
 
 ## 快速使用
 
@@ -73,7 +72,7 @@ router.push({ name: 'guards', query: new Map([['a','1']]), params: new Map([['fr
 
 1. 用 **HBuilderX** 打开 `packages/playground`，运行到 H5 / 微信小程序，或打包到 App 原生自测。
 2. 首页的「功能自检」`pages/test/test.uvue` 会程序化断言核心逻辑并输出 PASS/FAIL。
-3. CLI 方式（预留）：`pnpm dev:h5`、`pnpm build:mp-weixin`（需自行配置 uni-app x 编译链）。
+3. CLI 方式（预留）：`pnpm dev:playground:h5`、`pnpm build:playground:mp-weixin`（需自行配置 uni-app x 编译链）。
 
 ## 与 vue-router 4 的差异（受限于 uni-app x 静态页面模型）
 

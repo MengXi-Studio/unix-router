@@ -14,7 +14,7 @@ uni.navigateTo({ url: '/pages/about/about' })
 await router.push({ name: 'about' })
 ```
 
-uni-app x does not provide `uni.addInterceptor`, so unix-router does **not intercept native navigation APIs**. Always use the router API or `<RouterLink>`.
+uni-app x does not provide `uni.addInterceptor`, so unix-router does **not intercept native navigation APIs**. Always use the router API.
 
 **Check 2: Does the guard return a value correctly?**
 

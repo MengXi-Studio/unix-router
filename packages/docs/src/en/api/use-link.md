@@ -1,6 +1,6 @@
 # useLink()
 
-`useLink()` provides the reactive state and trigger function for declarative navigation. It is the underlying implementation of the [RouterLink](../component/router-link) component, suitable for custom link / menu components.
+`useLink()` provides the reactive state and trigger function for declarative navigation, suitable for custom link / menu components.
 
 ```ts
 import { useLink } from '@meng-xi/unix-router'
@@ -61,5 +61,4 @@ const onClick = () => {
 
 ## Related APIs
 
-- [RouterLink Component](../component/router-link)
 - [Composition API Guide](../guide/composables)

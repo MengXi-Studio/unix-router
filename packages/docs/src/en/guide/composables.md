@@ -31,7 +31,7 @@ console.log(route.params.get('id')) // params
 
 ## useLink()
 
-Returns reactive link state (the `RouterLink` component is built on it internally):
+Returns reactive link state (declarative navigation):
 
 ```ts
 import { useLink } from '@meng-xi/unix-router'

@@ -15,7 +15,6 @@ unix-router 在 API 风格上对齐 vue-router 4，但由于 uni-app x 采用**�
 | beforeEach / beforeResolve / afterEach | ✅ 支持 |
 | beforeEnter / onBeforeRouteLeave | ✅ 支持 |
 | `useRouter / useRoute / useLink` | ✅ 支持 |
-| `RouterLink` | ✅ 提供（适配式组件） |
 | 错误体系 NavigationFailure | ✅ 支持 |
 | `isReady / onError` | ✅ 支持（+ `onRouteChange`） |
 | **动态路由** `addRoute / removeRoute` | ❌ 不支持（编译期忽略未注册页） |

@@ -12,5 +12,4 @@ First runnable release.
 - Composition API: `useRouter` / `useRoute` / `useLink`
 - State sync: `syncRoute`, with a reactive `currentRoute` based on `getCurrentPages()`
 - Error system: `RouterError` / `NavigationFailure` / `isNavigationFailure` / `RouterErrorCode`
-- Component: `RouterLink`
 - Dual mode: UTS source distribution — web / Mini Program → JS, Android → Kotlin, iOS → Swift

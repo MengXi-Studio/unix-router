@@ -14,7 +14,7 @@ uni.navigateTo({ url: '/pages/about/about' })
 await router.push({ name: 'about' })
 ```
 
-uni-app x 未提供 `uni.addInterceptor`，因此 unix-router **不拦截原生导航 API**。请统一使用路由器 API 或 `<RouterLink>`。
+uni-app x 未提供 `uni.addInterceptor`，因此 unix-router **不拦截原生导航 API**。请统一使用路由器 API。
 
 **排查 2：守卫是否正确返回**
 

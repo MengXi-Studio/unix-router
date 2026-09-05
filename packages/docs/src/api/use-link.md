@@ -1,6 +1,6 @@
 # useLink()
 
-`useLink()` 提供声明式导航的响应式状态与触发函数，是 [RouterLink](../component/router-link) 组件的底层实现。适合自定义链接 / 菜单组件。
+`useLink()` 提供声明式导航的响应式状态与触发函数，适合自定义链接 / 菜单组件。
 
 ```ts
 import { useLink } from '@meng-xi/unix-router'
@@ -61,5 +61,4 @@ const onClick = () => {
 
 ## 相关 API
 
-- [RouterLink 组件](../component/router-link)
 - [组合式 API 指南](../guide/composables)

@@ -79,12 +79,6 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				}
 			],
-			'/en/component/': [
-				{
-					text: 'Navigation',
-					items: [{ text: 'RouterLink', link: '/en/component/router-link' }]
-				}
-			],
 			'/en/api/': [
 				{
 					text: 'Core API',

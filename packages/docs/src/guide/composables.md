@@ -31,7 +31,7 @@ console.log(route.params.get('id')) // 参数
 
 ## useLink()
 
-返回响应式链接状态（`RouterLink` 组件内部基于它实现）：
+返回响应式链接状态（声明式导航）：
 
 ```ts
 import { useLink } from '@meng-xi/unix-router'

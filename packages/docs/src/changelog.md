@@ -12,5 +12,4 @@
 - 组合式 API：`useRouter` / `useRoute` / `useLink`
 - 状态同步：`syncRoute`，基于 `getCurrentPages()` 的响应式 `currentRoute`
 - 错误体系：`RouterError` / `NavigationFailure` / `isNavigationFailure` / `RouterErrorCode`
-- 组件：`RouterLink`
 - 双模式：UTS 源分发，web / 小程序 → JS，Android → Kotlin，iOS → Swift

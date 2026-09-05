@@ -7,8 +7,12 @@
 export { createRouter } from './router'
 export { useRouter, useRoute, useLink, onBeforeRouteLeave, onBeforeRouteEnter, onBeforeRouteUpdate } from './composables'
 
-export { RouterError, NavigationFailure, isNavigationFailure } from './errors'
-export type { UniNavigationApiError } from './errors'
+import { RouterError } from './errors/router-error'
+import { NavigationFailure } from './errors/navigation-failure'
+import { isNavigationFailure } from './errors/is-navigation-failure'
+
+export { RouterError, NavigationFailure, isNavigationFailure }
+export type { UniNavigationApiError } from './errors/router-error'
 
 export { RouterErrorCode } from './enums'
 export { ROUTER_SYMBOL, DEFAULT_GUARD_TIMEOUT, DEFAULT_READY_TIMEOUT, MAX_REDIRECT_DEPTH } from './constants'

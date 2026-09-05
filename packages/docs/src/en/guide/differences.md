@@ -15,7 +15,6 @@ unix-router aligns with vue-router 4 in API style, but because uni-app x uses a 
 | beforeEach / beforeResolve / afterEach | ✅ Supported |
 | beforeEnter / onBeforeRouteLeave | ✅ Supported |
 | `useRouter / useRoute / useLink` | ✅ Supported |
-| `RouterLink` | ✅ Provided (an adapted component) |
 | Error system NavigationFailure | ✅ Supported |
 | `isReady / onError` | ✅ Supported (+ `onRouteChange`) |
 | **Dynamic routes** `addRoute / removeRoute` | ❌ Not supported (unregistered pages are ignored at compile time) |

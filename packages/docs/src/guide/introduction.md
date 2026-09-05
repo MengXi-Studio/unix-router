@@ -21,13 +21,8 @@ unix-router 用一套与 vue-router 一致的 API 抹平这些差异。
 | 导航 | push / replace / relaunch / back，自动识别 TabBar |
 | 守卫 | beforeEach / beforeResolve / afterEach / beforeEnter / onBeforeRouteLeave 等 |
 | 组合式 API | useRouter / useRoute / useLink |
-| 组件 | RouterLink（基于 useLink 的声明式导航） |
 | 错误体系 | RouterError / NavigationFailure / isNavigationFailure |
 | 扩展 | guardRoute 冷启动守卫、重复导航拦截、守卫重定向 + 深度上限 |
-
-## 与 uni-router 的关系
-
-本项目 **monorepo 结构参考** [uni-router](https://github.com/MengXi-Studio/uni-router)，但面向平台改为 **uni-app x**，核心语言采用 **UTS**（`.uts`），并**只复刻 vue-router 4 的功能**，不包含 uni-router 自身的插件/拦截器等扩展。
 
 ## 下一步
 

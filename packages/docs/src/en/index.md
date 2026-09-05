@@ -25,7 +25,7 @@ hero:
 features:
   - icon: 🧭
     title: Route Navigation
-    details: Four navigation modes — push / replace / relaunch / back, automatic TabBar detection (switchTab), and declarative RouterLink
+    details: Four navigation modes — push / replace / relaunch / back, automatic TabBar detection (switchTab), and useLink declarative navigation
   - icon: 🛡️
     title: Route Guards
     details: Global before/resolve/after guards + route-local beforeEnter + in-component guards, guardRoute cold-start re-execution, redirect and depth-limit protection
