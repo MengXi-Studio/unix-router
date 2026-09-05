@@ -16,7 +16,7 @@ on:
 # 全局环境变量，所有步骤均可使用
 env:
   NODE_VERSION: '24.14.0' # Node.js 版本
-  PNPM_VERSION: '10.30.0' # pnpm 版本
+  PNPM_VERSION: '10.31.0' # pnpm 版本
   NPM_REGISTRY: 'https://registry.npmjs.org' # npm 官方注册表地址
 
 # GITHUB_TOKEN 权限声明（最小权限原则）

@@ -34,7 +34,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 10.30.0
+          version: 10.31.0
 
       # 设置 Node.js 环境，启用 pnpm 缓存
       - name: Setup Node
