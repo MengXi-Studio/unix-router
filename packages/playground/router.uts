@@ -21,7 +21,8 @@ export const routes = [
 	{ path: 'pages/login/login', name: 'login', meta: { title: '登录' } },
 	{ path: 'pages/detail/detail', name: 'detail', meta: { title: '详情' } },
 	{ path: 'pages/routerlink/routerlink', name: 'routerlink', meta: { title: 'RouterLink' } },
-	{ path: 'pages/test/test', name: 'test', meta: { title: '功能自检' } }
+	{ path: 'pages/test/test', name: 'test', meta: { title: '功能自检' } },
+	{ path: 'pages/mine/mine', name: 'mine', meta: { title: '我的', isTab: true } }
 ]
 
 export const router = createRouter({ routes, strict: true })

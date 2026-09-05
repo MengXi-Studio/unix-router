@@ -1,0 +1,61 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">我的</text>
+			<text class="tip">这是一个原生 tabBar 页面（meta.isTab），push/replace/relaunch 到它会自动使用 uni.switchTab。</text>
+
+			<view class="row">
+				<text class="label">当前路径</text>
+				<text class="value">{{ currentPath }}</text>
+			</view>
+			<view class="row">
+				<text class="label">isTab</text>
+				<text class="value">{{ isTab ? 'true' : 'false' }}</text>
+			</view>
+			<view class="row">
+				<text class="label">name</text>
+				<text class="value">{{ name }}</text>
+			</view>
+
+			<button class="btn" @click="goHome">switchTab 到首页</button>
+			<button class="btn plain" @click="toDetail">push 到详情页（出 tab stack）</button>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
+
+const router = useRouter()
+const route = useRoute()
+
+const currentPath = ref(route.path)
+const isTab = ref(route.meta.isTab === true)
+const name = ref(route.name ?? '')
+
+// 切换到同为 tabBar 的首页（内部使用 switchTab）
+function goHome(): void {
+	router.push({ name: 'home' })
+}
+
+// 从 tab 页 push 普通页面（进入新页面栈）
+function toDetail(): void {
+	router.push('/pages/detail/detail')
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.row { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 24rpx; padding: 20rpx; border-width: 1rpx; border-color: #eee; border-radius: 8rpx; }
+.label { font-size: 28rpx; color: #666; }
+.value { font-size: 26rpx; color: #333; }
+.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
+.btn.plain { background-color: #f8f8f8; color: #333; }
+</style>

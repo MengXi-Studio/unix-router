@@ -44,9 +44,15 @@ import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
 const router = useRouter()
 const route = useRoute()
 const currentPath = ref(route.path)
+const isTab = ref(route.meta.isTab === true)
 
 function go(path: string): void {
 	router.push(path)
+}
+
+// 首页是我 tabBar 页的切换入口（router.push 到 isTab 路由 → 内部 switchTab）
+function goToTab(): void {
+	router.push({ name: 'mine' })
 }
 </script>
 
