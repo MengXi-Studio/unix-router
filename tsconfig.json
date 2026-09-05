@@ -1,20 +1,24 @@
 {
 	"compilerOptions": {
 		"target": "ES2020",
+		"useDefineForClassFields": true,
 		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"strict": true,
-		"noEmit": true,
+		"lib": ["ES2020", "DOM", "DOM.Iterable"],
 		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"noUnusedLocals": true,
+
+		/* Bundler mode */
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
 		"resolveJsonModule": true,
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["packages/core/src/*"]
-		}
+		"isolatedModules": true,
+		"noEmit": true,
+
+		/* Linting */
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["packages/**/*.ts", "packages/**/*.d.ts"],
-	"exclude": ["node_modules", "packages/**/dist", "packages/**/unpackage"]
+	"include": ["packages/docs/.vitepress/config/**/*.ts"],
+	"exclude": ["**/node_modules/**", "**/dist/**", "**/unpackage/**", "**/.cache/**"]
 }

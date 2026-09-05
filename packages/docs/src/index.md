@@ -7,7 +7,7 @@ titleTemplate: Unix Router 路由管理
 hero:
   name: '@meng-xi/unix-router'
   text: uni-app x 路由管理
-  tagline: 为 uni-app x 提供类似 vue-router 风格的路由管理系统（UTS 编写，双模式兼容）
+  tagline: 为 uni-app x 提供类似 vue-router 风格的路由管理系统
   image:
     src: /logo.svg
     alt: Unix Router

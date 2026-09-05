@@ -24,9 +24,12 @@ export const sharedConfig = defineConfig({
 
 	/** 网站头标签 */
 	head: [
-		['link', { rel: 'icon', type: 'image/svg+xml', href: asset('logo.svg') }],
+		['link', { rel: 'icon', type: 'image/png', href: asset('logo.png') }],
+		['link', { rel: 'icon', href: asset('favicon.ico') }],
+
 		['meta', { property: 'og:type', content: 'website' }],
 		['meta', { property: 'og:title', content: 'Unix Router' }],
+
 		['meta', { property: 'twitter:title', content: 'Unix Router' }],
 		['meta', { property: 'twitter:card', content: 'summary_large_image' }],
 		['meta', { property: 'twitter:description', content: '为 uni-app x 提供类似 vue-router 风格的路由管理系统' }]
@@ -35,7 +38,7 @@ export const sharedConfig = defineConfig({
 	/** 网站主题配置 */
 	themeConfig: {
 		/** 主题 logo（VitePress 自动拼 base） */
-		logo: '/logo.svg',
+		logo: '/logo.png',
 
 		/** 本地搜索 */
 		search: {

@@ -7,7 +7,7 @@ titleTemplate: Unix Router Routing
 hero:
   name: '@meng-xi/unix-router'
   text: uni-app x Routing
-  tagline: A vue-router-style routing system for uni-app x (written in UTS, dual-mode compatible)
+  tagline: A vue-router-style routing system for uni-app x
   image:
     src: /logo.svg
     alt: Unix Router
