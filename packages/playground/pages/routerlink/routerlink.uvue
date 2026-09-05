@@ -28,10 +28,11 @@
 </template>
 
 <script setup lang="uts">
-import { useLink } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { useLink, useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 // 目标为详情页的链接
 const link = useLink({ to: '/pages/detail/detail' })
+const router = useRouter()
 
 const href = ref(link.href.value)
 const isActive = ref(link.isActive.value)
@@ -41,7 +42,7 @@ function go(): void {
 	link.navigate()
 }
 function goBack(): void {
-	link.navigate()
+	router.back()
 }
 </script>
 

@@ -180,6 +180,8 @@ class UniRouter implements Router {
 	/** 安装路由器到 Vue 应用 */
 	install(app: App): void {
 		app.provide(ROUTER_SYMBOL, this)
+		// 注册全局活跃路由器，供 useRouter() 在非 setup 上下文（选项式 methods / 事件回调）回退使用
+		setActiveGlobalRouter(this)
 		if (!('$router' in app.config.globalProperties)) {
 			app.config.globalProperties.$router = this
 		}

@@ -28,44 +28,39 @@
 	<!-- #endif -->
 </template>
 
-<script lang="uts">
+<script setup lang="uts">
 import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
 
-export default {
-	data() {
-		return {
-			inputKey: 'id',
-			inputVal: '1024',
-			read: false,
-			readSelf: ''
-		}
-	},
-	onShow() {
-		const route = useRoute()
-		const q = route.query
-		if (q.size > 0) {
-			let buf = ''
-			q.forEach((value: string, key: string) => {
-				buf += key + ' = ' + value + '  '
-			})
-			this.readSelf = buf
-			this.read = true
-		} else {
-			this.read = false
-		}
-	},
-	methods: {
-		pushQuery() {
-			const router = useRouter()
-			const query = new Map<string, string>()
-			query.set(this.inputKey, this.inputVal)
-			router.push({ name: 'query', query })
-		},
-		goBack() {
-			const router = useRouter()
-			router.back()
-		}
+const router = useRouter()
+const route = useRoute()
+
+const inputKey = ref('id')
+const inputVal = ref('1024')
+const read = ref(false)
+const readSelf = ref('')
+
+onShow(() => {
+	const q = route.query
+	if (q.size > 0) {
+		let buf = ''
+		q.forEach((value: string, key: string) => {
+			buf += key + ' = ' + value + '  '
+		})
+		readSelf.value = buf
+		read.value = true
+	} else {
+		read.value = false
 	}
+})
+
+function pushQuery(): void {
+	const query = new Map<string, string>()
+	query.set(inputKey.value, inputVal.value)
+	router.push({ name: 'query', query })
+}
+
+function goBack(): void {
+	router.back()
 }
 </script>
 

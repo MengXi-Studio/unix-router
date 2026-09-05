@@ -18,7 +18,7 @@
 			<button class="btn" @click="pushParams">push 携带 params（含中文 key）</button>
 			<button class="btn plain" @click="goBack">back 返回</button>
 
-			<view class="result" v-if="read">
+			<view class="result" v-if="isRead">
 				<text class="result-title">目标页已读回 params：</text>
 				<text class="value">{{ readSelf }}</text>
 			</view>
@@ -28,46 +28,41 @@
 	<!-- #endif -->
 </template>
 
-<script lang="uts">
+<script setup lang="uts">
 import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
 
-export default {
-	data() {
-		return {
-			inputKey: '名字',
-			inputVal: '张伟',
-			read: false,
-			readSelf: ''
-		}
-	},
-	onShow() {
-		// 此页可被 push 携带 params 到达：从 useRoute().params 回读（验证 params 往返）
-		const route = useRoute()
-		const p = route.params
-		if (p.size > 0) {
-			let buf = ''
-			p.forEach((value: string, key: string) => {
-				buf += key + ' = ' + value + '  '
-			})
-			this.readSelf = buf
-			this.read = true
-		} else {
-			this.read = false
-		}
-	},
-	methods: {
-		pushParams() {
-			const router = useRouter()
-			const params = new Map<string, string>()
-			params.set(this.inputKey, this.inputVal)
-			// push 到本页并携带 params，触发一次导航（URL 不同，不触发重复导航拦截）
-			router.push({ name: 'params', params })
-		},
-		goBack() {
-			const router = useRouter()
-			router.back()
-		}
+const router = useRouter()
+const route = useRoute()
+
+const inputKey = ref('名字')
+const inputVal = ref('张伟')
+const isRead = ref(false)
+const readSelf = ref('')
+
+onShow(() => {
+	// 此页可被 push 携带 params 到达：从 useRoute().params 回读（验证 params 往返）
+	const p = route.params
+	if (p.size > 0) {
+		let buf = ''
+		p.forEach((value: string, key: string) => {
+			buf += key + ' = ' + value + '  '
+		})
+		readSelf.value = buf
+		isRead.value = true
+	} else {
+		isRead.value = false
 	}
+})
+
+function pushParams(): void {
+	const params = new Map<string, string>()
+	params.set(inputKey.value, inputVal.value)
+	// push 到本页并携带 params，触发一次导航（URL 不同，不触发重复导航拦截）
+	router.push({ name: 'params', params })
+}
+
+function goBack(): void {
+	router.back()
 }
 </script>
 
