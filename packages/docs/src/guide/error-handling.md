@@ -16,7 +16,7 @@ unix-router 提供 vue-router 风格的完整错误体系。
 | --- | --- | --- |
 | `ABORTED` | 4 | 守卫返回 `false` 中止导航 |
 | `CANCELLED` | 8 | 守卫抛错 / 重定向超深度上限 |
-| `DUPLICATED` | 16 | 重复导航到当前地址 |
+| `DUPLICATED` | 16 | 重复导航（`push` 到 `path+query+params+hash` 与当前完全一致） |
 | `ROUTE_NOT_FOUND` | 32 | 严格模式下未匹配到命名路由 |
 | `NAVIGATION_API_ERROR` | 64 | `uni.*` 原生导航 API 失败 |
 | `SETUP_ERROR` | 128 | 路由安装环境错误 |
@@ -59,7 +59,7 @@ router.onError((error, to, from) => {
 
 - 守卫 **中止/取消**：`afterEach(to, from, failure)` + 各 `onError` 回调被调用。
 - 原生 API **调用失败**：`currentRoute` 回退到来源路由，并触发错误处理。
-- **重复导航**：仅抛 `DUPLICATED`，不调用 `onError` 之外的多余逻辑（可按需忽略）。
+- **重复导航**：仅抛 `DUPLICATED`，不调用 `onError` 之外的多余逻辑（可按需忽略）。只有 `path+query+params+hash` 全部一致才触发。
 
 ## 实战处理策略
 

@@ -10,7 +10,7 @@ flowchart TD
 	B -- 是 --> WAIT[等待完成]
 	WAIT --> C
 	B -- 否 --> C[matcher.resolve 解析目标]
-	C --> D{重复导航? push 相同地址}
+	C --> D{重复导航? push 到 path+query+params+hash 全同地址}
 	D -- 是 --> DUP[抛 NAVIGATION_DUPLICATED]
 	D -- 否 --> E[runBeforeEach 全局前置守卫]
 	E --> F{结果?}
@@ -30,7 +30,7 @@ flowchart TD
 
 1. **并发排队**：等待上一条导航完成。
 2. **解析目标**：`matcher.resolve(location)`，产出 `RouteLocation`。
-3. **重复检测**：`push` 到与当前相同地址 → `NAVIGATION_DUPLICATED`。
+3. **重复检测**：`push` 到与当前 `path+query+params+hash` 完全一致的地址 → `NAVIGATION_DUPLICATED`。任一字段不同（如携带新参数）均视为新导航，可重入当前页。
 4. **全局前置** `beforeEach`
 5. **路由独享** `beforeEnter`（若配置）
 6. **全局解析** `beforeResolve`
@@ -82,7 +82,7 @@ uni-app x 的物理返回键、tab 切换等**不经过路由器**。`install` �
 push(location)
   → 若存在 pendingNavigation，等待其完成（并发排队）
   → matcher.resolve(location)             // 产出 to
-  → push 到相同地址?  → 抛 DUPLICATED
+  → push 到 path+query+params+hash 全同地址?  → 抛 DUPLICATED
   → runBeforeEach(to, from)               // 全局前置
   → runBeforeEnter(config, to, from)      // 路由独享
   → runBeforeResolve(to, from)            // 全局解析

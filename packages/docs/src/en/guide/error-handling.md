@@ -16,7 +16,7 @@ unix-router provides a complete vue-router-style error system.
 | --- | --- | --- |
 | `ABORTED` | 4 | A guard returned `false`, aborting the navigation |
 | `CANCELLED` | 8 | A guard threw, or the redirect exceeded the depth limit |
-| `DUPLICATED` | 16 | Duplicate navigation to the current location |
+| `DUPLICATED` | 16 | Duplicate navigation (`push` to a location identical in `path+query+params+hash`) |
 | `ROUTE_NOT_FOUND` | 32 | No named route matched in strict mode |
 | `NAVIGATION_API_ERROR` | 64 | The `uni.*` native navigation API failed |
 | `SETUP_ERROR` | 128 | Error in the router installation environment |
@@ -59,7 +59,7 @@ An `Error` thrown by a guard cancels the navigation (`CANCELLED`) and triggers `
 
 - Guard **aborts/cancels**: `afterEach(to, from, failure)` and each `onError` callback are invoked.
 - Native API **call fails**: `currentRoute` rolls back to the source route, and error handling is triggered.
-- **Duplicate navigation**: only throws `DUPLICATED`, without extra logic outside `onError` (can be ignored as needed).
+- **Duplicate navigation**: only throws `DUPLICATED`, without extra logic outside `onError` (can be ignored as needed). It is only triggered when `path+query+params+hash` are all identical.
 
 ## Practical Handling Strategy
 

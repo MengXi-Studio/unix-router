@@ -4,8 +4,9 @@
 import type { RouteLocation } from '../types'
 
 /**
- * 判断两个路由位置是否相同（路径 + 查询完全一致）
- * 用于重复导航检测（避免重复触发同一地址导航）
+ * 判断两个路由位置是否相同（路径 + 查询 + 参数 + hash 完全一致）
+ * 用于重复导航检测（避免重复触发同一地址导航）。
+ * 任一 query/params/hash 不同均视为不同导航，允许以新参数重入当前页。
  */
 export function isSameRouteLocation(a: RouteLocation, b: RouteLocation): boolean {
 	if (a.path !== b.path) {
@@ -14,7 +15,10 @@ export function isSameRouteLocation(a: RouteLocation, b: RouteLocation): boolean
 	if (!sameMap(a.query, b.query)) {
 		return false
 	}
-	return true
+	if (!sameMap(a.params, b.params)) {
+		return false
+	}
+	return a.hash === b.hash
 }
 
 /** 比较两个 Map 是否完全一致（键值一一对应） */

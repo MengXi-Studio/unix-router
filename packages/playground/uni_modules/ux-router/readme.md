@@ -1,5 +1,8 @@
 # ux-router
 
+[![license](https://img.shields.io/github/license/MengXi-Studio/unix-router.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-router?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-router)
+![npm](https://img.shields.io/npm/dt/@meng-xi/unix-router?color=green)
+
 为 **uni-app x** 提供的、API 对标 **vue-router 4** 的路由管理库。以 **UTS** 源码（`.uts`）形式随 uni_modules 分发，由 uni-app x 编译链按平台现场编译（Web / 小程序 → JS，Android → Kotlin，iOS → Swift），无需预编译。
 
 ## 简介
@@ -12,9 +15,10 @@ uni-app x 原生提供 `uni.navigateTo / redirectTo / reLaunch / navigateBack / 
 - **路由匹配**：path / name 双索引，字符串 / 对象 / 命名三种解析，`strict` 严格模式
 - **路由守卫**：`beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / 组件内守卫，支持重定向、守卫超时与重定向深度上限
 - **组合式 API**：`useRouter()` / `useRoute()` / `useLink()`，响应式 `currentRoute`
-- **参数传递**：`params`（`Map<string,string>`）经查询编码（`__unixr_p_` 保留前缀）跨页传递；`query` 以字符串经 URL 传递
+- **参数传递**：`params`（`Map<string,string>`）经查询编码（`__unixr_p_` 保留前缀）跨页传递；`query` 以字符串经 URL 传递，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析
 - **导航控制**：重复导航自动拒绝（`DUPLICATED`）、并发导航自动排队
-- **错误体系**：`RouterError` / `NavigationFailure` / `RouterErrorCode`，`isNavigationFailure()` 精准判断，`onError` 全局捕获
+- **错误体系**：`RouterError` / `NavigationFailure` / `UniNavigationApiError`，`RouterErrorCode` 错误码，`isNavigationFailure()` 精准判断，`onError` 全局捕获
+- **冷启动守卫**：`guardRoute()` 对 H5 直达 / 场景值 / deeplink 补执行守卫链，支持重定向与中止回调（`onAbort`）
 - **路由状态同步**：页面 `onShow` 自动 `syncRoute()`，物理返回 / TabBar 切换等非路由器导航自动对齐
 
 ## 目录结构
@@ -101,6 +105,17 @@ function go() {
 </script>
 ```
 
+## 路由选项
+
+`createRouter` 支持以下常用选项：
+
+| 选项           | 类型            | 默认值   | 说明                                                       |
+| -------------- | --------------- | -------- | ---------------------------------------------------------- |
+| `routes`       | `RouteConfig[]` | -        | 路由配置，需与 `pages.json` 声明一致                       |
+| `strict`       | `boolean`       | `true`   | 严格模式，未匹配的命名路由抛出 `RouterError`               |
+| `guardTimeout` | `number`        | `10000`  | 守卫超时（ms），超时警告并自动中止导航，设 `0` 关闭        |
+| `readyTimeout` | `number`        | `0`      | 就绪超时（ms），防止 `await router.isReady()` 挂起          |
+
 ## 路由导航
 
 | 方法 | 对应原生 API | 行为 |
@@ -141,6 +156,16 @@ onBeforeRouteLeave((to, from) => hasUnsavedChanges ? false : true)
 
 守卫全集：`beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / `onBeforeRouteLeave` / `onBeforeRouteEnter` / `onBeforeRouteUpdate`，以及冷启动补执行 `guardRoute()`。
 
+冷启动（H5 直达 / 场景值 / deeplink）时页面已加载、守卫未执行，可补跑守卫链：
+
+```uts
+router.isReady().then(() => {
+	router.guardRoute(undefined, {
+		onAbort: () => router.relaunch('/pages/index/index') // 守卫中止时转跳安全页
+	})
+})
+```
+
 ## 参数传递
 
 - **`query`**：URL 可见，适合少量、简单、可分享的数据
@@ -153,7 +178,11 @@ router.push({ name: 'detail', params: new Map([['id', '42'], ['from', '首页']]
 
 // 目标页读取（Map API）
 const id = useRoute().params.get('id') ?? ''   // "42"
+
+// query 读取同样用 Map API
 const from = useRoute().query.get('utm') ?? '' // query 用 .query.get
+const idNum = useRoute().queryInt('id', 0)     // 便捷解析数值
+const flag  = useRoute().queryBool('vip', false) // 便捷解析布尔
 ```
 
 > 复杂对象请先 `JSON.stringify`，或改用全局状态 / `uni.setStorageSync` 承载。
@@ -185,6 +214,18 @@ const from = useRoute().query.get('utm') ?? '' // query 用 .query.get
 - iOS（VDOM）：编译为 Swift
 - 底层仅依赖 `uni.*` 原生导航 API（`navigateTo / redirectTo / reLaunch / navigateBack / switchTab`）
 - 物理返回键 / TabBar 切换不经过路由器，通过 `syncRoute()` 在 `onShow` 自动对齐
+
+## 文档
+
+📖 从**入门到精通**的完整文档（🟢 入门 → 🟡 进阶 → 🔴 精通）：
+
+**[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
+
+阅读建议：先看[介绍与学习路径](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/introduction.md)，再按[快速开始](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/getting-started.md) → [路由配置](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/route-config.md) → [路由导航](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/navigation.md) 的顺序上手，进阶看[守卫](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/guards.md)，最后用[完整实战](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/recipes.md)收尾。
+
+## 更新日志
+
+📝 **[https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/changelog.md](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/changelog.md)**
 
 ## License
 

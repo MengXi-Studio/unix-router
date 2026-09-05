@@ -10,7 +10,7 @@ import { RouterErrorCode } from '@meng-xi/unix-router'
 | --- | --- | --- |
 | `ABORTED` | `4` | 导航被守卫中止（守卫返回 `false`） |
 | `CANCELLED` | `8` | 守卫抛错或重定向超过最大深度 |
-| `DUPLICATED` | `16` | 重复导航到当前路由 |
+| `DUPLICATED` | `16` | 重复导航（`push` 到 path+query+params+hash 与当前完全一致） |
 | `ROUTE_NOT_FOUND` | `32` | 未匹配到页面路由（uni-app x 扩展） |
 | `NAVIGATION_API_ERROR` | `64` | `uni.*` 原生导航 API 调用失败（uni-app x 扩展） |
 | `SETUP_ERROR` | `128` | 路由安装环境错误（uni-app x 扩展） |

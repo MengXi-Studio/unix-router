@@ -10,7 +10,7 @@ flowchart TD
 	B -- yes --> WAIT[Wait for completion]
 	WAIT --> C
 	B -- no --> C[matcher.resolve resolves target]
-	C --> D{Duplicate navigation? push to same location}
+	C --> D{Duplicate navigation? push to a location identical in path+query+params+hash}
 	D -- yes --> DUP[Throw NAVIGATION_DUPLICATED]
 	D -- no --> E[runBeforeEach global before guards]
 	E --> F{Result?}
@@ -30,7 +30,7 @@ flowchart TD
 
 1. **Concurrent queuing**: waits for the previous navigation to complete.
 2. **Resolve the target**: `matcher.resolve(location)` produces a `RouteLocation`.
-3. **Duplicate detection**: `push` to the same location as the current one → `NAVIGATION_DUPLICATED`.
+3. **Duplicate detection**: `push` to a location whose `path+query+params+hash` is identical to the current one → `NAVIGATION_DUPLICATED`. Any differing field (e.g. new params) counts as a new navigation, allowing re-entry into the current page.
 4. **Global before** `beforeEach`
 5. **Route-local** `beforeEnter` (if configured)
 6. **Global resolve** `beforeResolve`
@@ -77,7 +77,7 @@ A simple `push` roughly undergoes (pseudo-code):
 push(location)
   → if there is a pendingNavigation, wait for it (concurrent queueing)
   → matcher.resolve(location)                 // produce to
-  → push to the same address?  → throw DUPLICATED
+  → push to an address identical in path+query+params+hash?  → throw DUPLICATED
   → runBeforeEach(to, from)                   // global before
   → runBeforeEnter(config, to, from)          // route-local
   → runBeforeResolve(to, from)                // global resolve
