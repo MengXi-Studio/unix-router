@@ -3,13 +3,55 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app x"
+				"navigationBarTitleText": "unix-router 演示"
+			}
+		},
+		{
+			"path": "pages/query/query",
+			"style": {
+				"navigationBarTitleText": "query 传参"
+			}
+		},
+		{
+			"path": "pages/params/params",
+			"style": {
+				"navigationBarTitleText": "params 传参"
+			}
+		},
+		{
+			"path": "pages/guard/guard",
+			"style": {
+				"navigationBarTitleText": "守卫"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/detail/detail",
+			"style": {
+				"navigationBarTitleText": "详情"
+			}
+		},
+		{
+			"path": "pages/routerlink/routerlink",
+			"style": {
+				"navigationBarTitleText": "RouterLink"
+			}
+		},
+		{
+			"path": "pages/test/test",
+			"style": {
+				"navigationBarTitleText": "功能自检"
 			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app x",
+		"navigationBarTitleText": "unix-router",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
 	},

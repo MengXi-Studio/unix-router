@@ -1,0 +1,127 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">功能自检</text>
+			<view class="summary">
+				<text class="pass-count">通过: {{ passCount }}</text>
+				<text class="fail-count">失败: {{ failCount }}</text>
+			</view>
+			<view class="item" v-for="(c, i) in cases" :key="i">
+				<text class="status">{{ c.pass ? 'PASS' : 'FAIL' }}</text>
+				<text class="name">{{ c.name }}</text>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script lang="uts">
+import {
+	router
+} from '../../router.uts'
+import {
+	isNavigationFailure,
+	NavigationFailure,
+	RouterError,
+	RouterErrorCode
+} from '@/uni_modules/unix-router/utssdk/index.uts'
+
+type Case = {
+	name: string
+	pass: boolean
+}
+type CaseResult = {
+	cases: Case[]
+	passCount: number
+	failCount: number
+}
+
+export default {
+	data() {
+		return {
+			cases: [] as Case[],
+			passCount: 0,
+			failCount: 0
+		}
+	},
+	onShow() {
+		const result = runChecks()
+		this.cases = result.cases
+		this.passCount = result.passCount
+		this.failCount = result.failCount
+	}
+}
+
+function runChecks(): CaseResult {
+	const cases: Case[] = []
+	const rec = (pass: boolean, name: string): void => {
+		cases.push({ name, pass })
+	}
+	const eq = (a: string, b: string): boolean => a === b
+
+	// 1. hasRoute / getRoutes
+	rec(router.hasRoute('home'), 'hasRoute("home")')
+	rec(!router.hasRoute('not_exist'), 'hasRoute 误匹配返回 false')
+	rec(router.getRoutes().length === 8, 'getRoutes 数量 = 8')
+
+	// 2. resolve 路径字符串
+	const p1 = router.resolve('/pages/query/query')
+	rec(eq(p1.path, '/pages/query/query'), 'resolve 路径字符串 path')
+	rec(eq(p1.name ?? '', 'query'), 'resolve 路径字符串回填 name')
+
+	// 3. resolve 命名对象（query/params）
+	const p2 = router.resolve({
+		name: 'detail',
+		query: new Map<string, string>([['a', '1']]),
+		params: new Map<string, string>([['from', '首页']])
+	})
+	rec(eq(p2.path, '/pages/detail/detail'), 'resolve 命名对象 path')
+	rec((p2.query.get('a') ?? '') === '1', 'resolve 命名对象 query')
+	rec((p2.params.get('from') ?? '') === '首页', 'resolve 命名对象 params')
+
+	// 4. params 往返（编码 → 解码，验证 __unixr_p_ 前缀）
+	const p3 = router.resolve('/pages/params/params?__unixr_p_名字=%E5%BC%A0')
+	rec((p3.params.get('名字') ?? '') === '张', 'params 中文字段往返')
+	rec(!p3.query.has('__unixr_p_名字'), 'params 内部 key 已从 query 剔除')
+
+	// 5. isNavigationFailure
+	const nf = new NavigationFailure(RouterErrorCode.ABORTED, 'x', router.resolve('/'), router.resolve('/'))
+	rec(isNavigationFailure(nf), 'isNavigationFailure(NavigationFailure)')
+	rec(isNavigationFailure(nf, RouterErrorCode.ABORTED), 'isNavigationFailure 指定错误码匹配')
+	rec(!isNavigationFailure(new Error('e')), 'isNavigationFailure(普通 Error) = false')
+
+	// 6. strict 模式：未匹配命名路由抛 RouterError
+	let threw = false
+	try {
+		router.resolve({ name: 'nope' })
+	} catch (e) {
+		threw = e instanceof RouterError
+	}
+	rec(threw, 'strict 未匹配命名路由抛 RouterError')
+
+	// 7. RouterErrorCode 枚举
+	rec(RouterErrorCode.ABORTED === 4, 'RouterErrorCode.ABORTED === 4')
+
+	const passCount = cases.filter((c: Case) => c.pass).length
+	const failCount = cases.length - passCount
+	return { cases, passCount, failCount }
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.summary { flex-direction: row; margin-top: 20rpx; }
+.pass-count { font-size: 28rpx; color: #4cd964; margin-right: 32rpx; }
+.fail-count { font-size: 28rpx; color: #dd524d; }
+.item { flex-direction: row; align-items: center; margin-top: 16rpx; }
+.status { font-size: 26rpx; font-weight: bold; margin-right: 16rpx; width: 80rpx; }
+.status:first-child {
+	color: #4cd964;
+}
+.name { font-size: 26rpx; color: #333; flex: 1; }
+</style>

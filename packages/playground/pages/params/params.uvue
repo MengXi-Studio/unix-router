@@ -1,0 +1,86 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">Params 传参</text>
+			<text class="tip">params 以对象（Map）形式经查询编码（__unixr_p_ 保留前缀）在页面 URL 间传递。</text>
+
+			<view class="input-row">
+				<text class="label">姓名字段</text>
+				<text class="value">{{ inputKey }}</text>
+			</view>
+			<view class="input-row">
+				<text class="label">姓名值</text>
+				<text class="value">{{ inputVal }}</text>
+			</view>
+
+			<button class="btn" @click="pushParams">push 携带 params（含中文 key）</button>
+			<button class="btn plain" @click="goBack">back 返回</button>
+
+			<view class="result" v-if="read">
+				<text class="result-title">目标页已读回 params：</text>
+				<text class="value">{{ readSelf }}</text>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script lang="uts">
+import { useRouter, useRoute } from '@/uni_modules/unix-router/utssdk/index.uts'
+
+export default {
+	data() {
+		return {
+			inputKey: '名字',
+			inputVal: '张伟',
+			read: false,
+			readSelf: ''
+		}
+	},
+	onShow() {
+		// 此页可被 push 携带 params 到达：从 useRoute().params 回读（验证 params 往返）
+		const route = useRoute()
+		const p = route.params
+		if (p.size > 0) {
+			let buf = ''
+			p.forEach((value: string, key: string) => {
+				buf += key + ' = ' + value + '  '
+			})
+			this.readSelf = buf
+			this.read = true
+		} else {
+			this.read = false
+		}
+	},
+	methods: {
+		pushParams() {
+			const router = useRouter()
+			const params = new Map<string, string>()
+			params.set(this.inputKey, this.inputVal)
+			// push 到本页并携带 params，触发一次导航（URL 不同，不触发重复导航拦截）
+			router.push({ name: 'params', params })
+		},
+		goBack() {
+			const router = useRouter()
+			router.back()
+		}
+	}
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.input-row { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 24rpx; border-width: 1rpx; border-color: #eee; border-radius: 8rpx; padding: 20rpx; }
+.label { font-size: 28rpx; color: #666; }
+.value { font-size: 28rpx; color: #333; }
+.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
+.btn.plain { background-color: #f8f8f8; color: #333; }
+.result { margin-top: 32rpx; flex-direction: column; }
+.result-title { font-size: 26rpx; color: #007aff; }
+</style>

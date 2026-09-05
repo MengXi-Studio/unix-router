@@ -1,0 +1,50 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">登录</text>
+			<text class="tip">演示守卫重定向回跳：登录后返回来源页。</text>
+			<text class="redirect" v-if="redirectFullPath">回跳地址：{{ redirectFullPath }}</text>
+
+			<button class="btn" @click="login">登录并回跳</button>
+			<button class="btn plain" @click="go('/pages/index/index')">去首页</button>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useRouter, useRoute } from '@/uni_modules/unix-router/utssdk/index.uts'
+import { setLoggedIn } from '../../router.uts'
+
+const router = useRouter()
+const route = useRoute()
+const redirectFullPath = ref('')
+
+const buf = route.query.get('redirect')
+if (buf !== null && buf !== undefined) {
+	redirectFullPath.value = buf
+}
+
+function login(): void {
+	setLoggedIn(true)
+	const target = redirectFullPath.value !== '' ? redirectFullPath.value : '/pages/index/index'
+	// 登录成功：直接跳到回跳地址（替换，避免登录页残留栈中）
+	router.replace(target)
+}
+function go(path: string): void {
+	router.push(path)
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.redirect { font-size: 24rpx; color: #007aff; margin-top: 16rpx; }
+.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
+.btn.plain { background-color: #f8f8f8; color: #333; }
+</style>

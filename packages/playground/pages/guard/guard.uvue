@@ -1,0 +1,56 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">导航守卫</text>
+			<text class="tip">本页 meta.requireAuth = true。未登录时 beforeEach 会重定向到登录页。</text>
+
+			<view class="status-row">
+				<text class="label">当前登录态</text>
+				<text class="value">{{ loggedIn ? '已登录' : '未登录' }}</text>
+			</view>
+
+			<button class="btn" @click="go('/pages/detail/detail')">push 到详情页（需登录）</button>
+			<button class="btn plain" @click="relaunch('/pages/test/test')">relaunch 到自检页</button>
+			<button class="btn plain" @click="replace('/pages/params/params')">replace 到 params 页</button>
+			<button class="btn gray" @click="goBack">back 返回</button>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useRouter } from '@/uni_modules/unix-router/utssdk/index.uts'
+import { isLoggedIn } from '../../router.uts'
+
+const router = useRouter()
+const loggedIn = ref(isLoggedIn())
+
+function go(path: string): void {
+	router.push(path)
+}
+function relaunch(path: string): void {
+	router.relaunch(path)
+}
+function replace(path: string): void {
+	router.replace(path)
+}
+function goBack(): void {
+	router.back()
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.status-row { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 24rpx; padding: 20rpx; }
+.label { font-size: 28rpx; color: #666; }
+.value { font-size: 28rpx; color: #333; }
+.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
+.btn.plain { background-color: #f8f8f8; color: #333; }
+.btn.gray { background-color: #e0e0e0; color: #333; }
+</style>

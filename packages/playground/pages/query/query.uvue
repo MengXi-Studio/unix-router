@@ -1,0 +1,84 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">Query 传参</text>
+			<text class="tip">query 经 URL 查询串传递，目标页用 route.query.get() 读取。</text>
+
+			<view class="input-row">
+				<text class="label">key</text>
+				<text class="value">{{ inputKey }}</text>
+			</view>
+			<view class="input-row">
+				<text class="label">value</text>
+				<text class="value">{{ inputVal }}</text>
+			</view>
+
+			<button class="btn" @click="pushQuery">push 携带 query</button>
+			<button class="btn plain" @click="goBack">back 返回</button>
+
+			<view class="result" v-if="read">
+				<text class="result-title">当前 query：</text>
+				<text class="value">{{ readSelf }}</text>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script lang="uts">
+import { useRouter, useRoute } from '@/uni_modules/unix-router/utssdk/index.uts'
+
+export default {
+	data() {
+		return {
+			inputKey: 'id',
+			inputVal: '1024',
+			read: false,
+			readSelf: ''
+		}
+	},
+	onShow() {
+		const route = useRoute()
+		const q = route.query
+		if (q.size > 0) {
+			let buf = ''
+			q.forEach((value: string, key: string) => {
+				buf += key + ' = ' + value + '  '
+			})
+			this.readSelf = buf
+			this.read = true
+		} else {
+			this.read = false
+		}
+	},
+	methods: {
+		pushQuery() {
+			const router = useRouter()
+			const query = new Map<string, string>()
+			query.set(this.inputKey, this.inputVal)
+			router.push({ name: 'query', query })
+		},
+		goBack() {
+			const router = useRouter()
+			router.back()
+		}
+	}
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.input-row { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 24rpx; border-width: 1rpx; border-color: #eee; border-radius: 8rpx; padding: 20rpx; }
+.label { font-size: 28rpx; color: #666; }
+.value { font-size: 28rpx; color: #333; }
+.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
+.btn.plain { background-color: #f8f8f8; color: #333; }
+.result { margin-top: 32rpx; flex-direction: column; }
+.result-title { font-size: 26rpx; color: #007aff; }
+</style>

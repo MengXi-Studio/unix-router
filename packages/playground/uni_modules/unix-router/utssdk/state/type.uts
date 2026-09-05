@@ -1,0 +1,25 @@
+/**
+ * 路由状态管理器类型
+ *
+ * 负责维护 currentRoute 响应式 ref ，并在导航完成后触发 onChange 通知。
+ * 提供 onReady 等待路由器初始化就绪。
+ */
+import type { Ref } from 'vue'
+import type { RouteLocation } from '../types'
+
+/** 路由变化监听器类型 */
+export type RouteChangeListener = (to: RouteLocation, from: RouteLocation) => void
+
+/** 路由状态管理器接口 */
+export type RouteState = {
+	/** 当前路由位置（响应式） */
+	readonly currentRoute: Ref<RouteLocation>
+	/** 设置当前路由位置（触发 route change 通知） */
+	setCurrentRoute(to: RouteLocation): void
+	/** 标记路由器就绪 */
+	markReady(): void
+	/** 等待路由器就绪 */
+	onReady(): Promise<void>
+	/** 注册路由变化监听器，返回取消函数 */
+	onRouteChange(listener: RouteChangeListener): () => void
+}

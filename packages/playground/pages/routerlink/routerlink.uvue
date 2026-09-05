@@ -1,0 +1,58 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">useLink</text>
+			<text class="tip">useLink 提供响应式目标路由、激活态与导航函数（RouterLink 组件的底层）</text>
+
+			<view class="link-row">
+				<text class="link-name">link 目标</text>
+				<text class="link-href">{{ href }}</text>
+			</view>
+			<view class="link-row">
+				<text class="link-name">isActive</text>
+				<text class="link-href">{{ isActive ? 'true' : 'false' }}</text>
+			</view>
+			<view class="link-row">
+				<text class="link-name">isExactActive</text>
+				<text class="link-href">{{ isExactActive ? 'true' : 'false' }}</text>
+			</view>
+
+			<button class="btn" @click="go">push 到详情页</button>
+			<button class="btn plain" @click="goBack">back 返回</button>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useLink } from '@/uni_modules/unix-router/utssdk/index.uts'
+
+// 目标为详情页的链接
+const link = useLink({ to: '/pages/detail/detail' })
+
+const href = ref(link.href.value)
+const isActive = ref(link.isActive.value)
+const isExactActive = ref(link.isExactActive.value)
+
+function go(): void {
+	link.navigate()
+}
+function goBack(): void {
+	link.navigate()
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.link-row { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 24rpx; padding: 20rpx; border-width: 1rpx; border-color: #eee; border-radius: 8rpx; }
+.link-name { font-size: 28rpx; color: #666; }
+.link-href { font-size: 26rpx; color: #007aff; }
+.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
+.btn.plain { background-color: #f8f8f8; color: #333; }
+</style>

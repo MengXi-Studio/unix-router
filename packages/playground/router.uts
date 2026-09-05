@@ -1,0 +1,54 @@
+// 路由配置（unix-router 演示）
+// 通过 uni_modules/unix-router/utssdk 引入自包含的 core 源码
+import { createRouter } from '@/uni_modules/unix-router/utssdk/index.uts'
+
+// 简单的登录态（配合守卫演示；仅为示例，非真实鉴权）
+let loggedIn: boolean = false
+
+export function setLoggedIn(value: boolean): void {
+	loggedIn = value
+}
+
+export function isLoggedIn(): boolean {
+	return loggedIn
+}
+
+export const routes = [
+	{ path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
+	{ path: 'pages/query/query', name: 'query', meta: { title: 'query 传参' } },
+	{ path: 'pages/params/params', name: 'params', meta: { title: 'params 传参' } },
+	{ path: 'pages/guard/guard', name: 'guard', meta: { title: '守卫', requireAuth: true } },
+	{ path: 'pages/login/login', name: 'login', meta: { title: '登录' } },
+	{ path: 'pages/detail/detail', name: 'detail', meta: { title: '详情' } },
+	{ path: 'pages/routerlink/routerlink', name: 'routerlink', meta: { title: 'RouterLink' } },
+	{ path: 'pages/test/test', name: 'test', meta: { title: '功能自检' } }
+]
+
+export const router = createRouter({ routes, strict: true })
+
+// 全局前置守卫：requireAuth 且未登录 → 重定向到登录页并携带回跳地址
+router.beforeEach((to, from): boolean | null => {
+	if (to.meta.requireAuth === true && !isLoggedIn()) {
+		return {
+			name: 'login',
+			query: new Map([['redirect', to.fullPath]])
+		} as any
+	}
+	return true
+})
+
+// 全局解析守卫：打印导航时序
+router.beforeResolve((to, from): boolean => {
+	console.log('[unix-router] beforeResolve ->', to.fullPath)
+	return true
+})
+
+// 全局后置守卫：导航结束（成功或失败）
+router.afterEach((to, from, failure: Error | null): void => {
+	console.log('[unix-router] afterEach ->', to.fullPath, 'failure =', failure !== null ? failure.message : 'null')
+})
+
+// 全局错误订阅
+router.onError((error: Error, to, from): void => {
+	console.log('[unix-router] onError ->', error.message)
+})

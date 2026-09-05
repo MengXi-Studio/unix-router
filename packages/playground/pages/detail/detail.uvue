@@ -1,0 +1,54 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<text class="title">详情页</text>
+			<view class="row"><text class="label">path</text><text class="value">{{ path }}</text></view>
+			<view class="row"><text class="label">fullPath</text><text class="value">{{ fullPath }}</text></view>
+			<view class="row"><text class="label">query</text><text class="value">{{ queryText }}</text></view>
+			<view class="row"><text class="label">params</text><text class="value">{{ paramsText }}</text></view>
+			<button class="btn" @click="goBack">back 返回</button>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useRoute, useRouter } from '@/uni_modules/unix-router/utssdk/index.uts'
+
+const route = useRoute()
+const router = useRouter()
+
+const path = ref(route.path)
+const fullPath = ref(route.fullPath)
+const queryText = ref('')
+const paramsText = ref('')
+
+let q = ''
+route.query.forEach((value: string, key: string) => {
+	q += key + '=' + value + '  '
+})
+queryText.value = q
+
+let p = ''
+route.params.forEach((value: string, key: string) => {
+	p += key + '=' + value + '  '
+})
+paramsText.value = p
+
+function goBack(): void {
+	router.back()
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 32rpx; }
+.title { font-size: 36rpx; font-weight: bold; color: #333; }
+.row { flex-direction: row; justify-content: space-between; align-items: center; margin-top: 24rpx; padding: 20rpx; border-width: 1rpx; border-color: #eee; border-radius: 8rpx; }
+.label { font-size: 28rpx; color: #666; }
+.value { font-size: 26rpx; color: #333; flex: 1; text-align: right; margin-left: 24rpx; }
+.btn { margin-top: 32rpx; background-color: #007aff; color: #ffffff; }
+</style>

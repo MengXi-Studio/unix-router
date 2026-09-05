@@ -1,0 +1,96 @@
+/**
+ * 路由状态管理器实现
+ */
+import { shallowRef, type Ref } from 'vue'
+import type { RouteLocation } from '../types'
+import { warn } from '../utils'
+import type { RouteChangeListener, RouteState } from './type'
+
+export type { RouteState } from './type'
+
+/**
+ * 创建路由状态管理器
+ * @param readyTimeout - 就绪超时（毫秒，0 表示永不超时）
+ * @returns 路由状态管理器实例
+ */
+export function createRouteState(readyTimeout: number = 0): RouteState {
+	// 起始路由：路径 '/' 的空位置。uni-app x 页面栈通常非空，首次导航/同步前置为占位。
+	const initial: RouteLocation = {
+		path: '/',
+		name: null,
+		meta: {},
+		query: new Map(),
+		params: new Map(),
+		fullPath: '/',
+		hash: '',
+		matched: []
+	}
+
+	const current = shallowRef<RouteLocation>(initial)
+	const listeners: RouteChangeListener[] = []
+	let ready: boolean = false
+	const readyWaiters: (() => void)[] = []
+
+	function setCurrentRoute(to: RouteLocation): void {
+		const from = current.value
+		current.value = to
+		notify(to, from)
+	}
+
+	function notify(to: RouteLocation, from: RouteLocation): void {
+		for (var i = 0; i < listeners.length; i++) {
+			try {
+				listeners[i](to, from)
+			} catch (e) {
+				warn(`路由变化监听器执行异常: ${e}`)
+			}
+		}
+	}
+
+	function markReady(): void {
+		ready = true
+		// 唤醒所有等带者
+		while (readyWaiters.length > 0) {
+			const waiter = readyWaiters.shift()
+			if (waiter) {
+				waiter()
+			}
+		}
+	}
+
+	function onReady(): Promise<void> {
+		if (ready) {
+			return Promise.resolve()
+		}
+		if (readyTimeout <= 0) {
+			return new Promise<void>(resolve => readyWaiters.push(resolve))
+		}
+		return new Promise<void>((resolve, reject) => {
+			const timer = setTimeout(() => {
+				reject(new Error('路由器就绪超时'))
+			}, readyTimeout)
+			readyWaiters.push(() => {
+				clearTimeout(timer)
+				resolve()
+			})
+		})
+	}
+
+	function onRouteChange(listener: RouteChangeListener): () => void {
+		listeners.push(listener)
+		return () => {
+			const index = listeners.indexOf(listener)
+			if (index > -1) {
+				listeners.splice(index, 1)
+			}
+		}
+	}
+
+	return {
+		currentRoute: current,
+		setCurrentRoute,
+		markReady,
+		onReady,
+		onRouteChange
+	}
+}

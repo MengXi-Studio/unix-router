@@ -1,0 +1,15 @@
+/**
+ * 路由匹配器接口
+ */
+import type { RouteConfig, RouteLocation, RouteLocationRaw } from '../types'
+
+export type RouteMatcher = {
+	/** 获取所有路由配置的浅拷贝 */
+	getRoutes(): RouteConfig[]
+	/** 是否存在指定名称的路由 */
+	hasRoute(name: string): boolean
+	/** 解析原始位置为完整 RouteLocation */
+	resolve(location: RouteLocationRaw): RouteLocation
+	/** 根据路径获取路由配置（未匹配时为 null） */
+	getRouteConfig(path: string): RouteConfig | null
+}

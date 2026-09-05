@@ -1,0 +1,39 @@
+/**
+ * 守卫执行结果与守卫管理器类型
+ */
+import type { NavigationGuard, PostNavigationGuard, NavigationRedirectMode, RouteConfig, RouteLocation, RouteLocationRaw } from '../types'
+import { RouterErrorCode } from '../enums'
+
+/** 守卫执行结果类型：next 继续，abort/redirect 结束 */
+export type GuardResultKind = 'next' | 'abort' | 'redirect'
+
+/** 守卫执行结果 */
+export type GuardResult = {
+	kind: GuardResultKind
+	/** 中止时的错误码 */
+	code?: RouterErrorCode
+	/** 重定向目标 */
+	redirect?: RouteLocationRaw
+	/** 重定向导航模式 */
+	mode?: NavigationRedirectMode
+	/** 守卫抛出的异常 */
+	error?: Error
+}
+
+/** 守卫管理器实例 */
+export type GuardManager = {
+	/** 注册全局前置守卫，返回取消函数 */
+	beforeEach(guard: NavigationGuard): () => void
+	/** 注册全局解析守卫，返回取消函数 */
+	beforeResolve(guard: NavigationGuard): () => void
+	/** 注册全局后置守卫，返回取消函数 */
+	afterEach(guard: PostNavigationGuard): () => void
+	/** 运行全部全局前置守卫，返回首个阻塞结果 */
+	runBeforeEach(to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult>
+	/** 运行全部全局解析守卫，返回首个阻塞结果 */
+	runBeforeResolve(to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult>
+	/** 运行全部全局后置守卫（不阻断导航，异常隔离） */
+	runAfter(to: RouteLocation, from: RouteLocation, failure?: Error | null): void
+	/** 触发路由独享 beforeEnter 守卫 */
+	runBeforeEnter(config: RouteConfig, to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult>
+}
