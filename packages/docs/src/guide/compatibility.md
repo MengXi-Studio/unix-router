@@ -28,6 +28,30 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 
 两种模式均可直接使用，无需改动代码。
 
+## 环境要求（HBuilderX）
+
+::: warning 版本判断依据
+本库以 `.uts` 源分发，由 uni-app x 编译链按目标平台现场编译，**核心代码未使用任何"超新"特性**（仅依赖基础 UTS 语法 + `uni.*` 导航 API + `getCurrentPages`），因此"HBuilderX 最低版本"由**目标运行平台与渲染模式**决定，而非本库代码本身。
+:::
+
+| 目标平台 / 模式 | 最低要求 |
+| --- | --- |
+| uni-app x 支持运行到鸿蒙 (HarmonyOS) | HBuilderX **4.61+** |
+| App / 鸿蒙 - **VDOM 模式** | HBuilderX **4.71+**（SDK 最低 4.71） |
+| App / 鸿蒙 - **蒸汽模式 (vapor)** | 蒸汽运行时 `@dcloudio/uni-app-x-vapor-runtime` 最低 **5.25** |
+| Web / 微信小程序（JS 目标） | HBuilderX 初版（4.x）即可，无额外要求 |
+
+::: tip 蒸汽模式版本说明
+蒸汽模式的 **5.25 是 SDK / 运行时模块版本号**，不是 HBuilderX 版本号，两者数字体系不同，请勿混用。使用蒸汽模式请配合 HBuilderX **最新稳定版**。
+:::
+
+**实操建议**：安装 HBuilderX **最新稳定版**即可覆盖 VDOM + 蒸汽 + 鸿蒙三个方向，无需刻意下探到最低版本。
+
+### 本库的使用约定
+
+- 推荐统一使用 `router.push / replace / relaunch / back` 或 `<RouterLink>` 进行导航。
+- uni-app x 环境下**不支持**`uni.addInterceptor` 拦截原生导航 API，直接调用 `uni.navigateTo` 等会**绕过路由守卫**。
+
 ## 验证方式
 
 - Web / 小程序：`packages/playground` 内 `pages/test` 自检页输出 PASS/FAIL。
