@@ -5,6 +5,16 @@
 - A **uni-app x** project (`.uvue` pages)
 - Vue 3
 
+## Installing via the uni_modules Plugin Market (recommended)
+
+Import it directly from HBuilderX through the uni plugin market:
+
+**[https://ext.dcloud.net.cn/plugin?id=29561](https://ext.dcloud.net.cn/plugin?id=29561)**
+
+- In HBuilderX, open "Plugin Market", search for `ux-router` (plugin ID: `ux-router`), then click "Download Plugin and Import into HBuilderX"
+- The plugin is distributed as a self-contained **`uni_modules/ux-router`** (with the UTS source under `utssdk`); it works on App native (Android / iOS) as well as Web / Mini Program, with no extra setup required
+- Requires HBuilderX 3.1.0+ (use the HBuilderX version matching your uni-app x project)
+
 ## Installing via npm
 
 ```bash

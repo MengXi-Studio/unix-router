@@ -5,6 +5,16 @@
 - **uni-app x** 工程（`.uvue` 页面）
 - Vue 3
 
+## uni_modules 插件市场安装（推荐）
+
+在 HBuilderX 中通过 uni 插件市场直接导入：
+
+**[https://ext.dcloud.net.cn/plugin?id=29561](https://ext.dcloud.net.cn/plugin?id=29561)**
+
+- HBuilderX 菜单「插件市场」搜索 `ux-router`（插件 ID：`ux-router`），点击「下载插件并导入 HBuilderX」
+- 插件以 **`uni_modules/ux-router`** 自包含形式分发（内含 UTS 源码 `utssdk`），App 原生端（Android / iOS）与 Web / 小程序端均可用，无需额外配置
+- 需 HBuilderX 3.1.0+（uni-app x 工程请使用对应 HBuilderX 版本）
+
 ## npm 安装
 
 ```bash
