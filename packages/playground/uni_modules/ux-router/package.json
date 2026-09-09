@@ -9,7 +9,7 @@
 		"路由",
 		"路由拦截"
 	],
-	"repository": "https://github.com/MengXi-Studio/uni-router",
+	"repository": "https://github.com/MengXi-Studio/unix-router",
 	"engines": {
 		"HBuilderX": "^3.6.8",
 		"uni-app": "",
