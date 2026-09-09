@@ -9,7 +9,7 @@
 		"路由",
 		"路由拦截"
 	],
-	"repository": "",
+	"repository": "https://github.com/MengXi-Studio/uni-router",
 	"engines": {
 		"HBuilderX": "^3.6.8",
 		"uni-app": "",
@@ -19,10 +19,10 @@
 		"type": "uts",
 		"sale": {
 			"regular": {
-				"price": "9.99"
+				"price": "0.00"
 			},
 			"sourcecode": {
-				"price": "99.99"
+				"price": "0.00"
 			}
 		},
 		"contact": {
@@ -33,7 +33,7 @@
 			"data": "插件不采集任何数据",
 			"permissions": "无"
 		},
-		"npmurl": "",
+		"npmurl": "https://www.npmjs.com/package/@meng-xi/unix-router",
 		"darkmode": "√",
 		"i18n": "√",
 		"widescreen": "√"
