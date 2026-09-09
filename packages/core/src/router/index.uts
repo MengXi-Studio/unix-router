@@ -20,6 +20,7 @@ import { UniHistory } from '../history'
 import { encodeParamsToQuery, normalizePath, warn } from '../utils'
 import { setActiveGlobalRouter, setGlobalCurrentRoute } from '../store'
 import { isSameRouteLocation } from './location'
+import { installInterceptors, markRouterCall } from '../plugins/interceptor'
 import type { NavigationMode } from './type'
 
 /**
@@ -35,11 +36,13 @@ class UniRouter implements Router {
 	private guardTimeout: number
 	private readyTimeout: number
 	private strict: boolean
+	private interceptUniApi: boolean
 
 	constructor(options: RouterOptions) {
 		this.strict = options.strict === null || options.strict === undefined ? true : options.strict
 		this.guardTimeout = options.guardTimeout === null || options.guardTimeout === undefined ? DEFAULT_GUARD_TIMEOUT : options.guardTimeout
 		this.readyTimeout = options.readyTimeout === null || options.readyTimeout === undefined ? DEFAULT_READY_TIMEOUT : options.readyTimeout
+		this.interceptUniApi = options.interceptUniApi === true
 		this.guardManager = createGuardManager()
 		this.matcher = createRouteMatcher(options.routes, this.strict)
 		this.routeState = createRouteState(this.readyTimeout)
@@ -95,6 +98,7 @@ class UniRouter implements Router {
 		if (handledResolve) return handledResolve
 
 		try {
+			markRouterCall()
 			await goBack(delta)
 			this.routeState.setCurrentRoute(to)
 			this.guardManager.runAfter(to, from)
@@ -198,6 +202,10 @@ class UniRouter implements Router {
 				router.syncRoute()
 			}
 		})
+		// opt-in：拦截 uni 原生导航 API，使绕过路由器的直调也走守卫链
+		if (this.interceptUniApi) {
+			installInterceptors(this)
+		}
 		this.routeState.markReady()
 	}
 
@@ -280,6 +288,7 @@ class UniRouter implements Router {
 
 		try {
 			const navOptions = this.buildNavOptions(to)
+			markRouterCall()
 			if (mode === 'push') {
 				await navigateTo(navOptions)
 			} else if (mode === 'replace') {

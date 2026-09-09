@@ -171,15 +171,18 @@ router.isReady().then(() => {
 两者均为 `Map<string,string>`：
 
 ```uts
+import { queryInt, queryBool } from '@/uni_modules/ux-router/utssdk/utils/index.uts'
+
 router.push({ name: 'detail', params: new Map([['id', '42'], ['from', '首页']]) })
 
 // 目标页读取（Map API）
-const id = useRoute().params.get('id') ?? ''   // "42"
+const route = useRoute()
+const id = route.params.get('id') ?? ''   // "42"
 
-// query 读取同样用 Map API
-const from = useRoute().query.get('utm') ?? '' // query 用 .query.get
-const idNum = useRoute().queryInt('id', 0)     // 便捷解析数值
-const flag  = useRoute().queryBool('vip', false) // 便捷解析布尔
+// query 读取同样用 Map API，配合工具函数便捷解析
+const from = route.query.get('utm') ?? ''   // query 用 .query.get
+const idNum = queryInt(route.query, 'id', 0)     // 便捷解析数值
+const flag  = queryBool(route.query, 'vip', false) // 便捷解析布尔
 ```
 
 > 复杂对象请先 `JSON.stringify`，或改用全局状态 / `uni.setStorageSync` 承载。

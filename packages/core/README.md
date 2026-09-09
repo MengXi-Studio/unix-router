@@ -28,6 +28,7 @@
 - **路由状态自动同步** - `app.use(router)` 注入全局 Mixin，页面 `onShow` 自动 `syncRoute()`，`currentRoute` 响应式，非路由器导航（返回键 / TabBar 切换）自动对齐
 - **错误处理** - `RouterError` / `NavigationFailure` / `UniNavigationApiError`，`RouterErrorCode` 错误码，`isNavigationFailure()` 精准判断，`onError` 全局捕获
 - **组合式 API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`，`currentRoute` 响应式、`isReady` / `onRouteChange` 状态订阅
+- **uni API 拦截（opt-in）** - `interceptUniApi: true` 时，绕过路由器直接调用 `uni.navigateTo` / `switchTab` 等原生导航也会被拦截并转入守卫链，守卫下沉到 uni API 层
 
 ## 安装
 
@@ -134,6 +135,12 @@ route.query.get('id') // '1'
 | `strict`      | `boolean`       | `true`   | 严格模式，未匹配的命名路由抛出 `RouterError`               |
 | `guardTimeout`| `number`        | `10000`  | 守卫超时（ms），超时警告并自动中止导航，设 `0` 关闭        |
 | `readyTimeout`| `number`        | `0`      | 就绪超时（ms），防止 `await router.isReady()` 挂起          |
+| `interceptUniApi` | `boolean`  | `false`  | opt-in：拦截 `uni.*` 原生导航，使直调也走守卫链（受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61） |
+
+```typescript
+// 开启后，业务中直接调用 uni.navigateTo('/pages/xxx') 等原生导航同样会触发守卫链
+const router = createRouter({ routes, interceptUniApi: true })
+```
 
 ## 文档
 

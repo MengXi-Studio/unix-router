@@ -24,6 +24,13 @@ export type RouterOptions = {
 	guardTimeout?: number
 	/** 路由器就绪超时（毫秒），默认 0 永不超时 */
 	readyTimeout?: number
+	/**
+	 * 是否启用 uni API 拦截（opt-in，默认 false）。
+	 * 启用后，绕过路由器直接调用 uni.navigateTo 等原生导航 API 的跳转
+	 * 会被拦截并转由 router.* 执行完整守卫链（守卫下沉到 uni API 层）。
+	 * 注意：受目标平台运行时版本支持（Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61）。
+	 */
+	interceptUniApi?: boolean
 }
 
 /**

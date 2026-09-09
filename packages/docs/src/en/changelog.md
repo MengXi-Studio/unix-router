@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.1.0 (2026-09-05)
+## [0.2.0] - 2026-09-09
+
+### Added
+
+- **uni API interception (opt-in)**: new `RouterOptions.interceptUniApi` option. Intercepts direct calls to `uni.navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack` and reroutes them through `router.*`
+  so the full guard chain runs — guards are sunk down to the uni API layer. Includes internal call deduplication (counter-based) and an H5-specific `switchTab` passthrough + state-sync special case.
+
+### Fixed
+
+- Duplicate-navigation detection now compares `path + query + params + hash`; it only reports `DUPLICATED` when all four match, so re-entering the current page with different params is allowed (previously a params
+  difference was ignored and misreported as a duplicate).
+
+## [0.1.0] - 2026-09-05
 
 First runnable release.
 

@@ -1,15 +1,15 @@
 **中文** | [English](./README-en.md)
 
 <div align="center">
-	<a href="https://github.com/MengXi-Studio/unix-router">
-		<img alt="梦曦工作室 Logo" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/logo.png">
-	</a>
-	<a href="https://github.com/MengXi-Studio/unix-router">
-		<img alt="微信公众号 二维码" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/QR_code.jpg">
-	</a>
-	<br>
-	<h1>@meng-xi/unix-router</h1>
-	<p>为 uni-app x 提供类似 vue-router 风格的路由管理系统（UTS 编写，双模式兼容）</p>
+  <a href="https://github.com/MengXi-Studio/unix-router">
+    <img alt="梦曦工作室 Logo" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/logo.png">
+  </a>
+  <a href="https://github.com/MengXi-Studio/unix-router">
+    <img alt="微信公众号 二维码" width="215" src="https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/public/QR_code.jpg">
+  </a>
+  <br>
+  <h1>@meng-xi/unix-router</h1>
+  <p>为 uni-app x 提供类似 vue-router 风格的路由管理系统（UTS 编写，双模式兼容）</p>
 
 [![license](https://img.shields.io/github/license/MengXi-Studio/unix-router.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-router?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-router)
 ![npm](https://img.shields.io/npm/dt/@meng-xi/unix-router?color=green)
@@ -28,6 +28,7 @@
 - **路由状态自动同步** - `app.use(router)` 注入全局 Mixin，页面 `onShow` 自动 `syncRoute()`，`currentRoute` 响应式，非路由器导航（返回键 / TabBar 切换）自动对齐
 - **错误处理** - `RouterError` / `NavigationFailure` / `UniNavigationApiError`，`RouterErrorCode` 错误码，`isNavigationFailure()` 精准判断，`onError` 全局捕获
 - **组合式 API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`，`currentRoute` 响应式、`isReady` / `onRouteChange` 状态订阅
+- **uni API 拦截（opt-in）** - `interceptUniApi: true` 时，绕过路由器直接调用 `uni.navigateTo` / `switchTab` 等原生导航也会被拦截并转入守卫链，守卫下沉到 uni API 层
 
 ## 安装
 
@@ -47,8 +48,8 @@ import { createRouter } from '@meng-xi/unix-router'
 import type { RouteConfig } from '@meng-xi/unix-router'
 
 export const routes: RouteConfig[] = [
-	{ path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
-	{ path: 'pages/about/about', name: 'about', meta: { title: '关于', requireAuth: true } }
+  { path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
+  { path: 'pages/about/about', name: 'about', meta: { title: '关于', requireAuth: true } }
 ]
 
 export const router = createRouter({ routes, strict: true })
@@ -59,9 +60,9 @@ import App from './App.uvue'
 import { router } from './router'
 
 export function createApp() {
-	const app = createSSRApp(App)
-	app.use(router) // 注入全局 mixin，onShow 时自动 syncRoute()
-	return { app }
+  const app = createSSRApp(App)
+  app.use(router) // 注入全局 mixin，onShow 时自动 syncRoute()
+  return { app }
 }
 ```
 
@@ -85,26 +86,26 @@ await router.back(2)     // 返回两级
 
 ```typescript
 router.beforeEach((to, from) => {
-	if (to.meta.requireAuth && !isLoggedIn()) {
-		return { name: 'login' } // 重定向
-	}
-	return true // null / true 表示放行
+  if (to.meta.requireAuth && !isLoggedIn()) {
+    return { name: 'login' } // 重定向
+  }
+  return true // null / true 表示放行
 })
 
 // 组件内离开守卫
 import { onBeforeRouteLeave } from '@meng-xi/unix-router'
 
 onBeforeRouteLeave((to, from) => {
-	if (hasUnsavedChanges) {
-		return false // 中止导航
-	}
+  if (hasUnsavedChanges) {
+    return false // 中止导航
+  }
 })
 
 // 冷启动守卫（guardRoute）：H5 直达 / 场景值 / deeplink 页面补执行守卫链
 router.isReady().then(() => {
-	router.guardRoute(undefined, {
-		onAbort: () => router.relaunch('/pages/index/index')
-	})
+  router.guardRoute(undefined, {
+    onAbort: () => router.relaunch('/pages/index/index')
+  })
 })
 ```
 
@@ -134,6 +135,12 @@ route.query.get('id') // '1'
 | `strict`      | `boolean`       | `true`   | 严格模式，未匹配的命名路由抛出 `RouterError`               |
 | `guardTimeout`| `number`        | `10000`  | 守卫超时（ms），超时警告并自动中止导航，设 `0` 关闭        |
 | `readyTimeout`| `number`        | `0`      | 就绪超时（ms），防止 `await router.isReady()` 挂起          |
+| `interceptUniApi` | `boolean`  | `false`  | opt-in：拦截 `uni.*` 原生导航，使直调也走守卫链（受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61） |
+
+```typescript
+// 开启后，业务中直接调用 uni.navigateTo('/pages/xxx') 等原生导航同样会触发守卫链
+const router = createRouter({ routes, interceptUniApi: true })
+```
 
 ## 文档
 

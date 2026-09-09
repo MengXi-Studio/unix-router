@@ -1,7 +1,7 @@
 {
 	"id": "ux-router",
 	"displayName": "基于 uni-app x 路由管理，提供 vue-router 风格的 API",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "为 uni-app x 提供类似 vue-router 风格的路由库",
 	"keywords": [
 		"ux-router",

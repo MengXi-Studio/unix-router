@@ -28,6 +28,7 @@
 - **Automatic route state sync** - `app.use(router)` injects a global mixin that calls `syncRoute()` on page `onShow`, keeping the reactive `currentRoute` aligned with non-router navigation (back button / TabBar switches)
 - **Error handling** - `RouterError` / `NavigationFailure` / `UniNavigationApiError`, `RouterErrorCode` codes, `isNavigationFailure()` precise checks, `onError` global capture
 - **Composition API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`, reactive `currentRoute`, `isReady` / `onRouteChange` subscriptions
+- **uni API interception (opt-in)** - with `interceptUniApi: true`, native navigations that bypass the router (direct `uni.navigateTo` / `switchTab` calls) are also intercepted and routed through the guard chain, sinking guards down to the uni API layer
 
 ## Installation
 
@@ -134,6 +135,12 @@ Common options of `createRouter`:
 | `strict`       | `boolean`       | `true`   | Strict mode; an unmatched named route throws `RouterError`     |
 | `guardTimeout` | `number`        | `10000`  | Guard timeout (ms); warns and aborts navigation, `0` disables  |
 | `readyTimeout` | `number`        | `0`      | Ready timeout (ms); prevents `await router.isReady()` hanging  |
+| `interceptUniApi` | `boolean`   | `false`  | Opt-in: intercept `uni.*` native navigation so direct calls also pass through the guard chain (runtime support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61) |
+
+```typescript
+// With this enabled, business code that directly calls uni.navigateTo('/pages/xxx') also triggers the guard chain
+const router = createRouter({ routes, interceptUniApi: true })
+```
 
 ## Documentation
 
