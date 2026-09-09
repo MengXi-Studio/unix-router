@@ -23,9 +23,6 @@
 		"README.md",
 		"README-en.md"
 	],
-	"scripts": {
-		"typecheck": "tsc -p tsconfig.json --noEmit"
-	},
 	"peerDependencies": {
 		"vue": ">=3.0.0"
 	},
