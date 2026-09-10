@@ -47,10 +47,34 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 
 **实操建议**：安装 HBuilderX **最新稳定版**即可覆盖 VDOM + 蒸汽 + 鸿蒙三个方向，无需刻意下探到最低版本。
 
-### 本库的使用约定
+## 原生导航 API 拦截（addInterceptor）
+
+uni-app x 提供 `uni.addInterceptor(name, interceptor)` / `uni.removeInterceptor(name, interceptor?)` 拦截原生导航 API。**开启拦截所需的最低 HBuilderX 版本（官方兼容性表）**：
+
+| 平台 | 最低 HBuilderX 版本 |
+| --- | --- |
+| Web | 4.0 |
+| 微信小程序 | 4.41 |
+| Android | 3.97 |
+| iOS | 4.11 |
+| HarmonyOS | 4.61 |
+
+可拦截的导航相关 API：`navigateTo` / `redirectTo` / `reLaunch` / `switchTab` / `navigateBack`（另有 `loadFontFace`、`pageScrollTo`、`setNavigationBarTitle` 等）。
+
+::: tip 版本口径说明
+早期 uni-app x 的 `interceptor` API 文档曾在"系统版本"兼容表中标注 iOS 暂不支持（x）；据最新 HBuilderX（含 Alpha 分支）官方文档，iOS 端已支持（≥ 4.11）。请以你所用 HBuilderX 的实际表现为准。
+:::
+
+::: warning 对本库的意义
+- 以**插件**形式提供：`createRouter({ routes, plugins: [InterceptorPlugin], interceptUniApi: true })`。开启后，外部直接调用 `uni.navigateTo` 等会被转交路由器执行完整守卫链（避免绕过守卫）。
+- 拦截器仅针对"外部直接调用"生效；**路由器自身的 `router.*` 调用不会被二次拦截**。
+- 若运行平台的 HBuilderX 版本低于上表，运行时无法注册 `addInterceptor`，拦截自动降级并输出警告。
+:::
+
+### 使用约定
 
 - 推荐统一使用 `router.push / replace / relaunch / back` 或 `<RouterLink>` 进行导航。
-- uni-app x 环境下**不支持**`uni.addInterceptor` 拦截原生导航 API，直接调用 `uni.navigateTo` 等会**绕过路由守卫**。
+- 直接调用 `uni.navigateTo` 等原生 API 会**绕过路由守卫**；需时可通过开启原生导航拦截将其转由路由器处理。
 
 ## 验证方式
 

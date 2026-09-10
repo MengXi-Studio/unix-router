@@ -7,6 +7,12 @@
 export { createRouter } from './router'
 export { useRouter, useRoute, useLink, onBeforeRouteLeave, onBeforeRouteEnter, onBeforeRouteUpdate } from './composables'
 
+/* 可选插件：拦截 uni 原生导航 API（opt-in，createRouter 中 plugins: [InterceptorPlugin] + interceptUniApi: true） */
+export { InterceptorPlugin, installInterceptors, removeInterceptors } from './plugins/interceptor'
+
+/* 可选插件：页面参数传递（opt-in，plugins: [ParamsPlugin]；未注册时使用 params 将抛 PLUGIN_REQUIRED） */
+export { ParamsPlugin, createParamsManager } from './plugins/params'
+
 import { RouterError } from './errors/router-error'
 import { NavigationFailure } from './errors/navigation-failure'
 import { isNavigationFailure } from './errors/is-navigation-failure'
@@ -45,5 +51,11 @@ export type {
 	BeforeRouteUpdateGuard,
 	BeforeRouteLeaveGuard,
 	UseLinkOptions,
-	UseLinkReturn
+	UseLinkReturn,
+	RouterPlugin,
+	PluginContext,
+	PluginData,
+	PluginNavigationMode,
+	NavigationPrepareContext,
+	NavigationCompleteContext
 } from './types'

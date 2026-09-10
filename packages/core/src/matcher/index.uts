@@ -10,7 +10,7 @@
 import type { RouteConfig, RouteLocation, RouteLocationNamedRaw, RouteLocationPathRaw, RouteLocationRaw, RouteMeta } from '../types'
 import { RouterErrorCode } from '../enums'
 import { RouterError } from '../errors/router-error'
-import { buildFullPath, normalizePath, parseQuery, isObject, warn, extractParamsFromQuery } from '../utils'
+import { buildFullPath, normalizePath, parseQuery, isObject, warn } from '../utils'
 import type { RouteMatcher } from './type'
 
 export type { RouteMatcher } from './type'
@@ -80,7 +80,8 @@ export function createRouteMatcher(routes: RouteConfig[], strict: boolean): Rout
 		const parsed = parsePathUrl(path)
 		const config = pathMap.get(normalizePath(parsed.path))
 		const meta: RouteMeta = config != null && config.meta != null ? config.meta : {}
-		const params = extractParamsFromQuery(parsed.query)
+		// params 由 ParamsPlugin 通过 __params_key 经 routeSync 重建，此处不解析 prefix-key
+		const params = new Map<string, string>()
 		const location = createLocation(normalizePath(parsed.path), config != null ? (config.name != null ? config.name : null) : null, meta, parsed.query, params)
 		location.matched = config != null ? [config] : []
 		return location

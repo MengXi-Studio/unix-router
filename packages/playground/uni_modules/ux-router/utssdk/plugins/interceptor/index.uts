@@ -1,244 +1,42 @@
 /**
- * uni API 拦截器插件（opt-in）
+ * uni 原生导航 API 拦截插件（入口）
  *
- * 通过 uni.addInterceptor 拦截原生导航 API（navigateTo / redirectTo / switchTab / reLaunch / navigateBack），
- * 将「绕过路由器、直接调用 uni.*」的外部导航转发到 router.*，使守卫链在这些场景同样生效。
+ * 通过 `uni.addInterceptor` 拦截外部直接调用 uni 导航 API，转交路由器执行守卫链。
+ * 以路由器插件形式提供，注册方式：
  *
- * 仅当 createRouter({ interceptUniApi: true }) 时由 install 挂载（见 RouterOptions.interceptUniApi）。
+ * ```ts
+ * import { createRouter, InterceptorPlugin } from '@meng-xi/unix-router'
+ * const router = createRouter({ routes, plugins: [InterceptorPlugin], interceptUniApi: true })
+ * ```
+ */
+import type { RouterPlugin, PluginContext, RouterOptions } from '../../types'
+import { installInterceptors, removeInterceptors } from './install'
+
+export { installInterceptors, removeInterceptors, markRouterCall } from './install'
+
+/**
+ * InterceptorPlugin - uni 原生导航 API 拦截器插件
  *
- * 设计要点（借鉴 uni-router 的 interceptor 插件）：
- * 1. 调用计数器区分「路由器内部发起」与「外部调用」：内部导航先 markRouterCall()，
- *    拦截器检测到计数后放行，避免守卫被二次执行。
- * 2. 外部调用：解析 uni URL → 转 router.push / replace / relaunch / back → 返回 false 阻止原始调用。
- * 3. H5 平台 switchTab 特判：阻止 uni.switchTab 会导致运行时 TabBar 组件内部状态卡死、
- *    后续点击失效，故放行原始调用，并在 success 钩子中 syncRoute() 对齐路由状态。
- *    （微信小程序点击 tabBar 底层并不触发 uni.switchTab，拦截器天然拦不到，需在 tab 页 onShow 兜底）
- * 4. 相对路径（以 ./ 等开头）或地址无法解析时不转发，放行原始调用，避免误拦截组件跳转。
+ * 拦截 navigateTo / redirectTo / switchTab / reLaunch / navigateBack，
+ * 将外部直接调用转交路由器实例，确保路由守卫始终生效。
+ * 依赖 `RouterOptions.interceptUniApi` 选项（默认 false）。
  */
-import type { Router, RouteLocationPathRaw } from '../../types'
-import { getPlatform, parseUrl, warn } from '../../utils'
+export const InterceptorPlugin: RouterPlugin = {
+	name: 'interceptor',
 
-/** 被拦截的导航 API 名称（必须与 uni.* 方法名完全一致，reLaunch 为驼峰 L） */
-const INTERCEPTED_APIS: string[] = ['navigateTo', 'redirectTo', 'switchTab', 'reLaunch', 'navigateBack']
+	install(context: PluginContext, options: RouterOptions) {
+		const interceptUniApi = options.interceptUniApi === true
+		if (!interceptUniApi) return
 
-/** 拦截器管理器：持有路由器引用与「内部调用」计数，区分库发起与外部调用 */
-class InterceptorManager {
-	private routerCallCount: number = 0
-	private router: Router | null = null
+		// 安装拦截器（立即注册 uni.addInterceptor，未在 app.use 时才延迟）
+		installInterceptors(context.router)
 
-	/** 标记下一次 uni API 调用由路由器内部发起（计数器可叠加，避免并发导航误消费） */
-	markRouterCall(): void {
-		this.routerCallCount++
-	}
-
-	/** 消费一次内部调用标记；无标记时返回 false（视为外部调用） */
-	isRouterCall(): boolean {
-		if (this.routerCallCount > 0) {
-			this.routerCallCount--
-			return true
-		}
-		return false
-	}
-
-	getRouter(): Router | null {
-		return this.router
-	}
-
-	setRouter(router: Router): void {
-		this.router = router
-	}
-
-	reset(): void {
-		this.router = null
-		this.routerCallCount = 0
-	}
-}
-
-/** 当前活跃的拦截器管理器（单实例，新安装会替换旧实例） */
-let activeManager: InterceptorManager | null = null
-
-/**
- * 标记下一次 uni API 调用由路由器内部发起（无拦截器时为空操作）
- * 由 UniRouter 在调用 uni.* 导航前调用
- */
-export function markRouterCall(): void {
-	if (activeManager !== null) {
-		activeManager.markRouterCall()
-	}
-}
-
-/** 当前是否为 H5 / Web 平台 */
-function isH5(): boolean {
-	return getPlatform().isH5
-}
-
-/** 从拦截器参数中读取导航 URL，读取失败返回 null */
-function readUrl(args: any): string | null {
-	try {
-		const opts = args as NavigateToOptions
-		if (opts.url === null || opts.url === undefined) {
-			return null
-		}
-		return opts.url
-	} catch (e) {
-		return null
-	}
-}
-
-/** 从拦截器参数中读取返回层级 delta，默认 1 */
-function readDelta(args: any): number {
-	try {
-		const opts = args as NavigateBackOptions
-		const delta: number = (opts.delta === null || opts.delta === undefined) ? 1 : opts.delta
-		return delta > 0 ? delta : 1
-	} catch (e) {
-		return 1
-	}
-}
-
-/** 将 uni URL（绝对路径）转为路由位置对象 */
-function toLocation(url: string): RouteLocationPathRaw {
-	const parsed = parseUrl(url)
-	return {
-		path: parsed.path,
-		query: parsed.query
-	} as RouteLocationPathRaw
-}
-
-/** 清空调用参数中的 url：双重保险，防止低版本运行时忽略 invoke 返回值而继续跳转 */
-function clearUrl(args: any): void {
-	try {
-		;(args as NavigateToOptions).url = ''
-	} catch (e) {
-		void 0
-	}
-}
-
-/** 吞掉转发 Promise 的异常（如 DUPLICATED），避免未处理拒绝 */
-function swallow(p: Promise<any>): void {
-	p.catch((e: any): void => {
-		warn(`[unix-router] 外部导航转发失败，已放行: ${e}`)
-	})
-}
-
-/**
- * 将外部导航调用转发到路由器
- * @returns 是否成功识别并转发（true 表示应阻止原始调用）
- */
-function forwardToRouter(api: string, args: any): boolean {
-	const router = activeManager !== null ? activeManager.getRouter() : null
-	if (router === null) {
-		return false
-	}
-	switch (api) {
-		case 'navigateTo': {
-			const url = readUrl(args)
-			if (url !== null && url.length > 0 && url.charAt(0) === '/') {
-				swallow(router.push(toLocation(url)))
-				clearUrl(args)
-				return true
+		// app 安装时注册卸载清理（HMR / 重载场景）
+		context.onAppInstall(app => {
+			const un = (app as any).onUnmount
+			if (typeof un === 'function') {
+				un(() => removeInterceptors())
 			}
-			return false
-		}
-		case 'redirectTo': {
-			const url = readUrl(args)
-			if (url !== null && url.length > 0 && url.charAt(0) === '/') {
-				swallow(router.replace(toLocation(url)))
-				clearUrl(args)
-				return true
-			}
-			return false
-		}
-		case 'switchTab': {
-			// 仅非 H5 平台走到此处（H5 已在 invoke 中放行）
-			const url = readUrl(args)
-			if (url !== null && url.length > 0 && url.charAt(0) === '/') {
-				swallow(router.push(url))
-				clearUrl(args)
-				return true
-			}
-			return false
-		}
-		case 'reLaunch': {
-			const url = readUrl(args)
-			if (url !== null && url.length > 0 && url.charAt(0) === '/') {
-				swallow(router.relaunch(toLocation(url)))
-				clearUrl(args)
-				return true
-			}
-			return false
-		}
-		case 'navigateBack': {
-			swallow(router.back(readDelta(args)))
-			return true
-		}
+		})
 	}
-	return false
-}
-
-/**
- * 为指定 API 创建拦截器对象（闭包捕获 api，供 success 钩子区分平台特判）
- */
-function createInterceptor(api: string): any {
-	return {
-		invoke: (args: any): any => {
-			// 路由器内部发起的调用：放行（守卫已在库内部执行）
-			if (activeManager !== null && activeManager.isRouterCall()) {
-				return args
-			}
-			// H5 平台 switchTab：放行原始调用（阻止会卡死 TabBar 组件状态），success 钩子中同步
-			if (api === 'switchTab' && isH5()) {
-				return args
-			}
-			// 外部调用：阻止原始执行并转由 router.* 走完整守卫链
-			const blocked = forwardToRouter(api, args)
-			return blocked ? false : args
-		},
-		success: (res: any): any => {
-			// H5 平台 switchTab 放行后：在成功回调中同步路由状态
-			if (api === 'switchTab' && isH5() && activeManager !== null) {
-				const router = activeManager.getRouter()
-				if (router !== null) {
-					router.syncRoute()
-				}
-			}
-			return res
-		}
-	} as AddInterceptorOptions
-}
-
-/**
- * 安装 uni API 拦截器（由 UniRouter.install 在 interceptUniApi 开启时调用）
- */
-export function installInterceptors(router: Router): void {
-	if (typeof uni.addInterceptor !== 'function' || typeof uni.removeInterceptor !== 'function') {
-		warn('[unix-router] 当前环境不支持 uni.addInterceptor，interceptUniApi 选项将被忽略')
-		return
-	}
-	// 单实例保护：已有活跃拦截器时先清理（多实例仅支持一个开启拦）
-	if (activeManager !== null) {
-		warn('[unix-router] 检测到已启用 interceptUniApi 的路由器实例，将替换为当前实例')
-		removeInterceptors()
-	}
-	activeManager = new InterceptorManager()
-	activeManager.setRouter(router)
-	for (let i = 0; i < INTERCEPTED_APIS.length; i++) {
-		uni.addInterceptor(INTERCEPTED_APIS[i], createInterceptor(INTERCEPTED_APIS[i]))
-	}
-}
-
-/**
- * 移除 uni API 拦截器并释放路由器引用
- */
-export function removeInterceptors(): void {
-	if (activeManager === null) {
-		return
-	}
-	for (let i = 0; i < INTERCEPTED_APIS.length; i++) {
-		if (typeof uni.removeInterceptor === 'function') {
-			uni.removeInterceptor(INTERCEPTED_APIS[i])
-		}
-	}
-	activeManager.reset()
-	activeManager = null
 }

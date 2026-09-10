@@ -14,7 +14,7 @@ uni.navigateTo({ url: '/pages/about/about' })
 await router.push({ name: 'about' })
 ```
 
-uni-app x does not provide `uni.addInterceptor`, so unix-router does **not intercept native navigation APIs**. Always use the router API.
+uni-app x supports `uni.addInterceptor` on all endpoints (see [Platform Compatibility](./compatibility#intercepting-native-navigation-apis-addinterceptor) for the required HBuilderX version), but unix-router does **not intercept native navigation APIs by default**, so calling `uni.navigateTo` directly still **bypasses the guards**. Use `router.*` or `<RouterLink>` instead.
 
 **Check 2: Does the guard return a value correctly?**
 

@@ -20,5 +20,7 @@ export enum RouterErrorCode {
 	/** uni.* 原生导航 API 调用失败（uni-app x 扩展） */
 	NAVIGATION_API_ERROR = 64,
 	/** 路由安装环境错误（uni-app x 扩展） */
-	SETUP_ERROR = 128
+	SETUP_ERROR = 128,
+	/** 使用了插件功能但未注册对应插件（如 params 未注册 ParamsPlugin） */
+	PLUGIN_REQUIRED = 256
 }
