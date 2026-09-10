@@ -21,6 +21,9 @@ const router = createRouter({
 | `strict` | `boolean` | `true` | 严格模式，启用后未匹配的命名路由将抛出 `ROUTE_NOT_FOUND` 异常 |
 | `guardTimeout` | `number` | `10000` | 守卫超时（毫秒），设为 `0` 禁用 |
 | `readyTimeout` | `number` | `0` | 路由器就绪超时（毫秒），`0` 表示永不超时 |
+| `plugins` | `RouterPlugin[]` | — | 插件列表，按需注册扩展能力，如 `[ParamsPlugin]`、`[InterceptorPlugin]` |
+| `interceptUniApi` | `boolean` | `false` | **opt-in**。启用后拦截 `uni.*` 原生导航 API（`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`），守卫下沉到 uni API 层。须配合 `plugins: [InterceptorPlugin]` |
+| `paramsPersistent` | `boolean` | `false` | 是否默认将 params 持久化到 storage（须配合 `plugins: [ParamsPlugin]`） |
 
 ## 返回值
 
@@ -30,12 +33,14 @@ const router = createRouter({
 
 ```ts
 // router/index.ts
-import { createRouter } from '@meng-xi/unix-router'
+import { createRouter, ParamsPlugin, InterceptorPlugin } from '@meng-xi/unix-router'
 import { routes } from './routes'
 
 export const router = createRouter({
 	routes,
 	strict: true,
+	plugins: [ParamsPlugin, InterceptorPlugin], // 页面参数 + uni 导航拦截
+	interceptUniApi: true, // 外部 uni.navigateTo 也走守卫
 	guardTimeout: 15000 // 守卫中有网络请求时调大超时
 })
 ```

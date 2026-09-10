@@ -1,124 +1,143 @@
 # 路由导航
 
-unix-router 提供 vue-router 风格的**编程式导航**，底层映射到 uni-app x 原生 `uni.*` API。本篇先讲清每种导航的用途，再深入 `params / query` 传递与常见陷阱。
+unix-router 提供 `push / replace / relaunch / back` 四种导航，底层映射到 uni 原生导航 API，并自动识别 tabBar 页面。
 
-## 四种导航方式
+## 导航方式
 
-| 方法 | 对应原生 API | 页签行为 | 适用场景 |
-| --- | --- | --- | --- |
-| `router.push(location)` | `uni.navigateTo` / `uni.switchTab` | **保留**当前页，推入新页 | 绝大多数前进跳转 |
-| `router.replace(location)` | `uni.redirectTo` / `uni.switchTab` | **替换**当前页 | 登录等"不希望返回上一步"的场景 |
-| `router.relaunch(location)` | `uni.reLaunch` / `uni.switchTab` | **关闭全部页**，打开目标 | 跳回首页 / 退出到根 |
-| `router.back(delta)` | `uni.navigateBack` | 返回上一页或多级 | 返回 |
+| 方式 | 对应 uni API | 说明 |
+| --- | --- | --- |
+| `push` | `navigateTo` / `switchTab` | 入栈跳转，可返回 |
+| `replace` | `redirectTo` / `switchTab` | 替换当前页，不新增栈 |
+| `relaunch` | `reLaunch` / `switchTab` | 关闭所有页并打开目标 |
+| `back` | `navigateBack` | 返回上一页/多级 |
 
-> 目标路由若在 `meta.isTab` 中标为 TabBar 页，`push / replace / relaunch` 会自动改用 `uni.switchTab`（此时不支持传 query/params）。
-
-**怎么选？**
-- 想要"返回"回到当前页 → `push`
-- 不想让用户返回到当前页（如登录成功）→ `replace`
-- 清空栈回到根页 / 从落地页进入主界面 → `relaunch`
-- 返回 → `back(delta)`
+`router.push` 等均返回 `Promise`，导航成功 resolve、失败 reject（可用 `isNavigationFailure` 判定）。
 
 ## 位置形式（RouteLocationRaw）
 
-目标支持**字符串**或**对象**。
+既支持字符串，也支持对象：
 
 ```ts
-// 字符串：可直接内联 query
-router.push('/pages/about/about?from=home')
+// 1. 字符串路径
+await router.push('/pages/about/about')
 
-// 对象：name 导航（推荐，解耦路径）
-router.push({ name: 'about', query: new Map([['a', '1']]) })
+// 2. 路径对象（path 优先于 name）
+await router.push({ path: 'pages/about/about', query: new Map([['a', '1']]) })
 
-// 对象：path 导航 + params
-router.push({ path: '/pages/detail/detail', params: new Map([['from', '首页']]) })
-
-// 同时给 name 和 path 时：name 优先
-router.push({ name: 'about', path: '/pages/index/index' }) // 命中 name='about'
+// 3. 命名对象（推荐用 name，编译一致）
+await router.push({ name: 'about', query: new Map([['a', '1']]) })
 ```
 
-## 参数传递：query 与 params
+::: tip query 与 params 都是 Map
+uni-app x 的 query/params 以 `Map<string, string>` 承载，读取用 `.get(key)` / `.has(key)`。
+:::
 
-### query（查询串，URL 可见）
+## 传递查询参数 query
 
-以 `Map<string,string>` 承载，序列化进 URL。适合**少量、简单、可分享**的数据：
+query 会出现在 URL 中，可刷新保留：
 
 ```ts
-router.push({ name: 'about', query: new Map([['id', '42'], ['utm', 'banner']]) })
-// URL ≈ /pages/about/about?id=42&utm=banner
+await router.push({
+	name: 'detail',
+	query: new Map([['id', '1024']])
+})
 
-// 目标页读取（Map API，非点号）
-const id = useRoute().query.get('id') ?? ''
+// 目标页
+const route = useRoute()
+console.log(route.query.get('id')) // '1024'
 ```
 
-### params（对象参数，编码进 URL 但键不暴露）
+## 传递对象参数 params（ParamsPlugin）
 
-uni-app x 不支持路径参数，unix-router 将 `params` 经**查询编码**（`__unixr_p_` 保留前缀）跨页传递。**key 经过编码，不暴露明文键名**，与普通 query 隔离：
+复杂对象不适合塞进 URL。注册 `ParamsPlugin` 后，`params` 通过 `__params__` 内存 key 通道传递：
 
 ```ts
-router.push({ path: '/pages/detail/detail', params: new Map([['from', '首页'], ['id', '42']]) })
-// URL 中约为 ...?__unixr_p_%E4%BB%8E...=首页 的编码形态
+import { createRouter, ParamsPlugin } from '@meng-xi/unix-router'
 
-// 目标页读回的是干净 key
-const from = route.params.get('from')  // "首页"
-const id = route.params.get('id')      // "42"
-// params 的内部键不会出现在 route.query 里
+const router = createRouter({ routes, plugins: [ParamsPlugin] })
+
+// 发起页
+await router.push({
+	name: 'detail',
+	params: new Map<string, string>([['id', '1024'], ['name', '张伟']])
+})
+
+// 目标页读取
+const route = useRoute()
+console.log(route.params.get('id'))   // '1024'
+console.log(route.params.get('name')) // '张伟'
 ```
 
-### query 还是 params？
+> 需要跨刷新保留参数时可开启 `paramsPersistent: true`（存入 storage）。未注册 `ParamsPlugin` 却用 `params` 会抛 `PLUGIN_REQUIRED`。详见[插件系统](./plugins)。
 
-| 维度 | query | params |
-| --- | --- | --- |
-| URL 可见性 | 明文键名 + 值 | 键名被编码，值仍可见 |
-| 适合数据 | 少量简单、可分享、埋点 | 命名参数、不想暴露键名 |
-| 读取 | `route.query.get` | `route.params.get` |
-| 类型 | 均为 `Map<string,string>` | 均为 `Map<string,string>` |
+## tabBar 页面
 
-**注意**：两者都以字符串在 URL 传递。**复杂对象请先 `JSON.stringify` 或改用全局状态（如原生 `reactive` 模块）承载**；跨页传递复杂/敏感/大量数据首选后者。
-
-## 返回上一页
+目标路由 `meta.isTab === true` 时，路由器自动改用 `uni.switchTab`：
 
 ```ts
-router.back()  // 返回一页
-router.back(2) // 返回两级
+const routes: RouteConfig[] = [
+	{ path: 'pages/index/index', name: 'home', meta: { isTab: true } },
+	{ path: 'pages/mine/mine', name: 'mine', meta: { isTab: true } }
+]
+
+await router.push({ name: 'mine' }) // 自动走 switchTab
 ```
 
-`back` 会执行**完整守卫链**（`beforeEach` → `beforeResolve`），可由守卫中止或重定向——所以"返回拦截"也是通过守卫实现的之一。
+> `switchTab` 不支持 query，请在 tabBar 页用 `onShow` + 全局状态携带参数（见[实战指南](./recipes#tabbar-页面数据传递)）。
 
-## 重复导航拦截
+## 返回
 
-`push` 到与**当前相同地址**（path + query 一致）时，抛 `DUPLICATED` 失败，可用 `isNavigationFailure` 精准判断并忽略：
+```ts
+await router.back()   // 返回上一页
+await router.back(2)  // 返回两级
+```
+
+- `delta` 需为正整数
+- 页面栈不足时返回 `CANCELLED` 失败
+- App/H5 的返回会经过守卫链；小程序的宿主返回需 `onRouteChange` 事后处理（见[平台兼容性](./compatibility)）
+
+## 重复导航与并发
+
+- **重复导航**：`push` 到与当前完全相同的位置会抛 `DUPLICATED`，可用 `replace` 规避或捕获忽略
+- **并发排队**：上一导航未完成时，新导航会等待其完成再执行
 
 ```ts
 try {
-	await router.push('/pages/about/about')
-} catch (e) {
-	if (isNavigationFailure(e, RouterErrorCode.DUPLICATED)) {
-		// 已在该页，忽略
-	} else {
-		throw e
-	}
+	await router.push({ name: 'about' })
+} catch (err) {
+	if (router.code === 16) return // RouterErrorCode.DUPLICATED，忽略
+	// 其他导航失败：处理
 }
 ```
 
-> 想"刷新当前页"应改用 `router.replace`（或用不同 query/params 导航）。
+## 程序化导航与声明式
 
-## 并发排队
+除了调用 `router.push`，还可以：
 
-上一次导航未完成时，后续导航会**自动排队**，顺序执行，避免状态错乱。因此大部分场景无需手动防抖。
+```ts
+// 程序化（任意上下文）
+router.replace('/pages/login/login')
 
-## TabBar 切换
+// 声明式（组件）
+import { RouterLink } from '@meng-xi/unix-router'
+// <RouterLink to="pages/about/about">关于</RouterLink>
+```
 
-TabBar 页面用 `switchTab` 导航，不会产生新的页面栈项。想让 TabBar 激活态与当前页一致，依赖 `syncRoute()`（见[组合式 API](./composables)）在 `onShow` 自动对齐。
+## 冷启动直接进入
 
-## 常见坑
+`uni-app x` 冷启动/直接 URL 进入页面**不经过守卫链**（页面由 pages.json 直接加载）。如需补跑守卫，用 `guardRoute`：
 
-1. **用点号访问 `route.query.id`** → 应为 `route.query.get('id')`（query/params 都是 Map）。
-2. **TabBar 页传 query/params 无效**：`switchTab` 不支持，请改用全局状态。
-3. **push 到当前页没反应**：被 `DUPLICATED` 拦截；改用 `replace` 或携带不同参数。
-4. **复杂对象传给 params 丢失**：params 只承载字符串，先序列化或用全局状态。
+```ts
+// App.vue onLaunch
+router.isReady().then(() => {
+	router.guardRoute(`/${options?.path ?? ''}`, {
+		onAbort: (failure) => router.relaunch({ name: 'login' })
+	})
+})
+```
 
-## 相关
+## 下一步
 
-- [参数传递深入 + 实践](./recipes#参数传递)
-- [路由导航 API](../api/router-instance)
+- [路由守卫](./guards) — 导航过程中的权限控制
+- [插件系统](./plugins) — ParamsPlugin / InterceptorPlugin
+- [组合式 API](./composables) — useRoute / useLink

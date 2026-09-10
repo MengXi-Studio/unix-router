@@ -64,6 +64,10 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				},
 				{
+					text: '插件',
+					items: [{ text: '插件系统', link: '/guide/plugins' }]
+				},
+				{
 					text: '原理深入',
 					items: [
 						{ text: '导航流程原理', link: '/guide/navigation-flow' },

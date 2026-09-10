@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0] - 2026-09-10
+
+### Added
+
+- **`RouterOptions.paramsPersistent`**: with `ParamsPlugin`, params are persisted to storage by default (kept across refreshes / re-entry); default `false`
+- **Plugin system polish**: `PluginContext` exposes the full navigation hooks (`onEnrichLocation` / `onAfterResolve` / `onPrepareNavigation` / `onCompleteNavigation` / `onNavigationAbort` / `onRouteSync` /
+  `onAppInstall`) plus `router` / `paramsManager` / `hasPlugin`, supporting custom plugins
+- **`Router.guardRoute()` / `onRouteChange`**: completed cold-start guard re-check and route-change listening capabilities
+
+### Fixed
+
+- Internal `__params__` key is now stripped (`stripInternalKeys`) before writing into `currentRoute`, so it is not exposed to users
+- `ParamsPlugin`'s `afterResolve` now null-guards the `Map.get` return value when no `__params__` key exists, fixing a crash that could interrupt the navigation chain
+
 ## [0.2.0] - 2026-09-09
 
 ### Added

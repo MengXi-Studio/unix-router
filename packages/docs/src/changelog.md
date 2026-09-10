@@ -1,5 +1,19 @@
 # 更新日志
 
+## [0.3.0] - 2026-09-10
+
+### 新增
+
+- **`RouterOptions.paramsPersistent`**：配合 `ParamsPlugin` 将 params 默认持久化到 storage（跨刷新/重进保留），默认 `false`
+- **插件体系完善**：`PluginContext` 提供完整导航 hook（`onEnrichLocation` / `onAfterResolve` / `onPrepareNavigation` / `onCompleteNavigation` / `onNavigationAbort` / `onRouteSync` / `onAppInstall`）与 `router` /
+  `paramsManager` / `hasPlugin`，支持自定义插件
+- **`Router.guardRoute()` / `onRouteChange`**：冷启动守卫补跑与路由变化监听能力补齐
+
+### 修复
+
+- 导航成功后写入 `currentRoute` 前剔除内部 `__params__` key（`stripInternalKeys`），避免内部 key 暴露给用户
+- `ParamsPlugin` 的 `afterResolve` 在无 `__params__` 键时对 `Map.get` 返回值（`null`）做空值防护，修复可能中断导航链路的崩溃
+
 ## [0.2.0] - 2026-09-09
 
 ### 新增

@@ -8,7 +8,7 @@ unix-router aligns with vue-router 4 in API style, but because uni-app x uses a 
 | --- | --- |
 | `createRouter({ history })` | `createRouter({ routes })`, no `history` needed (the native page stack handles it) |
 | path / named / params / query matching | ✅ Supported |
-| `route.params / query / meta / fullPath` | ✅ Supported (params are passed across pages via query encoding) |
+| `route.params / query / meta / fullPath` | ✅ Supported (params are passed across pages by ParamsPlugin via the `__params__` in-memory channel) |
 | `currentRoute` reactive | ✅ Supported |
 | push / replace / back | ✅ Supported (+ `relaunch`) |
 | `router.go(n)` | ⚠️ Limited semantics: degraded to `back(delta)` |
@@ -37,9 +37,10 @@ Pages must first be registered in `pages.json`; at runtime, `addRoute` cannot co
 
 ### 3. How params Are Implemented
 
-The native platform doesn't support path parameters (the path is the page path). unix-router passes `params` between page URLs through **query encoding** (reserved `__unixr_p_` prefix), and the target page can read them from `route.params`. Therefore:
+The native platform doesn't support path parameters (the path is the page path). unix-router uses **ParamsPlugin** to pass `params` across pages: the source page stores them into a manager and generates an internal key, carried out through the in-memory `__params__` channel in the URL; the target page retrieves and rebuilds `route.params` during state sync. Therefore:
 - params are shaped like `Map<string,string>` (string values).
-- params appear in the URL query in an encoded form (keys are not exposed in plaintext).
+- params are not directly exposed in the URL; to keep them across refresh, enable `paramsPersistent` (stored to storage).
+- Using `params` without registering `ParamsPlugin` throws `PLUGIN_REQUIRED`. See [Plugin System](./plugins).
 
 ### 4. `go(n)`
 

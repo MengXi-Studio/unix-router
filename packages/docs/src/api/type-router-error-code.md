@@ -14,9 +14,10 @@ import { RouterErrorCode } from '@meng-xi/unix-router'
 | `ROUTE_NOT_FOUND` | `32` | 未匹配到页面路由（uni-app x 扩展） |
 | `NAVIGATION_API_ERROR` | `64` | `uni.*` 原生导航 API 调用失败（uni-app x 扩展） |
 | `SETUP_ERROR` | `128` | 路由安装环境错误（uni-app x 扩展） |
+| `PLUGIN_REQUIRED` | `256` | 使用了未注册插件的能力（如未注册 `ParamsPlugin` 却使用 `params`），须先注册对应插件（uni-app x 扩展） |
 
-::: tip 逗号前缀
-建议配合 `0b` 位运算或直接比较使用，例如 `failure.code === RouterErrorCode.ROUTE_NOT_FOUND`。
+::: tip 位运算与枚举
+建议配合位运算（如 `failure.code & RouterErrorCode.ROUTE_NOT_FOUND`）或直接比较（`failure.code === RouterErrorCode.ROUTE_NOT_FOUND`）使用。
 :::
 
 ## 相关 API
