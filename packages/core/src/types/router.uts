@@ -4,6 +4,7 @@
 import type { App } from 'vue'
 import type { RouteConfig, RouteLocation, RouteLocationRaw, NavigationResult } from './route'
 import type { NavigationGuard, PostNavigationGuard } from './guard'
+import type { RouterPlugin } from './plugin'
 
 /** 路由错误处理回调 */
 export type RouterOnError = (error: Error, to: RouteLocation, from: RouteLocation) => void
@@ -24,13 +25,14 @@ export type RouterOptions = {
 	guardTimeout?: number
 	/** 路由器就绪超时（毫秒），默认 0 永不超时 */
 	readyTimeout?: number
-	/**
-	 * 是否启用 uni API 拦截（opt-in，默认 false）。
-	 * 启用后，绕过路由器直接调用 uni.navigateTo 等原生导航 API 的跳转
-	 * 会被拦截并转由 router.* 执行完整守卫链（守卫下沉到 uni API 层）。
-	 * 注意：受目标平台运行时版本支持（Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61）。
-	 */
+	/** 是否开启 uni 原生导航 API 拦截（将外部 uni.navigateTo 等转交路由器执行守卫）
+	 * 依赖运行平台支持 uni.addInterceptor（Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61 起），
+	 * 运行时缺失该能力时自动降级并警告；默认 false */
 	interceptUniApi?: boolean
+	/** 插件列表（可选，按需注册扩展能力；须同时注册对应选项，如 [InterceptorPlugin]） */
+	plugins?: RouterPlugin[]
+	/** 是否默认持久化 params 到 storage（须配合 ParamsPlugin，默认 false） */
+	paramsPersistent?: boolean
 }
 
 /**

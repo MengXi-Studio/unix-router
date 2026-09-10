@@ -8,7 +8,7 @@ unix-router 在 API 风格上对齐 vue-router 4，但由于 uni-app x 采用**�
 | --- | --- |
 | `createRouter({ history })` | `createRouter({ routes })`，无需 `history`（由原生页面栈承担） |
 | 路径/命名/参数/查询匹配 | ✅ 支持 |
-| `route.params / query / meta / fullPath` | ✅ 支持（params 经查询编码跨页传递） |
+| `route.params / query / meta / fullPath` | ✅ 支持（params 经 ParamsPlugin + `__params__` 内存通道跨页传递） |
 | `currentRoute` 响应式 | ✅ 支持 |
 | push / replace / back | ✅ 支持（+ `relaunch`） |
 | `router.go(n)` | ⚠️ 语义受限：退化用 `back(delta)` |
@@ -38,10 +38,10 @@ uni-app x 无浏览器 URL；"历史"由原生页面栈（`getCurrentPages`）�
 
 ### 3. params 的实现
 
-原生不支持路径参数（路径即页面路径）。unix-router 将 `params` 经**查询编码**
-（`__unixr_p_` 保留前缀）在页面 URL 间传递，目标页 `route.params` 可读取。因此：
+原生不支持路径参数（路径即页面路径）。unix-router 用 **ParamsPlugin** 提供 `params` 跨页传递：发起页存入管理器并生成内部 key，经 URL 中的内存 `__params__` 通道带出，目标页在状态同步时取回重建 `route.params`。因此：
 - params 形如 `Map<string,string>`（字符串值）。
-- params 会以编码形式出现在 URL 查询中（不暴露明文键名）。
+- params 不直接暴露在 URL 中；需跨刷新保留时可开启 `paramsPersistent`（存入 storage）。
+- 未注册 `ParamsPlugin` 却使用 `params` 会抛 `PLUGIN_REQUIRED`。详见[插件系统](./plugins)。
 
 ### 4. `go(n)`
 

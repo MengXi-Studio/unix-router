@@ -31,7 +31,7 @@ features:
     details: Global before/resolve/after guards + route-local beforeEnter + in-component guards, guardRoute cold-start re-execution, redirect and depth-limit protection
   - icon: 📦
     title: Enhanced Params & Query
-    details: Object params passed across pages via query encoding, with queryInt / queryNumber / queryBool handy parsing helpers
+    details: query goes straight into the URL; params are passed across pages by ParamsPlugin (the __params__ channel) with optional persistence, and using params without registering the plugin throws PLUGIN_REQUIRED
   - icon: 🔄
     title: Automatic Route State Sync
     details: install injects a global Mixin that auto-calls syncRoute(), keeping the page stack and non-router navigations in sync

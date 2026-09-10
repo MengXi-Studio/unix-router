@@ -21,7 +21,9 @@ const options: RouterOptions = {
 | `strict` | `boolean` | `true` | 严格模式，启用后未匹配的命名路由抛出 `ROUTE_NOT_FOUND` |
 | `guardTimeout` | `number` | `10000` | 守卫超时（毫秒），`0` 禁用 |
 | `readyTimeout` | `number` | `0` | 就绪超时（毫秒），`0` 永不超时 |
-| `interceptUniApi` | `boolean` | `false` | **opt-in**。启用后拦截 `uni.*` 原生导航 API（`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`），绕过路由器直接调用这些 API 的跳转也会转由 `router.*` 走完整守卫链，守卫下沉到 uni API 层。受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61 |
+| `interceptUniApi` | `boolean` | `false` | **opt-in**。启用后拦截 `uni.*` 原生导航 API（`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`），绕过路由器直接调用这些 API 的跳转也会转由 `router.*` 走完整守卫链，守卫下沉到 uni API 层。受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61；须配合 `plugins: [InterceptorPlugin]` |
+| `plugins` | `RouterPlugin[]` | — | 插件列表，按需注册扩展能力。如 `[InterceptorPlugin]`（与 `interceptUniApi` 配合开启原生导航拦截）、`[ParamsPlugin]`（启用 params 参数传递） |
+| `paramsPersistent` | `boolean` | `false` | 是否默认将 params 持久化到 storage（须配合 `plugins: [ParamsPlugin]`） |
 
 > **注意**：微信小程序端 `<navigator>` 组件跳转与点击 tabBar（底层不触发 `uni.switchTab`）无法被拦截，此场景需在页面 `onShow` 兜底守卫。
 

@@ -63,6 +63,10 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				},
 				{
+					text: 'Plugins',
+					items: [{ text: 'Plugin System', link: '/en/guide/plugins' }]
+				},
+				{
 					text: 'Principles In Depth',
 					items: [
 						{ text: 'Navigation Flow', link: '/en/guide/navigation-flow' },

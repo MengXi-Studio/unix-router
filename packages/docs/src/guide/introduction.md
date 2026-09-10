@@ -43,6 +43,9 @@ unix-router 用一套与 vue-router 一致的 API 抹平这些差异。
 | 组合式 API | useRouter / useRoute / useLink |
 | 错误体系 | RouterError / NavigationFailure / isNavigationFailure |
 | 扩展 | guardRoute 冷启动守卫、重复导航拦截、守卫重定向 + 深度上限 |
+| 插件体系 | RouterPlugin / PluginContext（8 个 hook）/ ParamsPlugin / InterceptorPlugin（opt-in） |
+
+> 安装：`npm install @meng-xi/unix-router`
 
 ## 下一步
 

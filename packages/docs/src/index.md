@@ -31,7 +31,7 @@ features:
     details: 全局前置/解析/后置守卫 + 路由独享 beforeEnter + 组件内守卫，guardRoute 冷启动补执行，重定向与深度上限保护
   - icon: 📦
     title: 参数与查询增强
-    details: params 对象参数经查询编码跨页传递，queryInt / queryNumber / queryBool 便捷解析
+    details: query 直接进 URL；params 经 ParamsPlugin（__params__ 通道）跨页传递，可持久化，未注册插件抛 PLUGIN_REQUIRED 明确引导
   - icon: 🔄
     title: 路由状态自动同步
     details: install 注入全局 Mixin 自动 syncRoute()，页面栈与非路由器导航自动对齐

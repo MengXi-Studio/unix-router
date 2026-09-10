@@ -21,7 +21,9 @@ const options: RouterOptions = {
 | `strict` | `boolean` | `true` | Strict mode; when enabled, unmatched named routes throw `ROUTE_NOT_FOUND` |
 | `guardTimeout` | `number` | `10000` | Guard timeout (ms); `0` disables it |
 | `readyTimeout` | `number` | `0` | Ready timeout (ms); `0` never times out |
-| `interceptUniApi` | `boolean` | `false` | **Opt-in**. When enabled, intercepts the `uni.*` native navigation APIs (`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`); navigations that bypass the router and call these APIs directly are rerouted through `router.*` so the full guard chain runs — guards are sunk down to the uni API layer. Runtime support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61 |
+| `interceptUniApi` | `boolean` | `false` | **Opt-in**. When enabled, intercepts the `uni.*` native navigation APIs (`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`); navigations that bypass the router and call these APIs directly are rerouted through `router.*` so the full guard chain runs — guards are sunk down to the uni API layer. Runtime support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61; requires `plugins: [InterceptorPlugin]` |
+| `plugins` | `RouterPlugin[]` | — | Plugin list; register extension capabilities on demand, e.g. `[InterceptorPlugin]` (with `interceptUniApi` for native navigation interception), `[ParamsPlugin]` (enable params passing) |
+| `paramsPersistent` | `boolean` | `false` | Whether to persist params to storage by default (requires `plugins: [ParamsPlugin]`) |
 
 > **Note**: On WeChat Mini Program, `<navigator>` component jumps and tabBar clicks (which do not trigger `uni.switchTab` under the hood) cannot be intercepted; cover these scenarios with an `onShow` fallback guard.
 

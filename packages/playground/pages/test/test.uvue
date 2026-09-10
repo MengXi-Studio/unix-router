@@ -65,7 +65,7 @@ function runChecks(): CaseResult {
 	// 1. hasRoute / getRoutes
 	rec(router.hasRoute('home'), 'hasRoute("home")')
 	rec(!router.hasRoute('not_exist'), 'hasRoute 误匹配返回 false')
-	rec(router.getRoutes().length === 8, 'getRoutes 数量 = 8')
+	rec(router.getRoutes().length === 9, 'getRoutes 数量 = 9')
 
 	// 2. resolve 路径字符串
 	const p1 = router.resolve('/pages/query/query')
@@ -82,10 +82,13 @@ function runChecks(): CaseResult {
 	rec((p2.query.get('a') ?? '') === '1', 'resolve 命名对象 query')
 	rec((p2.params.get('from') ?? '') === '首页', 'resolve 命名对象 params')
 
-	// 4. params 往返（编码 → 解码，验证 __unixr_p_ 前缀）
-	const p3 = router.resolve('/pages/params/params?__unixr_p_名字=%E5%BC%A0')
-	rec((p3.params.get('名字') ?? '') === '张', 'params 中文字段往返')
-	rec(!p3.query.has('__unixr_p_名字'), 'params 内部 key 已从 query 剔除')
+	// 4. params：对象传入 resolve 后保留在 params，且不泄漏到 query（ParamsPlugin 内存通道）
+	const p3 = router.resolve({
+		name: 'params',
+		params: new Map<string, string>([['名字', '张']])
+	})
+	rec((p3.params.get('名字') ?? '') === '张', 'params 对象传入保留（中文）')
+	rec(!p3.query.has('__unixr_p_名字') && !p3.query.has('__params__'), 'params 不泄漏到 query')
 
 	// 5. isNavigationFailure
 	const nf = new NavigationFailure(RouterErrorCode.ABORTED, 'x', router.resolve('/'), router.resolve('/'))

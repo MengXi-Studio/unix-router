@@ -43,6 +43,9 @@ The docs are organized progressively. Read them in order:
 | Composition API | useRouter / useRoute / useLink |
 | Error system | RouterError / NavigationFailure / isNavigationFailure |
 | Extensions | guardRoute cold-start guard, duplicate-navigation interception, guard redirect + depth limit |
+| Plugin system | RouterPlugin / PluginContext (8 hooks) / ParamsPlugin / InterceptorPlugin (opt-in) |
+
+> Install: `npm install @meng-xi/unix-router`
 
 ## Next Steps
 

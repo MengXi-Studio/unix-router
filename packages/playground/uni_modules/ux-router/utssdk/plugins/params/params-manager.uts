@@ -1,0 +1,97 @@
+/**
+ * Params 存储管理器
+ *
+ * 管理页面参数的存储与读取，支持内存 Map 与 uni storage 两种方式。
+ * 使用 uni-router 相同的「内存/持久化 + key」模式。
+ */
+import type { ParamObject } from '../../types/route'
+import { warn, generateId } from '../../utils'
+import { PARAMS_STORAGE_PREFIX } from '../../constants'
+import type { ParamsManager } from './type'
+
+/** 将 ParamObject(Map) 序列化为 plain 对象（用于 JSON 存储） */
+function mapToRecord(params: ParamObject): any {
+	const obj: any = {}
+	params.forEach((value, key) => {
+		obj[key] = value
+	})
+	return obj
+}
+
+/** 将 plain 对象反序列化为 ParamObject(Map) */
+function recordToMap(record: any): ParamObject {
+	const m = new Map<string, string>()
+	for (const k in record) {
+		if (Object.prototype.hasOwnProperty.call(record, k)) {
+			m.set(k, record[k])
+		}
+	}
+	return m
+}
+
+/** 生成存储使用的完整 key（带前缀） */
+function storageKey(key: string): string {
+	return PARAMS_STORAGE_PREFIX + key
+}
+
+export function createParamsManager(defaultPersistent: boolean): ParamsManager {
+	/** 内存存储 */
+	const memoryMap = new Map<string, ParamObject>()
+	let currentDefaultPersistent = defaultPersistent
+
+	function setDefaultPersistent(persistent: boolean): void {
+		currentDefaultPersistent = persistent
+	}
+
+	function set(params: ParamObject, persistent?: boolean): string {
+		const useStorage = persistent ?? currentDefaultPersistent
+		const key = generateId('pk_')
+		// 校验可序列化性
+		try {
+			JSON.stringify(mapToRecord(params))
+		} catch (e) {
+			warn('params must be JSON-serializable. Non-serializable values will be lost.')
+		}
+		if (useStorage) {
+			try {
+				uni.setStorageSync(storageKey(key), JSON.stringify(mapToRecord(params)))
+			} catch (e) {
+				warn('Failed to write params to storage, falling back to memory storage.')
+				memoryMap.set(key, new Map(params))
+			}
+		} else {
+			memoryMap.set(key, new Map(params))
+		}
+		return key
+	}
+
+	function peek(key: string): ParamObject | undefined {
+		if (memoryMap.has(key)) {
+			return new Map(memoryMap.get(key))
+		}
+		try {
+			const raw = uni.getStorageSync(storageKey(key))
+			if (raw) {
+				try {
+					return recordToMap(JSON.parse(raw as string))
+				} catch (e) {
+					return undefined
+				}
+			}
+		} catch (e) {
+			// storage 读取失败忽略
+		}
+		return undefined
+	}
+
+	function remove(key: string): void {
+		memoryMap.delete(key)
+		try {
+			uni.removeStorageSync(storageKey(key))
+		} catch (e) {
+			// ignore
+		}
+	}
+
+	return { set, peek, remove, setDefaultPersistent }
+}
