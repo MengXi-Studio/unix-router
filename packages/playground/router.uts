@@ -1,6 +1,6 @@
 // 路由配置（unix-router 演示）
 // 通过 uni_modules/ux-router/utssdk 引入自包含的 core 源码
-import { createRouter, ParamsPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { createRouter, ParamsPlugin, InterceptorPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 // 简单的登录态（配合守卫演示；仅为示例，非真实鉴权）
 let loggedIn: boolean = false
@@ -25,7 +25,12 @@ export const routes = [
 	{ path: 'pages/mine/mine', name: 'mine', meta: { title: '我的', isTab: true } }
 ]
 
-export const router = createRouter({ routes, strict: true, plugins: [ParamsPlugin] })
+export const router = createRouter({
+	routes,
+	strict: true,
+	plugins: [ParamsPlugin, InterceptorPlugin],
+	interceptUniApi: true // 拦截 uni 原生导航 API：外部直接 uni.navigateTo 也走守卫
+})
 
 // 全局前置守卫：requireAuth 且未登录 → 重定向到登录页并携带回跳地址
 router.beforeEach((to, from): boolean | null => {

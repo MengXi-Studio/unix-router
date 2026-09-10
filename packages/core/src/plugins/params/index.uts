@@ -25,13 +25,14 @@ function injectQueryKey(location: RawLocation, key: string, value: string): RawL
 	return { ...location, query }
 }
 
-/** 从 location 的 query 中读取 key */
+/** 从 location 的 query 中读取 key（无该 key 时返回 undefined） */
 function extractQueryKey(location: RawLocation, key: string): string | undefined {
 	const query = location.query
 	if (query === null || query === undefined) {
 		return undefined
 	}
-	return query.get(key)
+	const v = query.get(key)
+	return v === null || v === undefined ? undefined : v
 }
 
 /**
@@ -63,7 +64,7 @@ export const ParamsPlugin: RouterPlugin = {
 			if (typeof enrichedLocation !== 'string') {
 				const raw = enrichedLocation as RawLocation
 				const key = extractQueryKey(raw, PARAMS_QUERY_KEY)
-				if (key !== undefined && key.length > 0) {
+				if (key !== null && key !== undefined && key.length > 0) {
 					pluginData.set(PLUGIN_DATA_KEY, key)
 				}
 			}
