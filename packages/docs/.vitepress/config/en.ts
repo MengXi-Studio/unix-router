@@ -91,7 +91,8 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 						{ text: 'Router Instance', link: '/en/api/router-instance' },
 						{ text: 'useRouter()', link: '/en/api/use-router' },
 						{ text: 'useRoute()', link: '/en/api/use-route' },
-						{ text: 'useLink()', link: '/en/api/use-link' }
+						{ text: 'useLink()', link: '/en/api/use-link' },
+						{ text: 'RouterLink Component', link: '/en/api/router-link' }
 					]
 				},
 				{

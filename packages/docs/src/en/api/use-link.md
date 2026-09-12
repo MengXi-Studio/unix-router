@@ -61,4 +61,5 @@ const onClick = () => {
 
 ## Related APIs
 
-- [Composition API Guide](../guide/composables)
+- [RouterLink Component](./router-link)
+- [Composition API guide](../guide/composables)

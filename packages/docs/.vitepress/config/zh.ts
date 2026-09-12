@@ -92,7 +92,8 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 						{ text: 'Router 实例', link: '/api/router-instance' },
 						{ text: 'useRouter()', link: '/api/use-router' },
 						{ text: 'useRoute()', link: '/api/use-route' },
-						{ text: 'useLink()', link: '/api/use-link' }
+						{ text: 'useLink()', link: '/api/use-link' },
+						{ text: 'RouterLink 组件', link: '/api/router-link' }
 					]
 				},
 				{

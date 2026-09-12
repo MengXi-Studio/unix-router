@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0] - 2026-09-13
+
+### Added
+
+- **`RouterLink` component publicly exported**: a declarative navigation component based on `useLink` (`to` / `replace` / `relaunch`), importable directly from the library entry
+- **Plugin contract compliance**: `RouterPlugin` / `PluginContext` etc. changed from `interface` to `type`, allowing direct object-literal assignment (avoids the UTS constraint that object literals cannot be assigned to
+  interfaces)
+
+### Changed (breaking)
+
+- **Params passing unified**: removed the legacy `__unixr_p_` query-prefix encoding (`encodeParamsToQuery` / `extractParamsFromQuery` and related constants); `params` are now always passed across pages via `ParamsPlugin`
+  (the `__params__` keyed store). Old-format URLs no longer restore params; navigations carrying params must register `plugins: [ParamsPlugin]`
+
+### Fixed
+
+- Eliminated all `undefined` leftovers across the library (unified `== null` / `??` narrowing), fixing Web compilation type warnings
+- `RouterLink` css compliance (removed `scoped` / `inline-block`, switched to flex layout)
+
 ## [0.3.0] - 2026-09-11
 
 ### Added

@@ -1,3 +1,20 @@
+## 0.4.0（2026-09-13）
+
+### 新增
+
+- **`RouterLink` 组件公开导出**：基于 `useLink` 的声明式导航组件（`to` / `replace` / `relaunch`），从库入口直接导入
+- **插件契约合规**：`RouterPlugin` / `PluginContext` 等类型由 `interface` 调整为 `type`，支持对象字面量直接赋值（规避 UTS 对象字面量不能赋给 interface 的编译约束）
+
+### 变更（破坏性）
+
+- **params 传递机制统一**：移除旧的 `__unixr_p_` 查询前缀编码（`encodeParamsToQuery` / `extractParamsFromQuery` 及相关常量），params 一律经 `ParamsPlugin`（`__params__`
+  关联存储）跨页传递。旧格式 URL 不再恢复参数，携带 params 的导航须注册 `plugins: [ParamsPlugin]`
+
+### 修复
+
+- 全库消除 `undefined` 残留（统一 `== null` / `??` 窄化），修复 Web 端编译类型警告
+- `RouterLink` 组件 css 合规（移除 `scoped` / `inline-block`，改用 flex 布局）
+
 ## 0.3.0（2026-09-11）
 
 ### 新增

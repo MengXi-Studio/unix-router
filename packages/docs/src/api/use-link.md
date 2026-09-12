@@ -61,4 +61,5 @@ const onClick = () => {
 
 ## 相关 API
 
+- [RouterLink 组件](./router-link)
 - [组合式 API 指南](../guide/composables)
