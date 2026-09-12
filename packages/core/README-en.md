@@ -22,7 +22,7 @@
 - **Route guards** - `beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / `onBeforeRouteLeave` / `onBeforeRouteEnter` / `onBeforeRouteUpdate`, controllable redirects, guard timeout protection (`guardTimeout`), and redirect depth limit
 - **Cold-start guard** - `guardRoute()` re-runs the guard chain for H5 deep links / scene values / deeplink pages, with redirect and abort callbacks (`onAbort`)
 - **Named routes & route meta** - navigate by `name`, carry custom data in `meta` (including `isTab`); under strict mode (`strict`) an unmatched named route throws `RouterError`
-- **Page parameter passing** - `params` (`Map<string,string>`) passed across pages via query encoding (reserved `__unixr_p_` prefix); readable from `route.params` on the target page without exposing plaintext keys
+- **Page parameter passing** - `params` (`Map<string,string>`) passed across pages via **ParamsPlugin** (`__params__` keyed store); readable from `route.params` on the target page without exposing plaintext keys; requires registering `plugins: [ParamsPlugin]`
 - **Enhanced query parsing** - `route.query` is a `Map`, plus `queryInt()` / `queryNumber()` / `queryBool()` convenience helpers (provided by the library's built-in utilities)
 - **Declarative navigation** - `useLink()` composable returning a reactive target route, active state (`isActive` / `isExactActive`), and a navigate function, for building custom link / menu components
 - **Automatic route state sync** - `app.use(router)` injects a global mixin that calls `syncRoute()` on page `onShow`, keeping the reactive `currentRoute` aligned with non-router navigation (back button / TabBar switches)

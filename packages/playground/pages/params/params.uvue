@@ -4,7 +4,7 @@
 	<!-- #endif -->
 		<view class="page">
 			<text class="title">Params 传参</text>
-			<text class="tip">params 以对象（Map）形式经查询编码（__unixr_p_ 保留前缀）在页面 URL 间传递。</text>
+			<text class="tip">params 以对象（Map）形式经 ParamsPlugin（__params__ 关联存储）跨页传递，需注册 plugins: [ParamsPlugin]。</text>
 
 			<view class="input-row">
 				<text class="label">姓名字段</text>

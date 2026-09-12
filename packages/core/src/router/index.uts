@@ -56,9 +56,9 @@ class UniRouter implements Router {
 	private strict: boolean
 
 	constructor(options: RouterOptions) {
-		this.strict = options.strict === null || options.strict === undefined ? true : options.strict
-		this.guardTimeout = options.guardTimeout === null || options.guardTimeout === undefined ? DEFAULT_GUARD_TIMEOUT : options.guardTimeout
-		this.readyTimeout = options.readyTimeout === null || options.readyTimeout === undefined ? DEFAULT_READY_TIMEOUT : options.readyTimeout
+		this.strict = options.strict ?? true
+		this.guardTimeout = options.guardTimeout ?? DEFAULT_GUARD_TIMEOUT
+		this.readyTimeout = options.readyTimeout ?? DEFAULT_READY_TIMEOUT
 		this.guardManager = createGuardManager()
 		this.matcher = createRouteMatcher(options.routes, this.strict)
 		this.routeState = createRouteState(this.readyTimeout)
@@ -305,7 +305,7 @@ class UniRouter implements Router {
 			await this.pendingNavigation.catch(() => {})
 		}
 		// 使用 params 但未注册 ParamsPlugin → PLUGIN_REQUIRED
-		if (!this.pluginHooks.hasPlugin('params') && location !== null && typeof location !== 'string' && location.params !== null && location.params !== undefined && location.params.size > 0) {
+		if (!this.pluginHooks.hasPlugin('params') && location != null && typeof location !== 'string' && location.params != null && location.params.size > 0) {
 			const from = this.routeState.currentRoute.value
 			const failure = new NavigationFailure(RouterErrorCode.PLUGIN_REQUIRED, `使用 params 需注册 ParamsPlugin：createRouter({ plugins: [ParamsPlugin] })`, from, from)
 			return this.failNavigation(from, from, failure)
@@ -433,11 +433,11 @@ class UniRouter implements Router {
 	private async handleGuardResult(result: GuardResult, to: RouteLocation, from: RouteLocation, mode: NavigationMode, redirectDepth: number = 0, pluginData: PluginData = new Map<string, any>()): Promise<NavigationResult | null> {
 		if (result.kind === 'abort') {
 			this.pluginHooks.runAbortHooks(pluginData)
-			const message = result.code === RouterErrorCode.CANCELLED && result.error !== null && result.error !== undefined ? `导航取消: ${result.error.message}` : '导航被中止'
+			const message = result.code === RouterErrorCode.CANCELLED && result.error != null ? `导航取消: ${result.error.message}` : '导航被中止'
 			const failure = new NavigationFailure(result.code ?? RouterErrorCode.CANCELLED, message, to, from)
 			return this.failNavigation(to, from, failure)
 		}
-		if (result.kind === 'redirect' && result.redirect !== null && result.redirect !== undefined) {
+		if (result.kind === 'redirect' && result.redirect != null) {
 			const redirectMode: NavigationMode = result.mode === 'replace' ? 'replace' : result.mode === 'push' ? 'push' : mode
 			// 重定向时对新的 location 重新执行 enrich + afterResolve
 			const enrichedRedirect = this.pluginHooks.enrichLocation(result.redirect)

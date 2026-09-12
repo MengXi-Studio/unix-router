@@ -26,7 +26,7 @@ export class UniHistory {
 		const path = '/' + page.route
 		const query = new Map<string, string>()
 		const options = page.options
-		if (options !== undefined && options !== null) {
+		if (options !== null) {
 			for (const key in options) {
 				if (Object.prototype.hasOwnProperty.call(options, key)) {
 					query.set(key, options[key])

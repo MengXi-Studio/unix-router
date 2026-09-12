@@ -54,7 +54,7 @@ export async function runGuardQueue(guards: NavigationGuard[], to: RouteLocation
  */
 export async function runBeforeEnterGuards(config: RouteConfig, to: RouteLocation, from: RouteLocation, timeout: number): Promise<GuardResult> {
 	const beforeEnter = config.beforeEnter
-	if (beforeEnter === null || beforeEnter === undefined) {
+	if (beforeEnter == null) {
 		return { kind: 'next' }
 	}
 	const list: NavigationGuard[] = Array.isArray(beforeEnter) ? beforeEnter : [beforeEnter]

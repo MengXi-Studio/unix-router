@@ -110,7 +110,7 @@ export function parseUrl(full: string): ParsedUrl {
 export function decodeURIComponentSafe(value: string): string {
 	try {
 		const decoded = decodeURIComponent(value)
-		return decoded !== null && decoded !== undefined ? decoded : value
+		return decoded != null ? decoded : value
 	} catch (e) {
 		return value
 	}

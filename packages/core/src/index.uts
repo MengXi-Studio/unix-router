@@ -13,6 +13,9 @@ export { InterceptorPlugin, installInterceptors, removeInterceptors } from './pl
 /* 可选插件：页面参数传递（opt-in，plugins: [ParamsPlugin]；未注册时使用 params 将抛 PLUGIN_REQUIRED） */
 export { ParamsPlugin, createParamsManager } from './plugins/params'
 
+/* 声明式导航组件：基于 useLink 的可交互导航入口 */
+export { default as RouterLink } from './components/RouterLink.uvue'
+
 import { RouterError } from './errors/router-error'
 import { NavigationFailure } from './errors/navigation-failure'
 import { isNavigationFailure } from './errors/is-navigation-failure'

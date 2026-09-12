@@ -42,7 +42,7 @@ export interface NavigationCompleteContext {
  * 插件上下文
  * 路由器暴露给插件的 hook 注册接口
  */
-export interface PluginContext {
+export type PluginContext = {
 	/** matcher.resolve() 前增强原始路由位置 */
 	onEnrichLocation(hook: (location: RouteLocationRaw) => RouteLocationRaw): void
 	/** resolve 之后、守卫之前，从增强的路由位置中提取插件数据 */
@@ -69,8 +69,8 @@ export interface PluginContext {
 	hasPlugin(name: string): boolean
 }
 
-/** 路由器插件接口 */
-export interface RouterPlugin {
+/** 路由器插件（对象字面量可直接赋值，故声明为 type） */
+export type RouterPlugin = {
 	/** 插件名称 */
 	name: string
 	/** 安装插件：通过 context 注册 hook，从 options 读取插件选项 */

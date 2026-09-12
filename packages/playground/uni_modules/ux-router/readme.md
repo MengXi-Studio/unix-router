@@ -12,7 +12,7 @@ uni-app x 原生提供 `uni.navigateTo / redirectTo / reLaunch / navigateBack / 
 - **路由匹配**：path / name 双索引，字符串 / 对象 / 命名三种解析，`strict` 严格模式
 - **路由守卫**：`beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / 组件内守卫，支持重定向、守卫超时与重定向深度上限
 - **组合式 API**：`useRouter()` / `useRoute()` / `useLink()`，响应式 `currentRoute`
-- **参数传递**：`params`（`Map<string,string>`）经查询编码（`__unixr_p_` 保留前缀）跨页传递；`query` 以字符串经 URL 传递，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析
+- **参数传递**：`params`（`Map<string,string>`）经 **ParamsPlugin**（`__params__` 关联存储）跨页传递；`query` 以字符串经 URL 传递，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析
 - **导航控制**：重复导航自动拒绝（`DUPLICATED`）、并发导航自动排队
 - **错误体系**：`RouterError` / `NavigationFailure` / `UniNavigationApiError`，`RouterErrorCode` 错误码，`isNavigationFailure()` 精准判断，`onError` 全局捕获
 - **冷启动守卫**：`guardRoute()` 对 H5 直达 / 场景值 / deeplink 补执行守卫链，支持重定向与中止回调（`onAbort`）
@@ -166,7 +166,7 @@ router.isReady().then(() => {
 ## 参数传递
 
 - **`query`**：URL 可见，适合少量、简单、可分享的数据
-- **`params`**：经 `__unixr_p_` 前缀查询编码跨页传递，键名不暴露明文，适合命名参数
+- **`params`**：经 **ParamsPlugin**（`__params__` 关联存储）跨页传递，键名不暴露明文，适合命名参数（需注册 `plugins: [ParamsPlugin]`）
 
 两者均为 `Map<string,string>`：
 

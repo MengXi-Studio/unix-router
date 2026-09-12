@@ -88,7 +88,7 @@ function runChecks(): CaseResult {
 		params: new Map<string, string>([['名字', '张']])
 	})
 	rec((p3.params.get('名字') ?? '') === '张', 'params 对象传入保留（中文）')
-	rec(!p3.query.has('__unixr_p_名字') && !p3.query.has('__params__'), 'params 不泄漏到 query')
+	rec(!p3.query.has('__params__'), 'params 不泄漏到 query')
 
 	// 5. isNavigationFailure
 	const nf = new NavigationFailure(RouterErrorCode.ABORTED, 'x', router.resolve('/'), router.resolve('/'))

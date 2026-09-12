@@ -2,7 +2,6 @@
  * 查询参数增强读取工具
  * 提供 queryInt / queryNumber / queryBool 等从查询 Map 原子读值的能力
  */
-import { PARAMS_QUERY_PREFIX } from '../constants'
 
 /**
  * 从查询 Map 读取整型值
@@ -13,7 +12,7 @@ import { PARAMS_QUERY_PREFIX } from '../constants'
  */
 export function queryInt(query: Map<string, string>, key: string, defaultValue: number = 0): number {
 	const raw = query.get(key)
-	if (raw === null || raw === undefined || raw === '') {
+	if (raw === null || raw === '') {
 		return defaultValue
 	}
 	const n = Number.parseInt(raw, 10)
@@ -32,7 +31,7 @@ export function queryInt(query: Map<string, string>, key: string, defaultValue: 
  */
 export function queryNumber(query: Map<string, string>, key: string, defaultValue: number = 0): number {
 	const raw = query.get(key)
-	if (raw === null || raw === undefined || raw === '') {
+	if (raw === null || raw === '') {
 		return defaultValue
 	}
 	const n = Number.parseFloat(raw)
@@ -51,48 +50,8 @@ export function queryNumber(query: Map<string, string>, key: string, defaultValu
  */
 export function queryBool(query: Map<string, string>, key: string, defaultValue: boolean = false): boolean {
 	const raw = query.get(key)
-	if (raw === null || raw === undefined || raw === '') {
+	if (raw === null || raw === '') {
 		return defaultValue
 	}
 	return raw !== '0' && raw !== 'false'
-}
-
-/**
- * 将 params 保留前缀进查询 Map，返回扩展后的查询 Map
- * 用于导航 URL 传递对象化的路由参数（uni-app x 静态模型适配）。
- * 注意：此处仅拼接保留前缀、不编码 key，统一由序列化阶段（serializeQuery）编码一次，
- * 避免二次编码后仍需二次解码的隐式配对。
- * @param query - 原查询 Map
- * @param params - 路由参数 Map
- * @returns 扩展后的查询 Map
- */
-export function encodeParamsToQuery(query: Map<string, string>, params: Map<string, string>): Map<string, string> {
-	const result = new Map<string, string>(query)
-	params.forEach((value, key) => {
-		result.set(PARAMS_QUERY_PREFIX + key, value)
-	})
-	return result
-}
-
-/**
- * 从查询 Map 提取 params（按保留前缀），并从原查询中移除这些内部 key
- * 与 encodeParamsToQuery 配对：key 仅拼接前缀、序列化阶段才编码一次，
- * 故此处只截取前缀、不再二次解码。
- * @param query - 查询 Map（会被就地剔除 params 相关 key）
- * @returns 提取出的 params Map
- */
-export function extractParamsFromQuery(query: Map<string, string>): Map<string, string> {
-	const params = new Map<string, string>()
-	const removeKeys: string[] = []
-	query.forEach((value, key) => {
-		if (key.startsWith(PARAMS_QUERY_PREFIX)) {
-			const realKey = key.substring(PARAMS_QUERY_PREFIX.length)
-			params.set(realKey, value)
-			removeKeys.push(key)
-		}
-	})
-	for (var i = 0; i < removeKeys.length; i++) {
-		query.delete(removeKeys[i])
-	}
-	return params
 }

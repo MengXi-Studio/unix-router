@@ -22,7 +22,7 @@
 - **路由守卫** - `beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / `onBeforeRouteLeave` / `onBeforeRouteEnter` / `onBeforeRouteUpdate`，支持可控重定向、守卫超时保护（`guardTimeout`）与重定向深度上限
 - **冷启动守卫** - `guardRoute()` 对 H5 直达 / 场景值 / deeplink 等场景补执行守卫链，支持重定向与中止回调（`onAbort`）
 - **命名路由 & 路由元信息** - 通过 `name` 导航，`meta` 携带自定义数据（含 `isTab`），严格模式（`strict`）下未匹配命名路由抛出 `RouterError`
-- **页面参数传递** - `params`（`Map<string,string>`）经查询编码（`__unixr_p_` 保留前缀）跨页传递，目标页 `route.params` 读回，不暴露明文键名
+- **页面参数传递** - `params`（`Map<string,string>`）经 **ParamsPlugin**（`__params__` 关联存储）跨页传递，目标页 `route.params` 读回，不暴露明文键名；需注册 `plugins: [ParamsPlugin]`
 - **查询参数增强** - `route.query` 为 `Map`，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析（由库内置工具函数提供）
 - **声明式导航** - `useLink()` 组合式 API，返回响应式目标路由、激活态（`isActive` / `isExactActive`）与导航函数，便于自定义链接 / 菜单组件
 - **路由状态自动同步** - `app.use(router)` 注入全局 Mixin，页面 `onShow` 自动 `syncRoute()`，`currentRoute` 响应式，非路由器导航（返回键 / TabBar 切换）自动对齐

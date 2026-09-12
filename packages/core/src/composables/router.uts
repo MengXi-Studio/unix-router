@@ -21,7 +21,7 @@ export function useRouter(): Router {
 	if (instance !== null) {
 		// 处于 setup 上下文：优先读取注入的路由器（多实例场景）
 		const injected = inject<Router | null>(ROUTER_SYMBOL, null)
-		if (injected !== null && injected !== undefined) {
+		if (injected !== null) {
 			return injected
 		}
 	}

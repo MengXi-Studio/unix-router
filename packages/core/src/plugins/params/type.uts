@@ -3,11 +3,11 @@
  */
 import type { ParamObject } from '../../types/route'
 
-export interface ParamsManager {
+export type ParamsManager = {
 	/** 存储 params，返回生成的 key */
 	set(params: ParamObject, persistent?: boolean): string
 	/** 根据 key 读取 params（不做惰性清理，用于目标页尚未入栈的导航解析阶段） */
-	peek(key: string): ParamObject | undefined
+	peek(key: string): ParamObject | null
 	/** 删除指定 key 的 params */
 	remove(key: string): void
 	/** 设置全局默认持久化策略 */

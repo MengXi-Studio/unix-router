@@ -156,7 +156,7 @@ export function installInterceptors(router: Router): void {
 				// 放行路由器自身发起的调用（守卫已由路由器执行，避免二次拦截）
 				const active = activeManager
 				if (active !== null && active.isRouterCall()) {
-					return undefined
+					return true
 				}
 				// Web 端 switchTab：放行原始调用并在成功回调中同步路由状态（避免 TabBar 组件状态卡死）
 				if (api === 'switchTab' && isWeb) {
@@ -172,7 +172,7 @@ export function installInterceptors(router: Router): void {
 							}
 						}
 					}
-					return undefined
+					return true
 				}
 				// 外部直接调用：转交路由器处理并阻止原始调用
 				dispatch(api, args.url, args.delta)

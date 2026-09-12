@@ -35,7 +35,7 @@ export type RouteSyncHook = (query: Map<string, string>, params: Map<string, str
 export type AppInstallHook = (app: App) => void
 
 /** PluginHookManager 依赖（由路由器注入） */
-export interface PluginHookDeps {
+export type PluginHookDeps = {
 	/** 读取当前路由位置 */
 	getCurrentRoute(): RouteLocation
 	/** 解析路由位置 */

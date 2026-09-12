@@ -4,8 +4,8 @@
  * 基于 path / name 双索引，将字符串路径、路径对象、命名对象解析为完整 RouteLocation。
  * 采用扁平页面模型（uni-app x），不支持嵌套/动态路由。
  *
- * params 适配：对象位置的对象参数直接挂到 RouteLocation.params；由路由器在拼 URL 时
- * 通过 encodeParamsToQuery 编码进查询，字符串路径解析时据保留前缀重建 params。
+ * params 适配：对象位置的对象参数直接挂到 RouteLocation.params；页面间传递由
+ * ParamsPlugin（__params_key 关联存储）完成，字符串路径解析按需由插件重建 params。
  */
 import type { RouteConfig, RouteLocation, RouteLocationNamedRaw, RouteLocationPathRaw, RouteLocationRaw, RouteMeta } from '../types'
 import { RouterErrorCode } from '../enums'
@@ -59,7 +59,7 @@ export function createRouteMatcher(routes: RouteConfig[], strict: boolean): Rout
 
 	function getRouteConfig(path: string): RouteConfig | null {
 		const config = pathMap.get(normalizePath(path))
-		return config === undefined ? null : config
+		return config === null ? null : config
 	}
 
 	/** 构造 RouteLocation */

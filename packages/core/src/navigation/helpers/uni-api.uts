@@ -20,7 +20,7 @@ export function promisifyUniApi(api: string, executor: (resolve: () => void, rej
 			executor(
 				() => resolve(),
 				(err: UniFailure) => {
-					const message = `${api} 调用失败: ${err !== null && err !== undefined && err.errMsg !== null && err.errMsg !== undefined ? err.errMsg : ''}`
+					const message = `${api} 调用失败: ${err !== null && err.errMsg !== null ? err.errMsg : ''}`
 					reject(new Error(message))
 				}
 			)

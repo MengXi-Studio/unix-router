@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="uts">
-import { useLink } from '@meng-xi/unix-router'
+import { useLink } from '../composables/index.uts'
 
 /**
  * RouterLink 组件（uni-app x · script setup 语法糖）
@@ -34,8 +34,8 @@ const onClick = () => {
 }
 </script>
 
-<style scoped>
+<style>
 .router-link {
-	display: inline-block;
+	flex-direction: column;
 }
 </style>

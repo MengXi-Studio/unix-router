@@ -2,10 +2,8 @@
  * 内部保留 key 前缀
  *
  * uni-app x 静态页面模型不支持路径参数，vue-router 风格的 params
- * 通过在页面 URL 间传递"带保留前缀的查询参数"实现，目标页据此前缀重建 params。
- * 前缀带库标识（__unixr_），避免与业务侧查询参数及其它库的保留键冲突。
+ * 由 ParamsPlugin 通过「__params_key 关联存储」在页面间传递（见 plugins/params）。
  */
-export const PARAMS_QUERY_PREFIX: string = '__unixr_p_'
 
 /** params 持久化存储 key 前缀（存储于 uni storage） */
 export const PARAMS_STORAGE_PREFIX: string = 'unixr_params_'

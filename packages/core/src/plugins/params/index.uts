@@ -8,7 +8,7 @@
  * - onRouteSync：从 URL query 读 key，peek 重建 params 并移除内部 key
  */
 import type { RouterPlugin, PluginContext, RouterOptions, RawLocation, ParamObject } from '../../types'
-import { PARAMS_QUERY_KEY, PARAMS_QUERY_PREFIX } from '../../constants'
+import { PARAMS_QUERY_KEY } from '../../constants'
 import { createParamsManager } from './params-manager'
 import type { ParamsManager } from './type'
 
@@ -25,14 +25,14 @@ function injectQueryKey(location: RawLocation, key: string, value: string): RawL
 	return { ...location, query }
 }
 
-/** 从 location 的 query 中读取 key（无该 key 时返回 undefined） */
-function extractQueryKey(location: RawLocation, key: string): string | undefined {
+/** 从 location 的 query 中读取 key（无该 key 时返回 null） */
+function extractQueryKey(location: RawLocation, key: string): string | null {
 	const query = location.query
-	if (query === null || query === undefined) {
-		return undefined
+	if (query == null) {
+		return null
 	}
 	const v = query.get(key)
-	return v === null || v === undefined ? undefined : v
+	return v == null ? null : v
 }
 
 /**
@@ -52,7 +52,7 @@ export const ParamsPlugin: RouterPlugin = {
 				return location
 			}
 			const loc = location as RawLocation
-			if (loc.params === null || loc.params === undefined || loc.params.size === 0) {
+			if (loc.params == null || loc.params.size === 0) {
 				return location
 			}
 			const key = paramsManager.set(loc.params)
@@ -64,7 +64,7 @@ export const ParamsPlugin: RouterPlugin = {
 			if (typeof enrichedLocation !== 'string') {
 				const raw = enrichedLocation as RawLocation
 				const key = extractQueryKey(raw, PARAMS_QUERY_KEY)
-				if (key !== null && key !== undefined && key.length > 0) {
+				if (key !== null && key.length > 0) {
 					pluginData.set(PLUGIN_DATA_KEY, key)
 				}
 			}
@@ -73,7 +73,7 @@ export const ParamsPlugin: RouterPlugin = {
 		// 导航前：将 key 拼入导航 URL query
 		context.onPrepareNavigation(ctx => {
 			const key = ctx.pluginData.get(PLUGIN_DATA_KEY)
-			if (key !== null && key !== undefined) {
+			if (key !== null) {
 				ctx.query.set(PARAMS_QUERY_KEY, key as string)
 			}
 		})
@@ -81,11 +81,11 @@ export const ParamsPlugin: RouterPlugin = {
 		// 状态同步：从 query 读 key，重建 params 并移除内部 key
 		context.onRouteSync((query, params) => {
 			const key = query.get(PARAMS_QUERY_KEY)
-			if (key === null || key === undefined) {
+			if (key === null) {
 				return
 			}
 			const resolved = paramsManager.peek(key)
-			if (resolved !== undefined) {
+			if (resolved !== null) {
 				resolved.forEach((value, k) => {
 					params.set(k, value)
 				})

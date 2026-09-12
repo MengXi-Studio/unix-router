@@ -65,7 +65,7 @@ export function createParamsManager(defaultPersistent: boolean): ParamsManager {
 		return key
 	}
 
-	function peek(key: string): ParamObject | undefined {
+	function peek(key: string): ParamObject | null {
 		if (memoryMap.has(key)) {
 			return new Map(memoryMap.get(key))
 		}
@@ -75,13 +75,13 @@ export function createParamsManager(defaultPersistent: boolean): ParamsManager {
 				try {
 					return recordToMap(JSON.parse(raw as string))
 				} catch (e) {
-					return undefined
+					return null
 				}
 			}
 		} catch (e) {
 			// storage 读取失败忽略
 		}
-		return undefined
+		return null
 	}
 
 	function remove(key: string): void {
