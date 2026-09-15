@@ -13,7 +13,7 @@
 	"engines": {
 		"HBuilderX": "^3.6.8",
 		"uni-app": "",
-		"uni-app-x": "^3.8.3"
+		"uni-app-x": "^3.8.4"
 	},
 	"dcloudext": {
 		"type": "uts",
