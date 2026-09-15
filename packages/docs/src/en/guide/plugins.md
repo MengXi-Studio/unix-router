@@ -64,13 +64,15 @@ const router = createRouter({
 })
 ```
 
-::: warning ParamsPlugin must be registered
+::: warning ParamsPlugin required
 Calling a navigation with `params` without registering `ParamsPlugin` throws `PLUGIN_REQUIRED`:
 
 ```
-Using params requires registering ParamsPlugin: createRouter({ plugins: [ParamsPlugin] })
+Use params requires registering ParamsPlugin: createRouter({ plugins: [ParamsPlugin] })
 ```
 :::
+
+**Exports**: `ParamsPlugin` (the plugin) + `createParamsManager(options)` (low-level params manager for reuse in custom plugins).
 
 ### InterceptorPlugin: uni navigation interception
 
@@ -104,7 +106,38 @@ uni.navigateTo({ url: '/pages/about/about' }) // intercepted → handed to route
 The interceptor only applies to **external direct calls**; the `uni` calls issued internally by `router.push/replace/relaunch/back` are not re-intercepted (distinguished via an internal marker).
 :::
 
-Intercepted APIs: `navigateTo / redirectTo / switchTab / reLaunch / navigateBack`. It also exposes `markRouterCall` / `installInterceptors` / `removeInterceptors` for low-level use.
+Intercepted APIs: `navigateTo / redirectTo / switchTab / reLaunch / navigateBack`. It also exposes `installInterceptors` / `removeInterceptors` for low-level use.
+
+**Exports**: `InterceptorPlugin` (the plugin; auto-installs when registered via `plugins: [InterceptorPlugin]` with `interceptUniApi: true`) + `installInterceptors(router)` / `removeInterceptors()` (manually install/uninstall the interceptors for fine-grained control after the Router is instantiated).
+
+### AnimationPlugin: navigation window animation
+
+Injects window transition animations into navigations (aligned with uni-app x's native `animationType`):
+- **App / Mini Program**: passes `animationType` / `animationDuration` through to the `uni.*` native navigation APIs (native window animation);
+- **H5**: plays enter / exit animations on the page container with the Web Animations API (`element.animate`) — no CSS `@keyframes` needed.
+
+```ts
+import { createRouter, AnimationPlugin } from '@meng-xi/unix-router'
+
+const router = createRouter({
+	routes,
+	plugins: [AnimationPlugin],
+	animation: { type: 'slide-in-right', duration: 300 } // global default animation (optional)
+})
+
+// Per-navigation override: this navigation uses fade-in
+router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDuration: 500 })
+```
+
+**Animation types**: `slide-in-right` / `slide-in-left` / `slide-in-top` / `slide-in-bottom` / `fade-in` / `zoom-in` / `zoom-fade-in` / `pop-in` / `auto` / `none`.
+
+- `back()` uses the global default animation as the **exit animation** (back has no location to carry; per-navigation override only applies to forward navigations).
+- Without the plugin registered, navigations carrying `animationType` still run normally (the animation is ignored).
+- On H5, this relies on the `onBeforeNavigation` async hook: before returning, the exit animation plays to completion, then the real `navigateBack` runs.
+
+**H5 animation timing** (prevents lag on first entry): when `onCompleteNavigation` fires, uni-app x H5 has already swapped the new page's content into `uni-page` (its `data-page` is switched). At that moment the plugin **synchronously applies the animation start style** (e.g. `translateX(100%)` + forced reflow), so the new page's first rendered frame is already off-screen; the slide-in animation plays on the next frame — this avoids the jarring "content flashes in place, then jumps off-screen and slides in" effect. The inline start style is cleared after the animation ends, so it cannot affect the exit animation of a later `back()`.
+
+**Exports**: `AnimationPlugin` (the plugin) + `DEFAULT_ANIMATION_DURATION` (default animation duration constant, 300ms).
 
 ## Plugin Context
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0] - 2026-09-16
+
+### Added
+
+- **`AnimationPlugin` navigation window animation plugin** (opt-in, `plugins: [AnimationPlugin]`):
+  - App / Mini Program: passes `animationType` / `animationDuration` through to the `uni.*` native navigation APIs (native window animation)
+  - H5: plays enter / exit animations with the Web Animations API (`element.animate`) — no CSS `@keyframes` needed
+  - Global default animation (`RouterOptions.animation`) + per-navigation overrides (`animationType` / `animationDuration`)
+- **`RouterOptions.animation`**: global default navigation animation config `{ type, duration }`
+- **Query helper functions publicly exported**: `queryInt()` / `queryNumber()` / `queryBool()` are now exported from the library entry — no need to import via relative paths
+- New types: `NavigationAnimation` / `AnimationType`; `RawLocation` supports optional `animationType` / `animationDuration` fields
+
+### Fixed
+
+- **H5 first-entry lag on secondary pages**: when `onCompleteNavigation` fires, uni-app x H5 has already swapped the new page's content into `uni-page`; the plugin now **synchronously applies the animation start style +
+  forces a reflow** so the new page's first rendered frame is already off-screen, and the slide-in animation plays on the next frame — eliminating the jarring "content flashes in place, then jumps off-screen and slides
+  in" effect. The inline start style is cleared after the animation ends so it cannot affect the exit animation of a later `back()`
+- **H5 back animation not playing**: added `toExitType()` mapping (enter-type → exit-type animations); `back()` now plays the exit animation to completion before the real `navigateBack`
+
 ## [0.4.0] - 2026-09-13
 
 ### Added

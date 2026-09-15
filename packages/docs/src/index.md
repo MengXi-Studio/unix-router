@@ -25,10 +25,10 @@ hero:
 features:
   - icon: 🧭
     title: 路由导航
-    details: push / replace / relaunch / back 四种导航，自动识别 TabBar（switchTab），useLink 声明式导航
+    details: push / replace / relaunch / back 四种导航，自动识别 TabBar（switchTab），useLink 声明式导航，AnimationPlugin 跨端窗口过渡动画
   - icon: 🛡️
     title: 路由守卫
-    details: 全局前置/解析/后置守卫 + 路由独享 beforeEnter + 组件内守卫，guardRoute 冷启动补执行，重定向与深度上限保护
+    details: 全局前置/解析/后置守卫 + 路由独享 beforeEnter + 组件内守卫，guardRoute 冷启动补执行，重定向与深度上限保护，InterceptorPlugin 拦截外部 uni.* 导航
   - icon: 📦
     title: 参数与查询增强
     details: query 直接进 URL；params 经 ParamsPlugin（__params__ 通道）跨页传递，可持久化，未注册插件抛 PLUGIN_REQUIRED 明确引导

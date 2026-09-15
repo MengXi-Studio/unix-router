@@ -24,6 +24,7 @@ const options: RouterOptions = {
 | `interceptUniApi` | `boolean` | `false` | **opt-in**。启用后拦截 `uni.*` 原生导航 API（`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`），绕过路由器直接调用这些 API 的跳转也会转由 `router.*` 走完整守卫链，守卫下沉到 uni API 层。受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61；须配合 `plugins: [InterceptorPlugin]` |
 | `plugins` | `RouterPlugin[]` | — | 插件列表，按需注册扩展能力。如 `[InterceptorPlugin]`（与 `interceptUniApi` 配合开启原生导航拦截）、`[ParamsPlugin]`（启用 params 参数传递） |
 | `paramsPersistent` | `boolean` | `false` | 是否默认将 params 持久化到 storage（须配合 `plugins: [ParamsPlugin]`） |
+| `animation` | `NavigationAnimation` | — | 全局默认导航动画（须配合 `plugins: [AnimationPlugin]`）。App / 小程序透传原生 `animationType`，H5 端由插件以 Web Animations API 实现 |
 
 > **注意**：微信小程序端 `<navigator>` 组件跳转与点击 tabBar（底层不触发 `uni.switchTab`）无法被拦截，此场景需在页面 `onShow` 兜底守卫。
 

@@ -31,7 +31,7 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 		/** 导航栏 */
 		nav: [
 			{ text: '指南', link: '/guide/getting-started' },
-			{ text: '组件', link: '/component/router-link' },
+			{ text: '组件', link: '/api/router-link' },
 			{ text: 'API', link: '/api/create-router' },
 			{ text: '更新日志', link: '/changelog' },
 			{

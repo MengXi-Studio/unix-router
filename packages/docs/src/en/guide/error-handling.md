@@ -9,6 +9,26 @@ unix-router provides a complete vue-router-style error system.
 | `RouterError` | Base class for router errors (contains `code` / `to` / `from`) |
 | `NavigationFailure` | A navigation failure (inherits `RouterError`; thrown when aborted, cancelled, or duplicated) |
 | `RouterErrorCode` | Error code enum |
+| `UniNavigationApiError` | The `fail` callback payload of the `uni.*` native navigation APIs (`errMsg` / `context`) |
+
+## Error Object Shape
+
+`RouterError` / `NavigationFailure` are both `Error` subclasses; besides `message` / `name` they carry three fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `code` | `RouterErrorCode` | The error code; see the enum table below |
+| `to` | `RouteLocation` | The target route that triggered the error |
+| `from` | `RouteLocation` | The source route that triggered the error |
+
+```ts
+catch (e) {
+  const failure = e as NavigationFailure
+  console.log(failure.code)     // RouterErrorCode enum
+  console.log(failure.to.path)  // the failed target
+  console.log(failure.from.path)
+}
+```
 
 ## Error Codes RouterErrorCode
 

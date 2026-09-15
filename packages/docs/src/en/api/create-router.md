@@ -45,6 +45,15 @@ export const router = createRouter({
 })
 ```
 
+## Exported Constants
+
+| Constant | Type | Value | Description |
+| --- | --- | --- | --- |
+| `DEFAULT_GUARD_TIMEOUT` | `number` | `10000` | Default guard timeout (ms); the `guardTimeout` default |
+| `DEFAULT_READY_TIMEOUT` | `number` | `0` | Default router-ready timeout; the `readyTimeout` default |
+| `MAX_REDIRECT_DEPTH` | `number` | `10` | Max redirect depth from guards; cancellation (`CANCELLED`) beyond it prevents infinite loops |
+| `ROUTER_SYMBOL` | `string` | `'__unix_router__'` | `provide` / `inject` pairing key (a string, more stable across platforms) |
+
 ## Related APIs
 
 - [Router](./router-instance)

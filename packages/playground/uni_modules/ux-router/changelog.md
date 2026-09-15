@@ -1,3 +1,21 @@
+## 0.5.0（2026-09-16）
+
+### 新增
+
+- **`AnimationPlugin` 导航窗口动画插件**（opt-in，`plugins: [AnimationPlugin]`）：
+  - App / 小程序：透传 `animationType` / `animationDuration` 给 `uni.*` 原生导航 API（原生窗口动画）
+  - H5：通过 Web Animations API（`element.animate`）播放进入 / 退出动画，无需 CSS `@keyframes`
+  - 全局默认动画（`RouterOptions.animation`）+ 单次覆盖（`animationType` / `animationDuration`）
+- **`RouterOptions.animation`**：全局默认导航动画配置 `{ type, duration }`
+- **查询参数工具公开导出**：`queryInt()` / `queryNumber()` / `queryBool()` 由库入口直接导出，无需按相对路径导入
+- 新增类型：`NavigationAnimation` / `AnimationType`，`RawLocation` 支持 `animationType` / `animationDuration` 可选字段
+
+### 修复
+
+- **H5 首次进入二级页面动画卡顿**：`onCompleteNavigation` 时 uni-app x H5 已将新页内容替换进
+  `uni-page`，此时**同步应用动画起点样式 + 强制 reflow**，让新页渲染首帧即位于屏幕外，再于下一帧播放滑入动画——消除「内容原位闪现后再跳到屏幕外滑入」的割裂感；动画结束后清理内联起点样式，避免残留影响后续 back 退出动画
+- **H5 返回动画不生效**：新增 `toExitType()` 映射（进入型 → 退出型动画），返回时先播完退出动画再真正 `navigateBack`
+
 ## 0.4.0（2026-09-13）
 
 ### 新增

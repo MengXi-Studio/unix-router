@@ -1,0 +1,98 @@
+/**
+ * AnimationPlugin - 导航动画插件（opt-in）
+ *
+ * 为导航注入窗口过渡动画：
+ * - App / 小程序：透传 `animationType` / `animationDuration` 给 uni.* 原生导航 API（原生窗口动画）
+ * - H5：通过 Web Animations API（element.animate）对页面容器播放进入 / 退出动画
+ *
+ * 注册方式：
+ * ```ts
+ * import { createRouter, AnimationPlugin } from '@meng-xi/unix-router'
+ * const router = createRouter({
+ *   routes,
+ *   plugins: [AnimationPlugin],
+ *   animation: { type: 'slide-in-right', duration: 300 } // 全局默认（可选）
+ * })
+ * ```
+ * 单次导航可覆盖：`router.push({ path: '...', animationType: 'fade-in', animationDuration: 500 })`
+ *
+ * 依赖核心的 `onBeforeNavigation` 异步钩子（H5 返回先播退出动画再真正返回）。
+ */
+import type { NavigationAnimation, PluginContext, RouterOptions, RouterPlugin, RouteLocationRaw } from '../../types'
+import { getPlatform } from '../../utils'
+import { pickAnimation, toExitType, ANIM_DATA_KEY } from './types'
+import { animatePageEnter, animatePageExit } from './h5'
+
+export { DEFAULT_ANIMATION_DURATION, ANIM_DATA_KEY, pickAnimation, normalizeAnimation } from './types'
+export { animatePageEnter, animatePageExit } from './h5'
+
+/** pluginData 中「最终生效动画」的存储 key（prepare 阶段解析后供 before/complete 使用） */
+const RESOLVED_KEY: string = 'animation_resolved'
+
+/**
+ * AnimationPlugin - 导航动画插件
+ * 需注册后导航动画才生效；未注册时携带 animationType 的导航仍正常执行（忽略动画）。
+ */
+export const AnimationPlugin: RouterPlugin = {
+	name: 'animation',
+
+	install(context: PluginContext, options: RouterOptions) {
+		const isH5 = getPlatform().isH5
+
+		// 1. resolve 后：读取单次动画存入 pluginData（不污染 RouteLocation）
+		context.onAfterResolve((enrichedLocation: RouteLocationRaw, pluginData) => {
+			const anim = pickAnimation(enrichedLocation)
+			if (anim !== null) {
+				pluginData.set(ANIM_DATA_KEY, anim)
+			}
+		})
+
+		// 2. prepare：解析「单次优先，其次全局默认」并注入导航选项 + 存 pluginData
+		context.onPrepareNavigation(ctx => {
+			const single = ctx.pluginData.get(ANIM_DATA_KEY) as NavigationAnimation | null
+			const anim: NavigationAnimation | null | undefined = single !== null && single !== undefined ? single : options.animation
+			if (anim !== null && anim !== undefined) {
+				// back 场景使用退出型动画类型（原生 navigateBack 与 H5 退出关键帧都需要）
+				const type = ctx.mode === 'back' ? toExitType(anim.type) : anim.type
+				ctx.options.animationType = type
+				ctx.options.animationDuration = anim.duration
+				ctx.pluginData.set(RESOLVED_KEY, anim)
+			}
+		})
+
+		/** 从 pluginData 读取最终动画（无则回退全局默认） */
+		const resolveForHook = (pluginData: Map<string, any>): NavigationAnimation | null => {
+			const resolved = pluginData.get(RESOLVED_KEY) as NavigationAnimation | null
+			if (resolved !== null && resolved !== undefined) {
+				return resolved
+			}
+			return options.animation !== null && options.animation !== undefined ? options.animation : null
+		}
+
+		// 3. beforeNavigation：H5 返回时先播退出动画并等待
+		context.onBeforeNavigation(async ctx => {
+			if (!isH5 || ctx.mode !== 'back') {
+				return
+			}
+			const anim = resolveForHook(ctx.pluginData)
+			if (anim === null) {
+				return
+			}
+			await animatePageExit({ type: toExitType(anim.type), duration: anim.duration })
+		})
+
+		// 4. complete：H5 前进导航完成后播放进入动画
+		if (isH5) {
+			context.onCompleteNavigation(ctx => {
+				const anim = resolveForHook(ctx.pluginData)
+				if (anim === null) {
+					return
+				}
+				// 回调内同步应用动画起点样式（见 animatePageEnter）：
+				// 此时 uni-page 新页内容已替换完成，同步设置起点可在同一渲染帧生效，
+				// 避免「内容原位闪现后再跳到屏幕外滑入」的割裂感。
+				void animatePageEnter(anim)
+			})
+		}
+	}
+}
