@@ -106,6 +106,31 @@ The interceptor only applies to **external direct calls**; the `uni` calls issue
 
 Intercepted APIs: `navigateTo / redirectTo / switchTab / reLaunch / navigateBack`. It also exposes `markRouterCall` / `installInterceptors` / `removeInterceptors` for low-level use.
 
+### AnimationPlugin: navigation window animation
+
+Injects window transition animations into navigations (aligned with uni-app x's native `animationType`):
+- **App / Mini Program**: passes `animationType` / `animationDuration` through to the `uni.*` native navigation APIs (native window animation);
+- **H5**: plays enter / exit animations on the page container with the Web Animations API (`element.animate`) — no CSS `@keyframes` needed.
+
+```ts
+import { createRouter, AnimationPlugin } from '@meng-xi/unix-router'
+
+const router = createRouter({
+	routes,
+	plugins: [AnimationPlugin],
+	animation: { type: 'slide-in-right', duration: 300 } // global default animation (optional)
+})
+
+// Per-navigation override: this navigation uses fade-in
+router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDuration: 500 })
+```
+
+**Animation types**: `slide-in-right` / `slide-in-left` / `slide-in-top` / `slide-in-bottom` / `fade-in` / `zoom-in` / `zoom-fade-in` / `pop-in` / `auto` / `none`.
+
+- `back()` uses the global default animation as the **exit animation** (back has no location to carry; per-navigation override only applies to forward navigations).
+- Without the plugin registered, navigations carrying `animationType` still run normally (the animation is ignored).
+- On H5, this relies on the `onBeforeNavigation` async hook: before returning, the exit animation plays to completion, then the real `navigateBack` runs.
+
 ## Plugin Context
 
 Each plugin registers hooks through `context` in `install(context, options)`, and the router invokes them at each stage of the navigation flow:

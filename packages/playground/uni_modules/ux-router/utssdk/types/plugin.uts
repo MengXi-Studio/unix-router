@@ -49,6 +49,8 @@ export type PluginContext = {
 	onAfterResolve(hook: (enrichedLocation: RouteLocationRaw, pluginData: PluginData) => void): void
 	/** uni API 调用前，修改导航 URL query 与选项 */
 	onPrepareNavigation(hook: (ctx: NavigationPrepareContext) => void): void
+	/** 真正调用 uni 导航 API 前（可异步：如 H5 返回需先播完退出动画），串行执行 */
+	onBeforeNavigation(hook: (ctx: NavigationPrepareContext) => Promise<void> | void): void
 	/** uni API 调用成功后，扩展导航结果 */
 	onCompleteNavigation(hook: (ctx: NavigationCompleteContext) => void): void
 	/** 导航中止或失败时执行清理 */

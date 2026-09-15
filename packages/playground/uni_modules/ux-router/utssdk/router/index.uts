@@ -133,10 +133,12 @@ class UniRouter implements Router {
 			options: navOptions
 		}
 		this.pluginHooks.prepareNavigation(prepareCtx)
+		// beforeNavigation hooks（可异步：back 退出动画播完后再真正返回）
+		await this.pluginHooks.beforeNavigation(prepareCtx)
 
 		try {
 			markRouterCall()
-			await goBack(delta)
+			await goBack(delta, { type: navOptions.animationType, duration: navOptions.animationDuration })
 			this.routeState.setCurrentRoute(to)
 			this.guardManager.runAfter(to, from)
 			return to
@@ -380,6 +382,8 @@ class UniRouter implements Router {
 			options: navOptions
 		}
 		this.pluginHooks.prepareNavigation(prepareCtx)
+		// beforeNavigation hooks（可异步：H5 端插件在此等待退出动画播完）
+		await this.pluginHooks.beforeNavigation(prepareCtx)
 
 		try {
 			markRouterCall()

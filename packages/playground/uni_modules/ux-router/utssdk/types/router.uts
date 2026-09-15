@@ -2,7 +2,7 @@
  * 路由器类型定义（Router 接口与 RouterOptions）
  */
 import type { App } from 'vue'
-import type { RouteConfig, RouteLocation, RouteLocationRaw, NavigationResult } from './route'
+import type { RouteConfig, RouteLocation, RouteLocationRaw, NavigationResult, NavigationAnimation } from './route'
 import type { NavigationGuard, PostNavigationGuard } from './guard'
 import type { RouterPlugin } from './plugin'
 
@@ -33,6 +33,11 @@ export type RouterOptions = {
 	plugins?: RouterPlugin[]
 	/** 是否默认持久化 params 到 storage（须配合 ParamsPlugin，默认 false） */
 	paramsPersistent?: boolean
+	/**
+	 * 全局默认导航动画（配合 AnimationPlugin，须注册 plugins: [AnimationPlugin] 才生效）。
+	 * App/小程序 透传原生 animationType；H5 端由插件以 CSS 动画实现。
+	 */
+	animation?: NavigationAnimation
 }
 
 /**

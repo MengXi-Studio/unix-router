@@ -13,4 +13,14 @@ export type UniNavigationOptions = {
 	isTab: boolean
 	/** 元信息（保留，供后续扩展） */
 	meta: RouteMeta
+	/** 窗口过渡动画类型（对齐 uni-app x animationType，AnimationPlugin 注入） */
+	animationType?: string
+	/** 窗口过渡动画持续时间（ms） */
+	animationDuration?: number
+}
+
+/** 导航动画参数（透传给 uni.* 动画选项的裁剪视图） */
+export type UniAnimation = {
+	type?: string
+	duration?: number
 }

@@ -25,6 +25,8 @@ export type EnrichLocationHook = (location: RouteLocationRaw) => RouteLocationRa
 export type AfterResolveHook = (enrichedLocation: RouteLocationRaw, pluginData: PluginData) => void
 /** prepareNavigation hook 类型 */
 export type PrepareNavigationHook = (ctx: NavigationPrepareContext) => void
+/** beforeNavigation hook 类型（可异步，如 H5 返回动画） */
+export type BeforeNavigationHook = (ctx: NavigationPrepareContext) => Promise<void> | void
 /** completeNavigation hook 类型 */
 export type CompleteNavigationHook = (ctx: NavigationCompleteContext) => void
 /** navigationAbort hook 类型 */
@@ -53,6 +55,7 @@ export class PluginHookManager {
 	private enrichLocationHooks: EnrichLocationHook[] = []
 	private afterResolveHooks: AfterResolveHook[] = []
 	private prepareNavigationHooks: PrepareNavigationHook[] = []
+	private beforeNavigationHooks: BeforeNavigationHook[] = []
 	private completeNavigationHooks: CompleteNavigationHook[] = []
 	private navigationAbortHooks: NavigationAbortHook[] = []
 	private routeSyncHooks: RouteSyncHook[] = []
@@ -73,6 +76,9 @@ export class PluginHookManager {
 			},
 			onPrepareNavigation: hook => {
 				this.prepareNavigationHooks.push(hook)
+			},
+			onBeforeNavigation: hook => {
+				this.beforeNavigationHooks.push(hook)
 			},
 			onCompleteNavigation: hook => {
 				this.completeNavigationHooks.push(hook)
@@ -139,6 +145,13 @@ export class PluginHookManager {
 	prepareNavigation(ctx: NavigationPrepareContext): void {
 		for (var i = 0; i < this.prepareNavigationHooks.length; i++) {
 			this.prepareNavigationHooks[i](ctx)
+		}
+	}
+
+	/** 执行 beforeNavigation hooks（可能异步），串行等待完成 */
+	async beforeNavigation(ctx: NavigationPrepareContext): Promise<void> {
+		for (var i = 0; i < this.beforeNavigationHooks.length; i++) {
+			await this.beforeNavigationHooks[i](ctx)
 		}
 	}
 

@@ -49,6 +49,10 @@ export type RawLocation = {
 	params?: ParamObject
 	/** hash，保留字段（uni-app x 暂不支持，置空） */
 	hash?: string
+	/** 本次导航窗口过渡动画类型（单次覆盖，AnimationPlugin 消费） */
+	animationType?: string
+	/** 本次导航窗口过渡动画持续时间（ms，单次覆盖） */
+	animationDuration?: number
 }
 
 /** 路由位置原始输入（字符串路径或对象位置） */
@@ -60,6 +64,8 @@ export type RouteLocationNamedRaw = {
 	query?: Map<string, string>
 	params?: ParamObject
 	hash?: string
+	animationType?: string
+	animationDuration?: number
 }
 
 /** 路径式路由输入（只允许 path 形式的对象） */
@@ -68,6 +74,8 @@ export type RouteLocationPathRaw = {
 	query?: Map<string, string>
 	params?: ParamObject
 	hash?: string
+	animationType?: string
+	animationDuration?: number
 }
 
 /** 导航重定向指令（守卫返回此对象以重定向到其他路由） */
@@ -76,6 +84,35 @@ export type NavigationRedirect = {
 	location: RouteLocationRaw
 	/** 重定向导航方式，默认沿用原始导航方式或 relaunch */
 	mode?: NavigationRedirectMode
+}
+
+/** 窗口过渡动画类型（对齐 uni-app x animationType；退出型用于 back 场景） */
+export type AnimationType =
+	| 'auto'
+	| 'none'
+	| 'slide-in-right'
+	| 'slide-in-left'
+	| 'slide-in-top'
+	| 'slide-in-bottom'
+	| 'slide-out-right'
+	| 'slide-out-left'
+	| 'slide-out-top'
+	| 'slide-out-bottom'
+	| 'fade-in'
+	| 'fade-out'
+	| 'zoom-in'
+	| 'zoom-out'
+	| 'zoom-fade-in'
+	| 'zoom-fade-out'
+	| 'pop-in'
+	| 'pop-out'
+
+/** 导航动画配置（全局默认或单次指定） */
+export type NavigationAnimation = {
+	/** 动画类型 */
+	type: AnimationType
+	/** 动画持续时间（ms，默认 300） */
+	duration?: number
 }
 
 /**

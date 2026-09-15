@@ -106,6 +106,31 @@ uni.navigateTo({ url: '/pages/about/about' }) // 被拦截 → 转交 router，�
 
 拦截的 API：`navigateTo / redirectTo / switchTab / reLaunch / navigateBack`。同时会给出 `markRouterCall` / `installInterceptors` / `removeInterceptors` 供底层使用。
 
+### AnimationPlugin：导航窗口动画
+
+为导航注入窗口过渡动画（对齐 uni-app x 原生 `animationType`）：
+- **App / 小程序**：透传 `animationType` / `animationDuration` 给 `uni.*` 原生导航 API（原生窗口动画）；
+- **H5**：通过 Web Animations API（`element.animate`）对页面容器播放进入 / 退出动画（无需 CSS `@keyframes`）。
+
+```ts
+import { createRouter, AnimationPlugin } from '@meng-xi/unix-router'
+
+const router = createRouter({
+	routes,
+	plugins: [AnimationPlugin],
+	animation: { type: 'slide-in-right', duration: 300 } // 全局默认动画（可选）
+})
+
+// 单次覆盖：本次导航使用 fade-in
+router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDuration: 500 })
+```
+
+**动画类型**：`slide-in-right` / `slide-in-left` / `slide-in-top` / `slide-in-bottom` / `fade-in` / `zoom-in` / `zoom-fade-in` / `pop-in` / `auto` / `none`。
+
+- `back()` 使用全局默认动画作为**关闭动画**（back 无 location 可传，单次覆盖仅对前向导航有效）。
+- 未注册插件时携带 `animationType` 的导航仍正常执行（动画被忽略）。
+- H5 端依赖 `onBeforeNavigation` 异步钩子：返回时会先播完退出动画再真正 `navigateBack`。
+
 ## 插件上下文（PluginContext）
 
 每个插件在 `install(context, options)` 里通过 `context` 注册 hook，路由器在导航流程各阶段调用：
