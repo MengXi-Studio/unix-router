@@ -25,10 +25,10 @@ hero:
 features:
   - icon: 🧭
     title: Route Navigation
-    details: Four navigation modes — push / replace / relaunch / back, automatic TabBar detection (switchTab), and useLink declarative navigation
+    details: Four navigation modes — push / replace / relaunch / back, automatic TabBar detection (switchTab), useLink declarative navigation, and cross-end window transition animations via AnimationPlugin
   - icon: 🛡️
     title: Route Guards
-    details: Global before/resolve/after guards + route-local beforeEnter + in-component guards, guardRoute cold-start re-execution, redirect and depth-limit protection
+    details: Global before/resolve/after guards + route-local beforeEnter + in-component guards, guardRoute cold-start re-execution, redirect and depth-limit protection, and InterceptorPlugin to intercept external uni.* navigation
   - icon: 📦
     title: Enhanced Params & Query
     details: query goes straight into the URL; params are passed across pages by ParamsPlugin (the __params__ channel) with optional persistence, and using params without registering the plugin throws PLUGIN_REQUIRED

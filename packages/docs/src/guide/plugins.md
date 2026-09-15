@@ -72,6 +72,8 @@ const router = createRouter({
 ```
 :::
 
+**导出**：`ParamsPlugin`（插件本体）+ `createParamsManager(options)`（底层参数管理器，供自定义插件复用）。
+
 ### InterceptorPlugin：uni 导航拦截
 
 直接调用 `uni.navigateTo` 会**绕过路由守卫**。启用拦截后，外部直接调用也会被转交 `router.*` 走完整守卫链，守卫"下沉"到 uni API 层。
@@ -104,7 +106,9 @@ uni.navigateTo({ url: '/pages/about/about' }) // 被拦截 → 转交 router，�
 拦截器仅针对**外部直接调用**生效；`router.push/replace/relaunch/back` 内部发起的 uni 调用不会二次拦截（通过内部标记区分）。
 :::
 
-拦截的 API：`navigateTo / redirectTo / switchTab / reLaunch / navigateBack`。同时会给出 `markRouterCall` / `installInterceptors` / `removeInterceptors` 供底层使用。
+拦截的 API：`navigateTo / redirectTo / switchTab / reLaunch / navigateBack`。同时会给出 `installInterceptors` / `removeInterceptors` 供底层使用。
+
+**导出**：`InterceptorPlugin`（插件本体，注册 `plugins: [InterceptorPlugin]` 且 `interceptUniApi: true` 时自动安装）+ `installInterceptors(router)` / `removeInterceptors()`（手动安装/卸载拦截器，用于 Router 实例化后的精细化控制）。
 
 ### AnimationPlugin：导航窗口动画
 
@@ -130,6 +134,10 @@ router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDu
 - `back()` 使用全局默认动画作为**关闭动画**（back 无 location 可传，单次覆盖仅对前向导航有效）。
 - 未注册插件时携带 `animationType` 的导航仍正常执行（动画被忽略）。
 - H5 端依赖 `onBeforeNavigation` 异步钩子：返回时会先播完退出动画再真正 `navigateBack`。
+
+**H5 动画时序**（防止首次进入卡顿）：`onCompleteNavigation` 时 uni-app x H5 已把新页内容替换进 `uni-page`（`data-page` 已切换），此时**同步应用动画起点样式**（如 `translateX(100%)` + 强制 reflow），让新页渲染首帧即位于屏幕外，再于下一帧播放滑入动画——避免"内容原位闪现后再跳到屏幕外滑入"的割裂感；动画结束后清理内联起点样式，避免残留影响后续 back 的退出动画。
+
+**导出**：`AnimationPlugin`（插件本体）+ `DEFAULT_ANIMATION_DURATION`（默认动画时长常量，300ms）。
 
 ## 插件上下文（PluginContext）
 

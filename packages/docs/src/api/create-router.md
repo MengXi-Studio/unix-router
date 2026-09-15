@@ -45,6 +45,15 @@ export const router = createRouter({
 })
 ```
 
+## 导出常量
+
+| 常量 | 类型 | 值 | 说明 |
+| --- | --- | --- | --- |
+| `DEFAULT_GUARD_TIMEOUT` | `number` | `10000` | 守卫默认超时（ms），对应 `guardTimeout` 默认值 |
+| `DEFAULT_READY_TIMEOUT` | `number` | `0` | 路由器就绪默认超时，对应 `readyTimeout` 默认值 |
+| `MAX_REDIRECT_DEPTH` | `number` | `10` | 守卫重定向的最大深度，超过则导航取消（`CANCELLED`），防死循环 |
+| `ROUTER_SYMBOL` | `string` | `'__unix_router__'` | `provide` / `inject` 配对标识（字符串 key，跨平台更稳） |
+
 ## 相关 API
 
 - [Router 实例](./router-instance)

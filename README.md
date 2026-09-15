@@ -24,8 +24,9 @@
 - **命名路由 & 路由元信息** - 通过 `name` 导航，`meta` 携带自定义数据（含 `isTab`），严格模式（`strict`）下未匹配命名路由抛出 `RouterError`
 - **页面参数传递** - `params`（`Map<string,string>`）经 **ParamsPlugin**（`__params__` 关联存储）跨页传递，目标页 `route.params` 读回，不暴露明文键名；需注册 `plugins: [ParamsPlugin]`
 - **查询参数增强** - `route.query` 为 `Map`，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析（由库内置工具函数提供）
-- **声明式导航** - `useLink()` 组合式 API，返回响应式目标路由、激活态（`isActive` / `isExactActive`）与导航函数，便于自定义链接 / 菜单组件
+- **声明式导航** - `useLink()` 组合式 API，返回响应式目标路由、激活态（`isActive` / `isExactActive`）与导航函数，便于自定义链接 / 菜单组件；配套 **`RouterLink`** 组件直接使用
 - **路由状态自动同步** - `app.use(router)` 注入全局 Mixin，页面 `onShow` 自动 `syncRoute()`，`currentRoute` 响应式，非路由器导航（返回键 / TabBar 切换）自动对齐
+- **导航窗口动画（opt-in）** - 注册 **AnimationPlugin**（`plugins: [AnimationPlugin]`）后，App / 小程序透传原生 `animationType` / `animationDuration`，H5 端通过 WAAPI 播放进入 / 退出动画，支持全局默认（`animation` 选项）与单次覆盖（`animationType` / `animationDuration`）
 - **错误处理** - `RouterError` / `NavigationFailure` / `UniNavigationApiError`，`RouterErrorCode` 错误码，`isNavigationFailure()` 精准判断，`onError` 全局捕获
 - **组合式 API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`，`currentRoute` 响应式、`isReady` / `onRouteChange` 状态订阅
 - **uni API 拦截（opt-in）** - `interceptUniApi: true` 时，绕过路由器直接调用 `uni.navigateTo` / `switchTab` 等原生导航也会被拦截并转入守卫链，守卫下沉到 uni API 层
@@ -135,11 +136,21 @@ route.query.get('id') // '1'
 | `strict`      | `boolean`       | `true`   | 严格模式，未匹配的命名路由抛出 `RouterError`               |
 | `guardTimeout`| `number`        | `10000`  | 守卫超时（ms），超时警告并自动中止导航，设 `0` 关闭        |
 | `readyTimeout`| `number`        | `0`      | 就绪超时（ms），防止 `await router.isReady()` 挂起          |
+| `plugins`     | `RouterPlugin[]`| -        | 可选插件列表，如 `[ParamsPlugin]` / `[InterceptorPlugin]` / `[AnimationPlugin]` |
+| `paramsPersistent` | `boolean`  | `false`  | 是否默认将 `params` 持久化到 storage（需配合 `ParamsPlugin`） |
 | `interceptUniApi` | `boolean`  | `false`  | opt-in：拦截 `uni.*` 原生导航，使直调也走守卫链（受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61） |
+| `animation`   | `NavigationAnimation` | - | 全局默认导航动画 `{ type, duration }`（需配合 `AnimationPlugin` 才生效） |
 
 ```typescript
 // 开启后，业务中直接调用 uni.navigateTo('/pages/xxx') 等原生导航同样会触发守卫链
 const router = createRouter({ routes, interceptUniApi: true })
+
+// 可选：注册插件 + 全局默认动画
+const router2 = createRouter({
+  routes,
+  plugins: [ParamsPlugin, InterceptorPlugin, AnimationPlugin],
+  animation: { type: 'slide-in-right', duration: 300 }
+})
 ```
 
 ## 文档

@@ -30,7 +30,7 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 		/** 导航栏 */
 		nav: [
 			{ text: 'Guide', link: '/en/guide/getting-started' },
-			{ text: 'Components', link: '/en/component/router-link' },
+			{ text: 'Components', link: '/en/api/router-link' },
 			{ text: 'API', link: '/en/api/create-router' },
 			{ text: 'Changelog', link: '/en/changelog' },
 			{

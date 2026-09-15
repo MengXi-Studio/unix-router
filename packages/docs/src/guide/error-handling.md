@@ -9,6 +9,26 @@ unix-router 提供 vue-router 风格的完整错误体系。
 | `RouterError` | 路由器错误基类（含 `code` / `to` / `from`） |
 | `NavigationFailure` | 导航失败（继承 `RouterError`，被中止/取消/重复时抛出） |
 | `RouterErrorCode` | 错误码枚举 |
+| `UniNavigationApiError` | `uni.*` 原生导航 API 的 `fail` 回调错误负载（`errMsg` / `context`） |
+
+## 错误对象结构
+
+`RouterError` / `NavigationFailure` 均为 `Error` 子类，除 `message` / `name` 外携带三个字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `code` | `RouterErrorCode` | 错误码，见下方枚举表 |
+| `to` | `RouteLocation` | 触发错误的目标路由 |
+| `from` | `RouteLocation` | 触发错误的来源路由 |
+
+```ts
+catch (e) {
+  const failure = e as NavigationFailure
+  console.log(failure.code)     // RouterErrorCode 枚举
+  console.log(failure.to.path)  // 失败的目标
+  console.log(failure.from.path)
+}
+```
 
 ## 错误码 RouterErrorCode
 
