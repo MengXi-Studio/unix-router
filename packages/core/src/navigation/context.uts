@@ -5,12 +5,15 @@
  * 用于路由状态初始化与同步。非 uni 环境（纯 Node 等）下安全回退。
  */
 
+/** 页面 onLoad 参数对象（具名类型，规避 UTS 不允许内联对象字面量类型作为注解） */
+export interface UniPageOptions {
+	[key: string]: string
+}
+
 /** 页面实例的等价类型（保留 route 与 options 字段读取） */
 export interface UniPageLike {
 	route: string
-	options?: {
-		[key: string]: string
-	}
+	options?: UniPageOptions
 }
 
 /**

@@ -9,6 +9,12 @@ import type { RouteLocation } from '../types'
 import type { RouteMatcher } from '../matcher/type'
 import { getCurrentPagesSafe } from '../navigation/context'
 
+/** 页面栈顶信息（具名类型，规避 UTS 不允许内联对象字面量类型作为注解） */
+export interface CurrentStackInfo {
+	path: string
+	query: Map<string, string>
+}
+
 export class UniHistory {
 	matcher: RouteMatcher
 
@@ -16,8 +22,8 @@ export class UniHistory {
 		this.matcher = matcher
 	}
 
-	/** 获取当前页原始信息（页面栈顶） */
-	currentStack(): { path: string; query: Map<string, string> } {
+	/** 页面栈顶信息：路径 + 查询参数（具名类型，规避 UTS 不允许内联对象字面量类型） */
+	currentStack(): CurrentStackInfo {
 		const pages = getCurrentPagesSafe()
 		if (pages.length === 0) {
 			return { path: '/', query: new Map() }
