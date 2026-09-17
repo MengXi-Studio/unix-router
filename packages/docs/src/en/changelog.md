@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] - 2026-09-17
+
+### Fixed
+
+- **Android base compilation error (UTS110111101)**: the return type of `UniHistory.currentStack()` was an inline object literal `{ path: string; query: Map<string, string> }`, which UTS does not allow as a direct object-literal type declaration, breaking the Android base packaging compile; extracted it into the named type `CurrentStackInfo`
+
 ## [0.5.0] - 2026-09-16
 
 ### Added

@@ -31,6 +31,12 @@
 - **组合式 API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`，`currentRoute` 响应式、`isReady` / `onRouteChange` 状态订阅
 - **uni API 拦截（opt-in）** - `interceptUniApi: true` 时，绕过路由器直接调用 `uni.navigateTo` / `switchTab` 等原生导航也会被拦截并转入守卫链，守卫下沉到 uni API 层
 
+## 体验 Demo
+
+不想从零搭建？直接安装体验版安卓 App（示例项目 `packages/playground` 打包，覆盖导航、守卫、参数传递、RouterLink、导航动画等功能）：
+
+[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789575600765-__UNI__B6A50A8_1789574895315.apk)
+
 ## 安装
 
 ```bash

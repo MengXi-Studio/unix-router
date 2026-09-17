@@ -9,7 +9,7 @@
 				<text class="fail-count">失败: {{ failCount }}</text>
 			</view>
 			<view class="item" v-for="(c, i) in cases" :key="i">
-				<text class="status">{{ c.pass ? 'PASS' : 'FAIL' }}</text>
+				<text :class="['status', c.pass ? 'pass' : 'fail']">{{ c.pass ? 'PASS' : 'FAIL' }}</text>
 				<text class="name">{{ c.name }}</text>
 			</view>
 		</view>
@@ -18,7 +18,7 @@
 	<!-- #endif -->
 </template>
 
-<script lang="uts">
+<script setup lang="uts">
 import {
 	router
 } from '../../router.uts'
@@ -39,21 +39,16 @@ type CaseResult = {
 	failCount: number
 }
 
-export default {
-	data() {
-		return {
-			cases: [] as Case[],
-			passCount: 0,
-			failCount: 0
-		}
-	},
-	onShow() {
-		const result = runChecks()
-		this.cases = result.cases
-		this.passCount = result.passCount
-		this.failCount = result.failCount
-	}
-}
+const cases = ref([] as Case[])
+const passCount = ref(0)
+const failCount = ref(0)
+
+onShow(() => {
+	const result = runChecks()
+	cases.value = result.cases
+	passCount.value = result.passCount
+	failCount.value = result.failCount
+})
 
 function runChecks(): CaseResult {
 	const cases: Case[] = []
@@ -123,8 +118,11 @@ function runChecks(): CaseResult {
 .fail-count { font-size: 28rpx; color: #dd524d; }
 .item { flex-direction: row; align-items: center; margin-top: 16rpx; }
 .status { font-size: 26rpx; font-weight: bold; margin-right: 16rpx; width: 80rpx; }
-.status:first-child {
+.pass {
 	color: #4cd964;
+}
+.fail {
+	color: #dd524d;
 }
 .name { font-size: 26rpx; color: #333; flex: 1; }
 </style>

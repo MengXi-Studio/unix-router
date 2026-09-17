@@ -31,6 +31,12 @@
 - **Composition API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`, reactive `currentRoute`, `isReady` / `onRouteChange` subscriptions
 - **uni API interception (opt-in)** - with `interceptUniApi: true`, native navigations that bypass the router (direct `uni.navigateTo` / `switchTab` calls) are also intercepted and routed through the guard chain, sinking guards down to the uni API layer
 
+## Try the Demo
+
+Don't want to start from scratch? Install the trial Android App directly (built from the example project `packages/playground`, covering navigation, guards, params passing, RouterLink, navigation animations, and more):
+
+[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789575600765-__UNI__B6A50A8_1789574895315.apk)
+
 ## Installation
 
 ```bash

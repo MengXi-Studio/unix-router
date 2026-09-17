@@ -130,6 +130,14 @@ console.log(route.params.get('id')) // '1024'
 - 覆盖导航（push/replace/relaunch/back）、守卫、详情页、参数、RouterLink、tabBar、404
 - `pages/test` 是功能自检页（全量 PASS 用于回归）
 
+### 体验版安卓 App
+
+不想自己搭工程？直接安装体验版安卓 App（示例项目打包，含 tabBar、导航守卫、参数传递、RouterLink 导航动画等全部示例）：
+
+[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789575600765-__UNI__B6A50A8_1789574895315.apk)
+
+> 说明：体验版主要用于快速预览功能，正式集成仍建议参考上方步骤在你的 uni-app x 项目中安装使用。
+
 ## 下一步
 
 - [路由导航](./navigation) — 四种导航方式与传参
