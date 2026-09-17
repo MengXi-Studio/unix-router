@@ -22,6 +22,10 @@
 				<text class="result-title">目标页已读回 params：</text>
 				<text class="value">{{ readSelf }}</text>
 			</view>
+			<view class="result" v-if="evtBack.length > 0">
+				<text class="result-title">EventsPlugin 演示：</text>
+				<text class="value">{{ evtBack }}</text>
+			</view>
 		</view>
 	<!-- #ifdef APP -->
 	</scroll-view>
@@ -29,7 +33,7 @@
 </template>
 
 <script setup lang="uts">
-import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { useRouter, useRoute, useOpenerEventChannel } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 const router = useRouter()
 const route = useRoute()
@@ -38,8 +42,17 @@ const inputKey = ref('名字')
 const inputVal = ref('张伟')
 const isRead = ref(false)
 const readSelf = ref('')
+const evtBack = ref('')
 
 onShow(() => {
+	// 演示 EventsPlugin：打开方携带 events 时，经 useOpenerEventChannel 回传数据
+	const channel = useOpenerEventChannel()
+	if (channel !== null) {
+		channel.emit('acceptDataFromOpenedPage', { from: 'params', msg: '回传数据: ' + inputVal.value })
+		evtBack.value = '已通过 EventChannel 回传数据给打开页'
+	} else {
+		evtBack.value = ''
+	}
 	// 此页可被 push 携带 params 到达：从 useRoute().params 回读（验证 params 往返）
 	const p = route.params
 	if (p.size > 0) {

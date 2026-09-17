@@ -53,6 +53,11 @@ export type RawLocation = {
 	animationType?: string
 	/** 本次导航窗口过渡动画持续时间（ms，单次覆盖） */
 	animationDuration?: number
+	/**
+	 * 页面间通信监听表（事件名 → 回调，监听被打开页回传的数据，EventsPlugin 消费）
+	 * 对齐官方 uni.navigateTo 的 events 参数语义
+	 */
+	events?: Map<string, (...args: any[]) => any>
 }
 
 /** 路由位置原始输入（字符串路径或对象位置） */
@@ -66,6 +71,7 @@ export type RouteLocationNamedRaw = {
 	hash?: string
 	animationType?: string
 	animationDuration?: number
+	events?: Map<string, (...args: any[]) => any>
 }
 
 /** 路径式路由输入（只允许 path 形式的对象） */
@@ -76,6 +82,7 @@ export type RouteLocationPathRaw = {
 	hash?: string
 	animationType?: string
 	animationDuration?: number
+	events?: Map<string, (...args: any[]) => any>
 }
 
 /** 导航重定向指令（守卫返回此对象以重定向到其他路由） */

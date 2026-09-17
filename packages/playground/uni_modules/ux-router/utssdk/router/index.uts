@@ -22,7 +22,7 @@ import type {
 	NavigationCompleteContext
 } from '../types'
 import { RouterErrorCode } from '../enums'
-import { ROUTER_SYMBOL, DEFAULT_GUARD_TIMEOUT, DEFAULT_READY_TIMEOUT, DEFAULT_NAV_VERIFY_TIMEOUT, MAX_REDIRECT_DEPTH, PARAMS_QUERY_KEY } from '../constants'
+import { ROUTER_SYMBOL, DEFAULT_GUARD_TIMEOUT, DEFAULT_READY_TIMEOUT, DEFAULT_NAV_VERIFY_TIMEOUT, MAX_REDIRECT_DEPTH, PARAMS_QUERY_KEY, EVT_QUERY_KEY } from '../constants'
 import { NavigationFailure } from '../errors/navigation-failure'
 import { RouterError } from '../errors/router-error'
 import { createGuardManager, type GuardManager, type GuardResult } from '../guard'
@@ -272,12 +272,16 @@ class UniRouter implements Router {
 		this.syncRoute()
 	}
 
-	/** 移除当前路由位置中的插件内部 key（如 __params__），避免暴露给用户 */
+	/** 移除当前路由位置中的插件内部 key（如 __params__ / __evt__），避免暴露给用户 */
 	private stripInternalKeys(to: RouteLocation): RouteLocation {
 		const query = new Map<string, string>(to.query)
 		let stripped = false
 		if (query.has(PARAMS_QUERY_KEY)) {
 			query.delete(PARAMS_QUERY_KEY)
+			stripped = true
+		}
+		if (query.has(EVT_QUERY_KEY)) {
+			query.delete(EVT_QUERY_KEY)
 			stripped = true
 		}
 		if (!stripped) {

@@ -1,6 +1,6 @@
 // 路由配置（unix-router 演示）
 // 通过 uni_modules/ux-router/utssdk 引入自包含的 core 源码
-import { createRouter, ParamsPlugin, InterceptorPlugin, AnimationPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { createRouter, ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 // 简单的登录态（配合守卫演示；仅为示例，非真实鉴权）
 let loggedIn: boolean = false
@@ -28,7 +28,7 @@ export const routes = [
 export const router = createRouter({
 	routes,
 	strict: true,
-	plugins: [ParamsPlugin, InterceptorPlugin, AnimationPlugin],
+	plugins: [ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin],
 	interceptUniApi: true, // 拦截 uni 原生导航 API：外部直接 uni.navigateTo 也走守卫
 	animation: { type: 'slide-in-right', duration: 800 } // 默认导航动画（App 原生透传 / H5 WAAPI）
 })

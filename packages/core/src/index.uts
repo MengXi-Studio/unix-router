@@ -5,7 +5,7 @@
  * 卖方按平台编译：web/小程序 → JS，Android → Kotlin，iOS → Swift。
  */
 export { createRouter } from './router'
-export { useRouter, useRoute, useLink, onBeforeRouteLeave, onBeforeRouteEnter, onBeforeRouteUpdate } from './composables'
+export { useRouter, useRoute, useLink, useOpenerEventChannel, onBeforeRouteLeave, onBeforeRouteEnter, onBeforeRouteUpdate } from './composables'
 
 /* 查询参数便捷解析工具（从 route.query Map 原子读值） */
 export { queryInt, queryNumber, queryBool } from './utils'
@@ -18,6 +18,10 @@ export { ParamsPlugin, createParamsManager } from './plugins/params'
 
 /* 可选插件：导航窗口动画（opt-in，plugins: [AnimationPlugin]；App 透传原生动画，H5 用 WAAPI 实现） */
 export { AnimationPlugin } from './plugins/animation'
+
+/* 可选插件：页面间定向通信（opt-in，plugins: [EventsPlugin]；被打开页用 useOpenerEventChannel 回传数据） */
+export { EventsPlugin, eventBus } from './plugins/events'
+export type { EventChannel, EventsMap, UniEventBus } from './plugins/events'
 
 /* 声明式导航组件：基于 useLink 的可交互导航入口 */
 export { default as RouterLink } from './components/RouterLink.uvue'

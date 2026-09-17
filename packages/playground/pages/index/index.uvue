@@ -47,6 +47,15 @@ const currentPath = ref(route.path)
 const isTab = ref(route.meta.isTab === true)
 
 function go(path: string): void {
+	// 演示 EventsPlugin：跳转时携带 events 监听表，被打开页经 useOpenerEventChannel 回传数据
+	if (path === '/pages/params/params') {
+		const events = new Map<string, (data: any) => void>()
+		events.set('acceptDataFromOpenedPage', (data: any) => {
+			console.log('[unix-router] events 回传收到 ->', JSON.stringify(data))
+		})
+		router.push({ path: 'pages/params/params', events })
+		return
+	}
 	router.push(path)
 }
 
