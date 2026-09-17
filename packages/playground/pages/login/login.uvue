@@ -3,12 +3,20 @@
 	<scroll-view class="container">
 	<!-- #endif -->
 		<view class="page">
-			<text class="title">登录</text>
-			<text class="tip">演示守卫重定向回跳：登录后返回来源页。</text>
-			<text class="redirect" v-if="redirectFullPath">回跳地址：{{ redirectFullPath }}</text>
-
-			<button class="btn" @click="login">登录并回跳</button>
-			<button class="btn plain" @click="go('/pages/index/index')">去首页</button>
+			<view class="login-logo">
+				<text class="logo-text">梦曦商城</text>
+				<text class="logo-sub">登录后可使用购物车结算</text>
+			</view>
+			<view class="input-row">
+				<text class="input-label">账号</text>
+				<input class="input" v-model="account" placeholder="演示账号：任意输入" />
+			</view>
+			<view class="input-row">
+				<text class="input-label">密码</text>
+				<input class="input" v-model="password" placeholder="演示密码：任意输入" type="password" />
+			</view>
+			<button class="login-btn" @click="doLogin">登 录</button>
+			<text class="login-tip">由守卫 beforeEach（requireAuth）重定向而来，登录后自动回跳</text>
 		</view>
 	<!-- #ifdef APP -->
 	</scroll-view>
@@ -21,30 +29,31 @@ import { setLoggedIn } from '../../router.uts'
 
 const router = useRouter()
 const route = useRoute()
-const redirectFullPath = ref('')
+const account = ref('')
+const password = ref('')
 
-const buf = route.query.get('redirect')
-if (buf !== null && buf !== undefined) {
-	redirectFullPath.value = buf
-}
-
-function login(): void {
+function doLogin(): void {
 	setLoggedIn(true)
-	const target = redirectFullPath.value !== '' ? redirectFullPath.value : '/pages/index/index'
-	// 登录成功：直接跳到回跳地址（替换，避免登录页残留栈中）
-	router.replace(target)
-}
-function go(path: string): void {
-	router.push(path)
+	uni.showToast({ title: '登录成功', icon: 'success' })
+	// 读取守卫写入的 redirect 查询参数，回跳原目标页
+	const redirect = route.query.get('redirect')
+	if (redirect !== null && redirect.length > 0) {
+		router.replace(redirect)
+	} else {
+		router.replace({ name: 'home' })
+	}
 }
 </script>
 
 <style>
 .container { flex: 1; }
-.page { flex-direction: column; padding: 32rpx; }
-.title { font-size: 36rpx; font-weight: bold; color: #333; }
-.tip { font-size: 24rpx; color: #999; margin-top: 12rpx; }
-.redirect { font-size: 24rpx; color: #007aff; margin-top: 16rpx; }
-.btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; }
-.btn.plain { background-color: #f8f8f8; color: #333; }
+.page { flex-direction: column; padding: 48rpx 32rpx; }
+.login-logo { flex-direction: column; align-items: center; margin-bottom: 64rpx; }
+.logo-text { font-size: 44rpx; font-weight: bold; color: #007aff; }
+.logo-sub { font-size: 24rpx; color: #999; margin-top: 12rpx; }
+.input-row { flex-direction: row; align-items: center; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; padding: 24rpx; margin-bottom: 24rpx; }
+.input-label { font-size: 28rpx; color: #333; width: 120rpx; }
+.input { flex: 1; font-size: 28rpx; }
+.login-btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; border-radius: 44rpx; padding: 24rpx 0; font-size: 30rpx; }
+.login-tip { font-size: 22rpx; color: #999; margin-top: 24rpx; text-align: center; }
 </style>

@@ -1,0 +1,82 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<view class="empty" v-if="cartItems.length === 0">
+				<text class="empty-text">购物车还是空的</text>
+				<button class="go-btn" @click="goHome">去逛逛</button>
+			</view>
+
+			<view class="cart-item" v-for="(item, i) in cartItems" :key="i">
+				<view class="item-thumb">
+					<text class="thumb-tag">{{ item.goods.tag }}</text>
+				</view>
+				<view class="item-info">
+					<text class="item-name">{{ item.goods.name }}</text>
+					<text class="item-price">{{ formatPrice(item.goods.price) }}</text>
+					<view class="stepper">
+						<text class="step-btn" @click="minus(item.goods.id)">−</text>
+						<text class="step-num">{{ item.count }}</text>
+						<text class="step-btn" @click="plus(item.goods.id)">＋</text>
+					</view>
+				</view>
+			</view>
+
+			<view class="bottom-bar" v-if="cartItems.length > 0">
+				<view class="total-box">
+					<text class="total-label">合计：</text>
+					<text class="total-price">{{ formatPrice(cartTotalPrice()) }}</text>
+				</view>
+				<button class="checkout-btn" @click="checkout">去结算</button>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { cartItems, changeCartCount, cartTotalPrice, formatPrice } from '../../router.uts'
+
+const router = useRouter()
+
+function plus(id: number): void {
+	changeCartCount(id, 1)
+}
+
+function minus(id: number): void {
+	changeCartCount(id, -1)
+}
+
+function checkout(): void {
+	router.push({ name: 'checkout' })
+}
+
+function goHome(): void {
+	router.push({ name: 'home' })
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 24rpx; }
+.empty { flex-direction: column; align-items: center; padding: 120rpx 0; }
+.empty-text { font-size: 28rpx; color: #999; }
+.go-btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 16rpx 48rpx; font-size: 26rpx; }
+.cart-item { flex-direction: row; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; padding: 20rpx; margin-bottom: 20rpx; }
+.item-thumb { width: 140rpx; height: 140rpx; border-radius: 8rpx; align-items: center; justify-content: center; background-color: #e8f1ff; margin-right: 20rpx; }
+.thumb-tag { font-size: 22rpx; color: #007aff; }
+.item-info { flex: 1; flex-direction: column; }
+.item-name { font-size: 26rpx; color: #333; }
+.item-price { font-size: 28rpx; font-weight: bold; color: #dd524d; margin-top: 8rpx; }
+.stepper { flex-direction: row; align-items: center; align-self: flex-end; margin-top: 12rpx; }
+.step-btn { width: 52rpx; height: 52rpx; align-items: center; justify-content: center; background-color: #f2f3f5; border-radius: 8rpx; font-size: 32rpx; color: #333; }
+.step-num { padding: 0 24rpx; font-size: 28rpx; color: #333; }
+.bottom-bar { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 12rpx; }
+.total-box { flex-direction: row; align-items: baseline; }
+.total-label { font-size: 26rpx; color: #333; }
+.total-price { font-size: 36rpx; font-weight: bold; color: #dd524d; }
+.checkout-btn { background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 20rpx 56rpx; font-size: 28rpx; }
+</style>

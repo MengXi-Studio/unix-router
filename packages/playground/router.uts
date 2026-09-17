@@ -1,8 +1,96 @@
-// 路由配置（unix-router 演示）
+// 电商示例应用（unix-router 能力演示）
 // 通过 uni_modules/ux-router/utssdk 引入自包含的 core 源码
+import { reactive } from 'vue'
 import { createRouter, ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
 
-// 简单的登录态（配合守卫演示；仅为示例，非真实鉴权）
+/* -------------------------------------------------------------------------- */
+/* 数据模型与 mock 数据                                                        */
+/* -------------------------------------------------------------------------- */
+
+/** 商品 */
+export type Goods = {
+	id: number
+	name: string
+	price: number
+	/** 分类 key（对应 Category.key） */
+	category: string
+	tag: string
+	desc: string
+}
+
+/** 分类 */
+export type Category = {
+	key: string
+	name: string
+}
+
+/** 购物车条目 */
+export type CartItem = {
+	goods: Goods
+	count: number
+}
+
+/** 订单 */
+export type Order = {
+	id: string
+	items: CartItem[]
+	total: number
+	createdAt: string
+}
+
+export const categories: Category[] = [
+	{ key: 'phone', name: '手机' },
+	{ key: 'pc', name: '电脑' },
+	{ key: 'audio', name: '音频' },
+	{ key: 'home', name: '家电' },
+	{ key: 'wear', name: '穿戴' }
+]
+
+export const goodsList: Goods[] = [
+	{ id: 1001, name: '梦曦 X1 Pro 智能手机', price: 4999, category: 'phone', tag: '骁龙旗舰', desc: '6.7 英寸 2K 屏，骁龙 8 Gen3，5000mAh 大电池' },
+	{ id: 1002, name: '梦曦 X1 标准版', price: 3999, category: 'phone', tag: '轻薄', desc: '6.4 英寸直屏，旗舰影像，轻薄机身' },
+	{ id: 1003, name: '梦曦 Note 入门机', price: 1299, category: 'phone', tag: '性价比', desc: '大电池长续航，流畅日常使用' },
+	{ id: 2001, name: '梦曦 Book 16 轻薄本', price: 5999, category: 'pc', tag: '办公', desc: '16 英寸 2.5K 屏，32G 内存，全金属机身' },
+	{ id: 2002, name: '梦曦 Pad 平板', price: 2799, category: 'pc', tag: '影音', desc: '11 英寸 120Hz 高刷，四扬声器，手写笔支持' },
+	{ id: 3001, name: '梦曦 Buds 降噪耳机', price: 699, category: 'audio', tag: '降噪', desc: '主动降噪，30 小时续航，低延迟' },
+	{ id: 3002, name: '梦曦 Sound 音箱', price: 399, category: 'audio', tag: '便携', desc: '360° 环绕声，IPX7 防水，支持串联' },
+	{ id: 4001, name: '梦曦 Air 变频空调', price: 3299, category: 'home', tag: '一级能效', desc: '1.5 匹新一级能效，智能除湿，静音运行' },
+	{ id: 4002, name: '梦曦 Fresh 空气净化器', price: 1499, category: 'home', tag: '除醛', desc: 'CADR 500³/h，实时 PM2.5 显示，静音睡眠模式' },
+	{ id: 5001, name: '梦曦 Watch S 智能手表', price: 1599, category: 'wear', tag: '健康', desc: '血氧/心率/睡眠监测，14 天续航' },
+	{ id: 5002, name: '梦曦 Band 手环', price: 249, category: 'wear', tag: '轻量', desc: '轻至 20g，50 米防水，30 天超长续航' }
+]
+
+/** 按分类取商品 */
+export function goodsByCategory(key: string): Goods[] {
+	const result: Goods[] = []
+	for (var i = 0; i < goodsList.length; i++) {
+		if (goodsList[i].category == key) {
+			result.push(goodsList[i])
+		}
+	}
+	return result
+}
+
+/** 按 id 取商品 */
+export function goodsById(id: number): Goods | null {
+	for (var i = 0; i < goodsList.length; i++) {
+		if (goodsList[i].id == id) {
+			return goodsList[i]
+		}
+	}
+	return null
+}
+
+/** 格式化价格（元） */
+export function formatPrice(price: number): string {
+	return '¥' + Math.floor(price) + ''
+}
+
+/* -------------------------------------------------------------------------- */
+/* 全局状态（跨页共享，reactive）                                              */
+/* -------------------------------------------------------------------------- */
+
+/** 登录态（配合守卫；登录页 setLoggedIn(true)） */
 let loggedIn: boolean = false
 
 export function setLoggedIn(value: boolean): void {
@@ -13,16 +101,73 @@ export function isLoggedIn(): boolean {
 	return loggedIn
 }
 
+/** 购物车（响应式全局状态，跨页共享） */
+export const cartItems = reactive<CartItem[]>([])
+
+/** 购物车数量合计 */
+export function cartTotalCount(): number {
+	let total = 0
+	for (var i = 0; i < cartItems.length; i++) {
+		total += cartItems[i].count
+	}
+	return total
+}
+
+/** 购物车金额合计 */
+export function cartTotalPrice(): number {
+	let total = 0
+	for (var i = 0; i < cartItems.length; i++) {
+		total += cartItems[i].goods.price * cartItems[i].count
+	}
+	return total
+}
+
+/** 加入购物车（已存在则计数 +1） */
+export function addToCart(goods: Goods): void {
+	for (var i = 0; i < cartItems.length; i++) {
+		if (cartItems[i].goods.id == goods.id) {
+			cartItems[i].count += 1
+			return
+		}
+	}
+	cartItems.push({ goods, count: 1 })
+}
+
+/** 购物车计数增减（count 为 0 时移除） */
+export function changeCartCount(goodsId: number, delta: number): void {
+	for (var i = 0; i < cartItems.length; i++) {
+		if (cartItems[i].goods.id == goodsId) {
+			cartItems[i].count += delta
+			if (cartItems[i].count <= 0) {
+				cartItems.splice(i, 1)
+			}
+			return
+		}
+	}
+}
+
+/** 清空购物车 */
+export function clearCart(): void {
+	cartItems.splice(0, cartItems.length)
+}
+
+/** 已下单记录（结算成功后追加） */
+export const orders = reactive<Order[]>([])
+
+/* -------------------------------------------------------------------------- */
+/* 路由配置与守卫                                                              */
+/* -------------------------------------------------------------------------- */
+
 export const routes = [
 	{ path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
-	{ path: 'pages/query/query', name: 'query', meta: { title: 'query 传参' } },
-	{ path: 'pages/params/params', name: 'params', meta: { title: 'params 传参' } },
-	{ path: 'pages/guard/guard', name: 'guard', meta: { title: '守卫', requireAuth: true } },
-	{ path: 'pages/login/login', name: 'login', meta: { title: '登录' } },
-	{ path: 'pages/detail/detail', name: 'detail', meta: { title: '详情' } },
-	{ path: 'pages/routerlink/routerlink', name: 'routerlink', meta: { title: 'RouterLink' } },
-	{ path: 'pages/test/test', name: 'test', meta: { title: '功能自检' } },
-	{ path: 'pages/mine/mine', name: 'mine', meta: { title: '我的', isTab: true } }
+	{ path: 'pages/category/category', name: 'category', meta: { title: '分类', isTab: true } },
+	{ path: 'pages/mine/mine', name: 'mine', meta: { title: '我的', isTab: true } },
+	{ path: 'pages/goods/list', name: 'goods-list', meta: { title: '商品列表' } },
+	{ path: 'pages/goods/detail', name: 'goods-detail', meta: { title: '商品详情' } },
+	{ path: 'pages/cart/cart', name: 'cart', meta: { title: '购物车' } },
+	{ path: 'pages/checkout/checkout', name: 'checkout', meta: { title: '结算', requireAuth: true } },
+	{ path: 'pages/orders/orders', name: 'orders', meta: { title: '我的订单', requireAuth: true } },
+	{ path: 'pages/login/login', name: 'login', meta: { title: '登录' } }
 ]
 
 export const router = createRouter({
@@ -30,10 +175,10 @@ export const router = createRouter({
 	strict: true,
 	plugins: [ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin],
 	interceptUniApi: true, // 拦截 uni 原生导航 API：外部直接 uni.navigateTo 也走守卫
-	animation: { type: 'slide-in-right', duration: 800 } // 默认导航动画（App 原生透传 / H5 WAAPI）
+	animation: { type: 'slide-in-right', duration: 300 } // 默认导航动画（App 原生透传 / H5 WAAPI）
 })
 
-// 全局前置守卫：requireAuth 且未登录 → 重定向到登录页并携带回跳地址
+// 全局前置守卫：requireAuth 未登录 → 重定向登录页并携带回跳地址
 router.beforeEach((to, from): boolean | null => {
 	if (to.meta.requireAuth === true && !isLoggedIn()) {
 		return {

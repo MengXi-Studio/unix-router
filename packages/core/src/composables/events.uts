@@ -10,14 +10,19 @@
  */
 import type { EventChannel } from '../plugins/events/channel'
 import { channelManager } from '../plugins/events/channel'
-import { getCurrentChannelKey } from '../plugins/events/types'
+import { getCurrentChannelKey, getCurrentPageEventKey } from '../plugins/events/types'
 
 /**
  * 获取当前页打开的页面间通信通道（无通道时返回 null）
  * @returns EventChannel 实例（on/once/off/emit），或 null
  */
 export function useOpenerEventChannel(): EventChannel | null {
-	const key = getCurrentChannelKey()
+	// 优先取路由同步写入的内存 key；
+	// 页面 onShow 早于路由同步（onRouteSync）时为 null，按当前页 URL（__evt__）兜底读取
+	let key = getCurrentChannelKey()
+	if (key === null) {
+		key = getCurrentPageEventKey()
+	}
 	if (key === null) {
 		return null
 	}

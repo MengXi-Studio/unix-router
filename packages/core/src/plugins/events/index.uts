@@ -74,6 +74,9 @@ export const EventsPlugin: RouterPlugin = {
 			const key = query.get(EVT_QUERY_KEY)
 			if (key !== null && key !== undefined && key.length > 0) {
 				setCurrentChannelKey(key)
+			} else {
+				// 当前页未携带通道时清空内存 key，避免上次导航的通道 key 残留导致误用
+				setCurrentChannelKey(null)
 			}
 			// 内部 key 不暴露给用户 query（与 __params__ 一致）
 			query.delete(EVT_QUERY_KEY)

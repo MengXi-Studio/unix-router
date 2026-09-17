@@ -1,0 +1,65 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<view class="empty" v-if="orders.length === 0">
+				<text class="empty-text">暂无订单</text>
+				<button class="go-btn" @click="goHome">去逛逛</button>
+			</view>
+
+			<view class="order-card" v-for="(o, i) in orders" :key="i">
+				<view class="order-head">
+					<text class="order-no">{{ o.id }}</text>
+					<text class="order-date">{{ o.createdAt }}</text>
+				</view>
+				<text class="order-items">{{ itemSummary(o) }}</text>
+				<view class="order-foot">
+					<text class="order-total">{{ formatPrice(o.total) }}</text>
+					<text class="order-status">已完成</text>
+				</view>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { orders, formatPrice, type CartItem, type Order } from '../../router.uts'
+
+const router = useRouter()
+
+/** 汇总订单内商品摘要（模板中调用；uvue 模板不支持复杂表达式） */
+function itemSummary(o: Order): string {
+	let buf = ''
+	for (var i = 0; i < o.items.length; i++) {
+		if (i > 0) {
+			buf += '、'
+		}
+		buf += o.items[i].goods.name + ' ×' + o.items[i].count
+	}
+	return buf
+}
+
+function goHome(): void {
+	router.push({ name: 'home' })
+}
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 24rpx; }
+.empty { flex-direction: column; align-items: center; padding: 120rpx 0; }
+.empty-text { font-size: 28rpx; color: #999; }
+.go-btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 16rpx 48rpx; font-size: 26rpx; }
+.order-card { background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; padding: 24rpx; margin-bottom: 20rpx; }
+.order-head { flex-direction: row; align-items: center; justify-content: space-between; }
+.order-no { font-size: 26rpx; font-weight: bold; color: #333; }
+.order-date { font-size: 22rpx; color: #999; }
+.order-items { font-size: 24rpx; color: #666; margin-top: 16rpx; }
+.order-foot { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 16rpx; }
+.order-total { font-size: 30rpx; font-weight: bold; color: #dd524d; }
+.order-status { font-size: 24rpx; color: #4cd964; }
+</style>

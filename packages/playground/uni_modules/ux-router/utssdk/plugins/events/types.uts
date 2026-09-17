@@ -6,6 +6,7 @@
  */
 import type { RouteLocationRaw, RawLocation } from '../../types'
 import type { EventCallback } from './bus'
+import { getCurrentPageQuery } from '../../navigation/context'
 
 /** 事件监听表（事件名 → 回调，监听被打开页回传的数据） */
 export type EventsMap = Map<string, EventCallback>
@@ -47,4 +48,17 @@ export function setCurrentChannelKey(key: string | null): void {
 /** 读取当前页通道 key（无通道时返回 null） */
 export function getCurrentChannelKey(): string | null {
 	return currentChannelKey
+}
+
+/**
+ * 从当前页面 URL 查询串读取「打开方通道 key」（__evt__）
+ * 页面 onLoad/onShow 执行早于路由状态同步（onRouteSync 才写内存 key），
+ * 故 useOpenerEventChannel 需按当前页直接兜底读取。无则返回 null。
+ */
+export function getCurrentPageEventKey(): string | null {
+	const key = getCurrentPageQuery().get(EVT_QUERY_KEY)
+	if (key === null || key === undefined || key.length === 0) {
+		return null
+	}
+	return key
 }

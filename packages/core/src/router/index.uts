@@ -316,6 +316,12 @@ class UniRouter implements Router {
 			const failure = new NavigationFailure(RouterErrorCode.PLUGIN_REQUIRED, `使用 params 需注册 ParamsPlugin：createRouter({ plugins: [ParamsPlugin] })`, from, from)
 			return this.failNavigation(from, from, failure)
 		}
+		// 使用 events 但未注册 EventsPlugin → PLUGIN_REQUIRED
+		if (!this.pluginHooks.hasPlugin('events') && location != null && typeof location !== 'string' && location.events != null && location.events.size > 0) {
+			const from = this.routeState.currentRoute.value
+			const failure = new NavigationFailure(RouterErrorCode.PLUGIN_REQUIRED, `使用 events 需注册 EventsPlugin：createRouter({ plugins: [EventsPlugin] })`, from, from)
+			return this.failNavigation(from, from, failure)
+		}
 		// 1. enrichLocation hooks（插件注入内部 key 到 query）
 		const enriched = this.pluginHooks.enrichLocation(location)
 		const pluginData: PluginData = new Map<string, any>()
