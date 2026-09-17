@@ -32,6 +32,9 @@ features:
   - icon: 📦
     title: 参数与查询增强
     details: query 直接进 URL；params 经 ParamsPlugin（__params__ 通道）跨页传递，可持久化，未注册插件抛 PLUGIN_REQUIRED 明确引导
+  - icon: 📡
+    title: 页面事件通信
+    details: EventsPlugin 补齐 uni-app x 缺失的 events 能力：push 携带监听表、被打开页 useOpenerEventChannel 回传/推送，自研 eventBus 不依赖官方 uni.$on
   - icon: 🔄
     title: 路由状态自动同步
     details: install 注入全局 Mixin 自动 syncRoute()，页面栈与非路由器导航自动对齐

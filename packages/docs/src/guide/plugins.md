@@ -166,6 +166,8 @@ if (channel !== null) {
 
 **EventChannel API**：`on` / `once` / `off`（移除监听器，传 `$on`/`$once` 返回的 id）/ `emit`。通道 key 经 URL 查询串 `__evt__` 跨页桥接，状态同步时剔除（不暴露给用户）。
 
+`useOpenerEventChannel()` 不依赖路由状态同步时机：页面 `onShow` 执行早于 `onRouteSync`，内存 key 缺失时会按当前页面 URL 查询串（`__evt__`）兜底读取，因此 **onShow 内即可直接回传数据**。
+
 ::: warning 需要注册 EventsPlugin
 未注册 `EventsPlugin` 却调用带 `events` 的导航，会抛 `PLUGIN_REQUIRED`：
 

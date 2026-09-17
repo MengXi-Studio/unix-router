@@ -1,10 +1,23 @@
 # 更新日志
 
+## [0.6.0] - 2026-09-18
+
+### 新增
+
+- **`EventsPlugin` 页面间事件通信插件**（opt-in，`plugins: [EventsPlugin]`）：
+  - 对齐 uni-app 官方 `navigateTo` 的 `events` 语义：打开方 `push` 携带 `events` 监听表，被打开页通过 `useOpenerEventChannel()` 的 `EventChannel` `emit` 回传数据 / `on` 接收推送
+  - 底层为自研 `eventBus`（`$on` / `$once` / `$off` / `$emit`，按 id 移除监听），不受官方 `uni.$on` 版本门槛限制
+  - 通道 key 经内部 `__evt__` URL 查询串跨页桥接，状态同步时剔除（不暴露给用户）；`useOpenerEventChannel()` 不依赖路由同步时机，onShow 内即可使用
+  - 未注册插件却携带 `events` 的导航抛 `PLUGIN_REQUIRED`，明确引导
+- 新增导出：`EventsPlugin` / `eventBus` / `useOpenerEventChannel`
+- 新增类型：`EventsMap`；`RawLocation` / `RouteLocationRaw` 支持 `events` 可选字段
+
 ## [0.5.1] - 2026-09-17
 
 ### 修复
 
-- **打包安卓基座编译错误（UTS110111101）**：`UniHistory.currentStack()` 的返回类型原为内联对象字面量 `{ path: string; query: Map<string, string> }`，UTS 不允许直接声明对象字面量类型，导致打包安卓基座时编译失败；已提取为具名类型 `CurrentStackInfo` 并引用
+- **打包安卓基座编译错误（UTS110111101）**：`UniHistory.currentStack()` 的返回类型原为内联对象字面量
+  `{ path: string; query: Map<string, string> }`，UTS 不允许直接声明对象字面量类型，导致打包安卓基座时编译失败；已提取为具名类型 `CurrentStackInfo` 并引用
 
 ## [0.5.0] - 2026-09-16
 

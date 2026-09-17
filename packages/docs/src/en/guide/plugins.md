@@ -166,6 +166,8 @@ if (channel !== null) {
 
 **EventChannel API**: `on` / `once` / `off` (remove a listener by the id returned from `on`/`once`) / `emit`. The channel key is bridged across pages via the `__evt__` URL query key and stripped during state sync (never exposed to users).
 
+`useOpenerEventChannel()` does not depend on route-sync timing: a page's `onShow` runs before `onRouteSync`, so when the in-memory key is missing it falls back to reading the current page's URL query string (`__evt__`) — you can emit data back **right inside `onShow`**.
+
 ::: warning EventsPlugin required
 Calling a navigation with `events` without registering `EventsPlugin` throws `PLUGIN_REQUIRED`:
 
