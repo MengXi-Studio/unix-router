@@ -34,7 +34,7 @@ features:
     details: query goes straight into the URL; params are passed across pages by ParamsPlugin (the __params__ channel) with optional persistence, and using params without registering the plugin throws PLUGIN_REQUIRED
   - icon: 📡
     title: Page Event Communication
-    details: EventsPlugin fills in the events capability uni-app x is missing: pass a listener map in push, the opened page emits back / receives via useOpenerEventChannel, backed by a built-in eventBus instead of the official uni.$on
+    details: EventsPlugin fills in the events capability uni-app x is missing — pass a listener map in push, the opened page emits back / receives via useOpenerEventChannel, backed by a built-in eventBus instead of the official uni.$on
   - icon: 🔄
     title: Automatic Route State Sync
     details: install injects a global Mixin that auto-calls syncRoute(), keeping the page stack and non-router navigations in sync
