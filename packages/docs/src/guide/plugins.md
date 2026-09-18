@@ -139,6 +139,45 @@ router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDu
 
 **导出**：`AnimationPlugin`（插件本体）+ `DEFAULT_ANIMATION_DURATION`（默认动画时长常量，300ms）。
 
+### EventsPlugin：页面间事件通信
+
+补齐 uni-app x 的 `events`（页面间通信）能力：打开方 `push` 携带 `events` 监听表，被打开页通过通道**回传数据**给打开方（对齐 uni-app 官方 `navigateTo` events 语义，但不受官方 `uni.$on` 版本门槛限制）。
+
+```ts
+import { createRouter, EventsPlugin, useOpenerEventChannel } from '@meng-xi/unix-router'
+
+const router = createRouter({ routes, plugins: [EventsPlugin] })
+
+// 打开方：注册监听表，监听被打开页回传的数据
+await router.push({
+	path: 'pages/detail/detail',
+	events: new Map([
+		['acceptDataFromOpenedPage', (data: any) => console.log('收到回传', data)]
+	])
+})
+
+// 被打开页：emit 回传数据 / on 接收打开方推送
+const channel = useOpenerEventChannel() // EventChannel | null
+if (channel !== null) {
+	channel.emit('acceptDataFromOpenedPage', { result: 'ok' })
+	channel.on('someEvent', (data: any) => {})
+}
+```
+
+**EventChannel API**：`on` / `once` / `off`（移除监听器，传 `$on`/`$once` 返回的 id）/ `emit`。通道 key 经 URL 查询串 `__evt__` 跨页桥接，状态同步时剔除（不暴露给用户）。
+
+`useOpenerEventChannel()` 不依赖路由状态同步时机：页面 `onShow` 执行早于 `onRouteSync`，内存 key 缺失时会按当前页面 URL 查询串（`__evt__`）兜底读取，因此 **onShow 内即可直接回传数据**。
+
+::: warning 需要注册 EventsPlugin
+未注册 `EventsPlugin` 却调用带 `events` 的导航，会抛 `PLUGIN_REQUIRED`：
+
+```
+使用 events 需注册 EventsPlugin：createRouter({ plugins: [EventsPlugin] })
+```
+:::
+
+**导出**：`EventsPlugin`（插件本体）+ `eventBus`（自研全局事件总线实例 `$on` / `$off` / `$once` / `$emit`，按 id 移除监听器）。
+
 ## 插件上下文（PluginContext）
 
 每个插件在 `install(context, options)` 里通过 `context` 注册 hook，路由器在导航流程各阶段调用：

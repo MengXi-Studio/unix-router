@@ -9,3 +9,6 @@ export const ROUTER_SYMBOL: string = '__unix_router__'
 
 /** params 持久化读取时使用的非字符串值类型占位（保留给后续扩展） */
 export const PARAMS_QUERY_KEY: string = '__params__'
+
+/** EventsPlugin 页面间通信通道 key 的 URL 查询键（状态同步时剔除，不暴露给用户） */
+export const EVT_QUERY_KEY: string = '__evt__'

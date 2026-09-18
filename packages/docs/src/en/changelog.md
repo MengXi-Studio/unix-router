@@ -1,10 +1,25 @@
 # Changelog
 
+## [0.6.0] - 2026-09-18
+
+### Added
+
+- **`EventsPlugin` page-to-page event communication plugin** (opt-in via `plugins: [EventsPlugin]`):
+  - Aligns with the official `navigateTo` `events` semantics: the opener passes an `events` listener map in `push`, and the opened page emits data back / receives pushes through the `EventChannel` from
+    `useOpenerEventChannel()`
+  - Backed by the built-in `eventBus` (`$on` / `$once` / `$off` / `$emit`, listeners removed by id), free of the official `uni.$on` version gate
+  - The channel key is bridged across pages via the internal `__evt__` URL query key and stripped during state sync (never exposed to users); `useOpenerEventChannel()` does not depend on route-sync timing, usable right
+    in `onShow`
+  - Navigating with `events` without registering the plugin throws `PLUGIN_REQUIRED` for clear guidance
+- New exports: `EventsPlugin` / `eventBus` / `useOpenerEventChannel`
+- New type: `EventsMap`; `RawLocation` / `RouteLocationRaw` accept the optional `events` field
+
 ## [0.5.1] - 2026-09-17
 
 ### Fixed
 
-- **Android base compilation error (UTS110111101)**: the return type of `UniHistory.currentStack()` was an inline object literal `{ path: string; query: Map<string, string> }`, which UTS does not allow as a direct object-literal type declaration, breaking the Android base packaging compile; extracted it into the named type `CurrentStackInfo`
+- **Android base compilation error (UTS110111101)**: the return type of `UniHistory.currentStack()` was an inline object literal `{ path: string; query: Map<string, string> }`, which UTS does not allow as a direct
+  object-literal type declaration, breaking the Android base packaging compile; extracted it into the named type `CurrentStackInfo`
 
 ## [0.5.0] - 2026-09-16
 

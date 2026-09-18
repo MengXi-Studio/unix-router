@@ -3,34 +3,40 @@
 	<scroll-view class="container">
 	<!-- #endif -->
 		<view class="page">
-			<view class="hero">
-				<text class="hero-title">unix-router</text>
-				<text class="hero-sub">uni-app x 的 vue-router 风格路由库</text>
+			<!-- 顶部横幅 -->
+			<view class="banner">
+				<text class="banner-title">梦曦商城</text>
+				<text class="banner-sub">@meng-xi/unix-router 电商示例</text>
 			</view>
 
-			<view class="card" @click="go('/pages/query/query')">
-				<text class="card-title">Query 传参</text>
-				<text class="card-desc">push 携带 query，目标页 useRoute 读取</text>
-			</view>
-			<view class="card" @click="go('/pages/params/params')">
-				<text class="card-title">Params 传参</text>
-				<text class="card-desc">对象化 params（含中文 key）经 URL 传递</text>
-			</view>
-			<view class="card" @click="go('/pages/guard/guard')">
-				<text class="card-title">导航守卫</text>
-				<text class="card-desc">requireAuth 未登录跳转登录页</text>
-			</view>
-			<view class="card" @click="go('/pages/routerlink/routerlink')">
-				<text class="card-title">RouterLink / useLink</text>
-				<text class="card-desc">RouterLink 组件与激活态</text>
-			</view>
-			<view class="card" @click="go('/pages/test/test')">
-				<text class="card-title">功能自检</text>
-				<text class="card-desc">程序化断言核心 API，输出 PASS/FAIL</text>
+			<!-- 分类快捷入口 -->
+			<view class="section-title">商品分类</view>
+			<scroll-view class="cat-scroll" scroll-x="true" show-scrollbar="false">
+				<view class="cat-row">
+					<view class="cat-chip" v-for="(c, i) in categories" :key="i" @click="goCategory(c.key)">
+						<text class="cat-name">{{ c.name }}</text>
+					</view>
+				</view>
+			</scroll-view>
+
+			<!-- RouterLink 声明式导航（组件演示，无需点击处理） -->
+			<view class="section-title">推荐商品</view>
+			<view class="goods-grid">
+				<view class="goods-card" v-for="(g, i) in recommend" :key="i" @click="goDetail(g.id)">
+					<view class="goods-thumb">
+						<text class="thumb-tag">{{ g.tag }}</text>
+					</view>
+					<text class="goods-name">{{ g.name }}</text>
+					<text class="goods-price">{{ formatPrice(g.price) }}</text>
+				</view>
 			</view>
 
-			<view class="footer">
-				<text class="footer-text">当前路由: {{ currentPath }}</text>
+			<RouterLink to="pages/cart/cart" class="cart-link">
+				<text class="cart-link-text">去购物车 →</text>
+			</RouterLink>
+
+			<view class="evt-box" v-if="evtMsg.length > 0">
+				<text class="evt-text">{{ evtMsg }}</text>
 			</view>
 		</view>
 	<!-- #ifdef APP -->
@@ -39,70 +45,51 @@
 </template>
 
 <script setup lang="uts">
-import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { useRouter, useRoute, RouterLink } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { categories, goodsList, goodsByCategory, formatPrice, type Goods } from '../../router.uts'
 
 const router = useRouter()
 const route = useRoute()
-const currentPath = ref(route.path)
-const isTab = ref(route.meta.isTab === true)
 
-function go(path: string): void {
-	router.push(path)
+/** 首页推荐的 4 个商品 */
+const recommend: Goods[] = goodsList.slice(0, 4)
+
+/** EventsPlugin 演示：详情页回传的数据（打开时携带 events，被打开页经 EventChannel 回传） */
+const evtMsg = ref('')
+
+function goCategory(key: string): void {
+	router.push({ path: 'pages/goods/list', query: new Map([['category', key]]) })
 }
 
-// 首页是我 tabBar 页的切换入口（router.push 到 isTab 路由 → 内部 switchTab）
-function goToTab(): void {
-	router.push({ name: 'mine' })
+function goDetail(id: number): void {
+	// 携带 events 监听表：监听被打开页（详情页）回传的数据
+	const events = new Map<string, (data: any) => void>()
+	events.set('goodsDetailOpened', (data: any) => {
+		evtMsg.value = '详情页回传: ' + data.id + ' - ' + data.name
+	})
+	router.push({ path: 'pages/goods/detail', query: new Map([['id', id.toString()]]), events })
 }
 </script>
 
 <style>
-.container {
-	flex: 1;
-}
-.page {
-	flex-direction: column;
-	padding: 32rpx;
-}
-.hero {
-	flex-direction: column;
-	align-items: center;
-	margin-bottom: 40rpx;
-}
-.hero-title {
-	font-size: 40rpx;
-	font-weight: bold;
-	color: #007aff;
-}
-.hero-sub {
-	font-size: 24rpx;
-	color: #999;
-	margin-top: 8rpx;
-}
-.card {
-	flex-direction: column;
-	background-color: #ffffff;
-	border-radius: 12rpx;
-	padding: 28rpx;
-	margin-bottom: 24rpx;
-	border-width: 1rpx;
-	border-color: #eee;
-}
-.card-title {
-	font-size: 30rpx;
-	color: #333;
-}
-.card-desc {
-	font-size: 24rpx;
-	color: #999;
-	margin-top: 8rpx;
-}
-.footer {
-	margin-top: 32rpx;
-	align-items: center;
-}
-.footer-text {
-	font-size: 24rpx;
-	color: #999;
-}
+.container { flex: 1; }
+.page { flex-direction: column; padding: 24rpx; }
+.banner { flex-direction: column; align-items: center; background-color: #007aff; border-radius: 16rpx; padding: 40rpx 0; margin-bottom: 32rpx; }
+.banner-title { font-size: 40rpx; font-weight: bold; color: #ffffff; }
+.banner-sub { font-size: 24rpx; color: rgba(255, 255, 255, 0.85); margin-top: 8rpx; }
+.section-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; }
+.cat-scroll { width: 100%; }
+.cat-row { flex-direction: row; }
+.cat-chip { background-color: #f2f3f5; border-radius: 32rpx; padding: 14rpx 32rpx; margin-right: 20rpx; }
+.cat-name { font-size: 26rpx; color: #333; }
+.goods-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
+.goods-card { width: 48%; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; margin-bottom: 20rpx; padding: 20rpx; }
+.goods-thumb { height: 200rpx; border-radius: 8rpx; align-items: center; justify-content: center; background-color: #e8f1ff; margin-bottom: 16rpx; }
+.thumb-tag { font-size: 24rpx; color: #007aff; }
+.goods-name { font-size: 26rpx; color: #333; margin-bottom: 8rpx; }
+.goods-price { font-size: 30rpx; font-weight: bold; color: #dd524d; }
+.cart-link { margin-top: 12rpx; padding: 24rpx; align-items: center; background-color: #f6f8fa; border-radius: 12rpx; }
+.cart-link-text { font-size: 28rpx; color: #007aff; }
+.evt-box { margin-top: 20rpx; padding: 24rpx; align-items: center; background-color: #e8f8ec; border-radius: 12rpx; }
+.evt-text { font-size: 26rpx; color: #2ea44f; }
 </style>

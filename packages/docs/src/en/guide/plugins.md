@@ -139,6 +139,45 @@ router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDu
 
 **Exports**: `AnimationPlugin` (the plugin) + `DEFAULT_ANIMATION_DURATION` (default animation duration constant, 300ms).
 
+### EventsPlugin: page-to-page event communication
+
+Bridges the `events` (page-to-page communication) capability missing in uni-app x: the opener passes an `events` listener map in `push`, and the opened page sends data **back** to the opener through a channel (mirrors the official `navigateTo` events semantics, without the version gate of the official `uni.$on`).
+
+```ts
+import { createRouter, EventsPlugin, useOpenerEventChannel } from '@meng-xi/unix-router'
+
+const router = createRouter({ routes, plugins: [EventsPlugin] })
+
+// Opener: register listeners for data sent back by the opened page
+await router.push({
+	path: 'pages/detail/detail',
+	events: new Map([
+		['acceptDataFromOpenedPage', (data: any) => console.log('received', data)]
+	])
+})
+
+// Opened page: emit data back / listen for pushes from the opener
+const channel = useOpenerEventChannel() // EventChannel | null
+if (channel !== null) {
+	channel.emit('acceptDataFromOpenedPage', { result: 'ok' })
+	channel.on('someEvent', (data: any) => {})
+}
+```
+
+**EventChannel API**: `on` / `once` / `off` (remove a listener by the id returned from `on`/`once`) / `emit`. The channel key is bridged across pages via the `__evt__` URL query key and stripped during state sync (never exposed to users).
+
+`useOpenerEventChannel()` does not depend on route-sync timing: a page's `onShow` runs before `onRouteSync`, so when the in-memory key is missing it falls back to reading the current page's URL query string (`__evt__`) — you can emit data back **right inside `onShow`**.
+
+::: warning EventsPlugin required
+Calling a navigation with `events` without registering `EventsPlugin` throws `PLUGIN_REQUIRED`:
+
+```
+Use events requires registering EventsPlugin: createRouter({ plugins: [EventsPlugin] })
+```
+:::
+
+**Exports**: `EventsPlugin` (the plugin) + `eventBus` (the built-in global event bus instance with `$on` / `$off` / `$once` / `$emit`, removing listeners by id).
+
 ## Plugin Context
 
 Each plugin registers hooks through `context` in `install(context, options)`, and the router invokes them at each stage of the navigation flow:
