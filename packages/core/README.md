@@ -35,7 +35,7 @@
 
 不想从零搭建？直接安装体验版安卓 App（示例项目 `packages/playground` 打包，覆盖导航、守卫、参数传递、RouterLink、导航动画等功能）：
 
-[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789705401731-__UNI__B6A50A8_1789705388623.apk)
+[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789882378601-__UNI__B6A50A8_1789882365595.apk)
 
 ## 安装
 

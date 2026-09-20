@@ -35,7 +35,7 @@
 
 Don't want to start from scratch? Install the trial Android App directly (built from the example project `packages/playground`, covering navigation, guards, params passing, RouterLink, navigation animations, and more):
 
-[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789705401731-__UNI__B6A50A8_1789705388623.apk)
+[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789882378601-__UNI__B6A50A8_1789882365595.apk)
 
 ## Installation
 

@@ -134,7 +134,7 @@ console.log(route.params.get('id')) // '1024'
 
 不想自己搭工程？直接安装体验版安卓 App（示例项目打包，含 tabBar、导航守卫、参数传递、RouterLink 导航动画等全部示例）：
 
-[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789705401731-__UNI__B6A50A8_1789705388623.apk)
+[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789882378601-__UNI__B6A50A8_1789882365595.apk)
 
 > 说明：体验版主要用于快速预览功能，正式集成仍建议参考上方步骤在你的 uni-app x 项目中安装使用。
 

@@ -134,7 +134,7 @@ The `packages/playground` in the repo is a runnable uni-app x project:
 
 Don't want to set up a project yourself? Install the trial Android App directly (built from the example project; includes all examples such as tabBar, navigation guards, params passing, RouterLink and navigation animations):
 
-[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789705401731-__UNI__B6A50A8_1789705388623.apk)
+[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789882378601-__UNI__B6A50A8_1789882365595.apk)
 
 > Note: the trial build is mainly for quickly previewing features; for production integration, still follow the steps above to install and use it in your own uni-app x project.
 
