@@ -5,15 +5,13 @@
  * 用于路由状态初始化与同步。非 uni 环境（纯 Node 等）下安全回退。
  */
 
-/** 页面 onLoad 参数对象（具名类型，规避 UTS 不允许内联对象字面量类型作为注解） */
-export interface UniPageOptions {
-	[key: string]: string
-}
+/** 页面 onLoad 参数对象（任意键值对象；UTS 原生端不支持 index signature，以 any 承载动态键读取） */
+export type UniPageOptions = any
 
 /** 页面实例的等价类型（保留 route 与 options 字段读取） */
-export interface UniPageLike {
+export type UniPageLike = {
 	route: string
-	options?: UniPageOptions
+	options: UniPageOptions | null
 }
 
 /**
@@ -51,13 +49,15 @@ export function getCurrentPageQuery(): Map<string, string> {
 		return result
 	}
 	const options = pages[pages.length - 1].options
-	if (options !== null) {
-		for (const key in options) {
-			if (Object.prototype.hasOwnProperty.call(options, key)) {
-				result.set(key, options[key])
+		if (options !== null) {
+			// UTS 原生端不支持 for..in 与 Object.prototype，改用 UTSJSONObject.keys 遍历（三端 API）
+			const obj = options as UTSJSONObject
+			const keys = UTSJSONObject.keys(obj)
+			for (var i = 0; i < keys.length; i++) {
+				const k = keys[i]
+				result.set(k, obj[k] as string)
 			}
 		}
-	}
 	return result
 }
 

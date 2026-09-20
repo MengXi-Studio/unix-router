@@ -8,15 +8,15 @@
  * 保证旧版本基座下页面间事件通信仍可用。
  */
 
-/** 事件回调（UTS 中函数可作为值传递；...args 透传 emit 的参数） */
-export type EventCallback = (...args: any[]) => any
+/** 事件回调（对齐官方 uni.$on 语义：回调接收单条数据；UTS 函数类型参数不支持 rest，故用单参数形式） */
+export type EventCallback = (data: any) => any
 
 /** 总线内部监听器记录 */
 type BusListener = {
 	id: number
 	/** 是否一次性（$once 注册） */
 	once: boolean
-	fn: EventCallback
+	fn: (data: any) => any
 }
 
 /**
@@ -27,11 +27,11 @@ export class UniEventBus {
 	private nextId: number = 1
 
 	/** 监听事件，返回监听器 id（可传 $off 移除该监听器） */
-	$on(eventName: string, fn: EventCallback): number {
+	$on(eventName: string, fn: (data: any) => any): number {
 		const id = this.nextId++
 		const item: BusListener = { id, once: false, fn }
 		const list = this.listeners.get(eventName)
-		if (list === null || list === undefined) {
+		if (list === null) {
 			this.listeners.set(eventName, [item])
 		} else {
 			list.push(item)
@@ -40,11 +40,11 @@ export class UniEventBus {
 	}
 
 	/** 监听一次事件，触发后自动移除；返回监听器 id */
-	$once(eventName: string, fn: EventCallback): number {
+	$once(eventName: string, fn: (data: any) => any): number {
 		const id = this.nextId++
 		const item: BusListener = { id, once: true, fn }
 		const list = this.listeners.get(eventName)
-		if (list === null || list === undefined) {
+		if (list === null) {
 			this.listeners.set(eventName, [item])
 		} else {
 			list.push(item)
@@ -60,7 +60,7 @@ export class UniEventBus {
 	 */
 	$off(eventName: string, target: number | null = null): void {
 		const list = this.listeners.get(eventName)
-		if (list === null || list === undefined) {
+		if (list === null) {
 			return
 		}
 		if (target === null) {
@@ -84,7 +84,7 @@ export class UniEventBus {
 	/** 触发事件，附加参数透传给监听器 */
 	$emit(eventName: string, ...args: any[]): void {
 		const list = this.listeners.get(eventName)
-		if (list === null || list === undefined) {
+		if (list === null) {
 			return
 		}
 		// 先收集待执行回调（$once 在触发后移除，避免遍历中修改数组）
@@ -104,7 +104,9 @@ export class UniEventBus {
 		}
 		for (var j = 0; j < pending.length; j++) {
 			try {
-				pending[j].fn(...args)
+				if (args.length > 0) {
+					pending[j].fn(args[0])
+				}
 			} catch (e) {
 				// 单个监听器异常不阻断其余监听器
 				void e
@@ -113,12 +115,12 @@ export class UniEventBus {
 	}
 
 	/** 别名：on（同 $on） */
-	on(eventName: string, fn: EventCallback): number {
+	on(eventName: string, fn: (data: any) => any): number {
 		return this.$on(eventName, fn)
 	}
 
 	/** 别名：once（同 $once） */
-	once(eventName: string, fn: EventCallback): number {
+	once(eventName: string, fn: (data: any) => any): number {
 		return this.$once(eventName, fn)
 	}
 

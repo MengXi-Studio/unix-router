@@ -6,8 +6,11 @@
  * - onAfterResolve：从增强位置提取 key 存入 pluginData
  * - onPrepareNavigation：将 key 拼入导航 URL query
  * - onRouteSync：从 URL query 读 key，peek 重建 params 并移除内部 key
+ *
+ * class 实现：非蒸汽（Kotlin/Swift）端对象字面量含方法会被推断为 UTSJSONObject。
  */
-import type { RouterPlugin, PluginContext, RouterOptions, RawLocation, ParamObject } from '../../types'
+import type { PluginContext, RouterOptions, RawLocation } from '../../types'
+import { RouterPlugin } from '../../types'
 import { PARAMS_QUERY_KEY } from '../../constants'
 import { createParamsManager } from './params-manager'
 import type { ParamsManager } from './type'
@@ -38,11 +41,15 @@ function extractQueryKey(location: RawLocation, key: string): string | null {
 /**
  * ParamsPlugin - 页面参数传递插件
  * 需注册后 router.push/replace/relaunch 才支持 params。
+ * 注册：plugins: [new ParamsPlugin()]
  */
-export const ParamsPlugin: RouterPlugin = {
-	name: 'params',
+export class ParamsPlugin extends RouterPlugin {
+	constructor() {
+		super()
+		this.name = 'params'
+	}
 
-	install(context: PluginContext, options: RouterOptions) {
+	override install(context: PluginContext, options: RouterOptions): void {
 		const persistent = options.paramsPersistent === true
 		const paramsManager: ParamsManager = createParamsManager(persistent)
 

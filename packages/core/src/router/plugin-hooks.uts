@@ -34,19 +34,9 @@ export type NavigationAbortHook = (pluginData: PluginData) => void
 /** routeSync hook 类型 */
 export type RouteSyncHook = (query: Map<string, string>, params: Map<string, string>) => void
 /** appInstall hook 类型 */
-export type AppInstallHook = (app: App) => void
+export type AppInstallHook = (app: any) => void
 
-/** PluginHookManager 依赖（由路由器注入） */
-export type PluginHookDeps = {
-	/** 读取当前路由位置 */
-	getCurrentRoute(): RouteLocation
-	/** 解析路由位置 */
-	resolve(location: RouteLocationRaw): RouteLocation
-	/** 路由器实例 */
-	router: Router
-	/** 核心共享的 ParamsManager 实例 */
-	paramsManager: ParamsManager
-}
+/** PluginHookManager 依赖（由路由器注入：直接引用 router 与 paramsManager，避免含方法的对象字面量） */
 
 /**
  * 插件 hook 管理器：维护各 hook 队列，安装插件并调度 hook
@@ -62,48 +52,41 @@ export class PluginHookManager {
 	private appInstallHooks: AppInstallHook[] = []
 	private installedPlugins: Set<string> = new Set()
 
-	constructor(private deps: PluginHookDeps) {}
+	constructor(private router: Router, private paramsManager: ParamsManager) {}
 
 	/** 安装插件并注册 hook */
 	install(plugins: RouterPlugin[], options: RouterOptions): void {
-		const deps = this.deps
-		const context: PluginContext = {
-			onEnrichLocation: hook => {
-				this.enrichLocationHooks.push(hook)
-			},
-			onAfterResolve: hook => {
-				this.afterResolveHooks.push(hook)
-			},
-			onPrepareNavigation: hook => {
-				this.prepareNavigationHooks.push(hook)
-			},
-			onBeforeNavigation: hook => {
-				this.beforeNavigationHooks.push(hook)
-			},
-			onCompleteNavigation: hook => {
-				this.completeNavigationHooks.push(hook)
-			},
-			onNavigationAbort: hook => {
-				this.navigationAbortHooks.push(hook)
-			},
-			onRouteSync: hook => {
-				this.routeSyncHooks.push(hook)
-			},
-			onAppInstall: hook => {
-				this.appInstallHooks.push(hook)
-			},
-			get currentRoute(): RouteLocation {
-				return deps.getCurrentRoute()
-			},
-			resolve: location => deps.resolve(location),
-			get router(): Router {
-				return deps.router
-			},
-			get paramsManager(): ParamsManager {
-				return deps.paramsManager
-			},
-			hasPlugin: name => this.installedPlugins.has(name)
+		const deps = this
+		const context = new PluginContext()
+		context.onEnrichLocation = hook => {
+			this.enrichLocationHooks.push(hook)
 		}
+		context.onAfterResolve = (hook) => {
+			this.afterResolveHooks.push(hook)
+		}
+		context.onPrepareNavigation = (hook) => {
+			this.prepareNavigationHooks.push(hook)
+		}
+		context.onBeforeNavigation = (hook) => {
+			this.beforeNavigationHooks.push(hook)
+		}
+		context.onCompleteNavigation = (hook) => {
+			this.completeNavigationHooks.push(hook)
+		}
+		context.onNavigationAbort = (hook) => {
+			this.navigationAbortHooks.push(hook)
+		}
+		context.onRouteSync = (hook) => {
+			this.routeSyncHooks.push(hook)
+		}
+		context.onAppInstall = (hook) => {
+			this.appInstallHooks.push(hook)
+		}
+		context.currentRouteReader = () => deps.router.currentRoute
+		context.resolve = location => deps.router.resolve(location)
+		context.router = deps.router
+		context.paramsManager = deps.paramsManager
+		context.hasPlugin = name => this.installedPlugins.has(name)
 
 		for (var i = 0; i < plugins.length; i++) {
 			const plugin = plugins[i]
@@ -182,7 +165,7 @@ export class PluginHookManager {
 	}
 
 	/** 执行 appInstall hooks */
-	runAppInstallHooks(app: App): void {
+	runAppInstallHooks(app: any): void {
 		for (var i = 0; i < this.appInstallHooks.length; i++) {
 			this.appInstallHooks[i](app)
 		}

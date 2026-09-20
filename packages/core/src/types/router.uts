@@ -58,7 +58,7 @@ export interface Router {
 	relaunch(location: RouteLocationRaw): Promise<NavigationResult>
 
 	/** 返回上一页或多级页面（对应 uni.navigateBack）；delta 需为正整数 */
-	back(delta?: number): Promise<NavigationResult>
+	back(delta?: number | null): Promise<NavigationResult>
 
 	/** 注册全局前置守卫，返回取消注册函数 */
 	beforeEach(guard: NavigationGuard): () => void
@@ -94,5 +94,5 @@ export interface Router {
 	guardRoute(location?: RouteLocationRaw, options?: GuardRouteOptions): Promise<RouteLocation>
 
 	/** 安装路由器到 Vue 应用实例 */
-	install(app: App): void
+	install(app: any): void
 }
