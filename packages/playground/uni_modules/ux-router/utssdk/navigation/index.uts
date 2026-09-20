@@ -12,7 +12,7 @@ import { uniNavigateTo, uniSwitchTab, uniRedirectTo, uniReLaunch, uniNavigateBac
 
 /** 从 UniNavigationOptions 提取动画裁剪视图（无动画时返回 null） */
 function toUniAnimation(options: UniNavigationOptions): UniAnimation | null {
-	if (options.animationType === null || options.animationType === undefined || options.animationType.length === 0) {
+	if (options.animationType === null || options.animationType.length === 0) {
 		return null
 	}
 	return {

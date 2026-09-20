@@ -27,17 +27,20 @@
 
 <script setup lang="uts">
 import { useRouter, useRoute } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { goodsByCategory, goodsList, formatPrice, addToCart, type Goods } from '../../router.uts'
+import { goodsByCategory, goodsList, formatPrice as fmtPrice, addToCart, type Goods } from '../../router.uts'
 
 const router = useRouter()
 const route = useRoute()
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function formatPrice(p: number): string { return fmtPrice(p) }
 
 /** 当前分类商品（onLoad 时按页面 query 读取；此时路由状态尚未同步到 currentRoute） */
 const list = ref([] as Goods[])
 
 onLoad((options: UTSJSONObject) => {
 	const category = options['category'] as string | null
-	if (category !== null && category !== undefined && category.length > 0) {
+	if (category !== null && category.length > 0) {
 		list.value = goodsByCategory(category)
 	} else {
 		list.value = goodsList

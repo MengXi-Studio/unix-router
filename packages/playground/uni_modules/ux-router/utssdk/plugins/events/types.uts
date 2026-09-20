@@ -5,11 +5,10 @@
  * 通道 key 经导航 URL 查询串（__evt__）跨页桥接。
  */
 import type { RouteLocationRaw, RawLocation } from '../../types'
-import type { EventCallback } from './bus'
 import { getCurrentPageQuery } from '../../navigation/context'
 
-/** 事件监听表（事件名 → 回调，监听被打开页回传的数据） */
-export type EventsMap = Map<string, EventCallback>
+/** 事件监听表（事件名 → 回调，监听被打开页回传的数据；UTS 函数类型参数不支持 rest，用单参数形式） */
+export type EventsMap = Map<string, (data: any) => any>
 
 /** 导航 URL 查询串中承载「通道 key」的内部键（状态同步时会被 stripInternalKeys 剔除） */
 export const EVT_QUERY_KEY: string = '__evt__'
@@ -27,10 +26,10 @@ export function pickEvents(location: RouteLocationRaw | null): EventsMap | null 
 	}
 	const raw = location as RawLocation
 	const events = raw.events
-	if (events === null || events === undefined || events.size === 0) {
+	if (events === null || events.size === 0) {
 		return null
 	}
-	return events
+	return events as EventsMap
 }
 
 /* -------------------------------------------------------------------------- */
@@ -57,7 +56,7 @@ export function getCurrentChannelKey(): string | null {
  */
 export function getCurrentPageEventKey(): string | null {
 	const key = getCurrentPageQuery().get(EVT_QUERY_KEY)
-	if (key === null || key === undefined || key.length === 0) {
+	if (key === null || key.length === 0) {
 		return null
 	}
 	return key

@@ -32,10 +32,13 @@
 
 <script setup lang="uts">
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { categories, goodsList, goodsByCategory, formatPrice, type Goods } from '../../router.uts'
+import { categories, goodsList, goodsByCategory, formatPrice as fmtPrice, type Goods } from '../../router.uts'
 
 const router = useRouter()
 const allGoods: Goods[] = goodsList
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function formatPrice(p: number): string { return fmtPrice(p) }
 
 /** 分类商品数量（模板中调用；uvue 模板不支持链式表达式） */
 function countByKey(key: string): number {

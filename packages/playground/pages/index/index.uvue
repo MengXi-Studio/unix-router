@@ -46,10 +46,13 @@
 
 <script setup lang="uts">
 import { useRouter, useRoute, RouterLink } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { categories, goodsList, goodsByCategory, formatPrice, type Goods } from '../../router.uts'
+import { categories, goodsList, formatPrice as fmtPrice, type Goods } from '../../router.uts'
 
 const router = useRouter()
 const route = useRoute()
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function formatPrice(p: number): string { return fmtPrice(p) }
 
 /** 首页推荐的 4 个商品 */
 const recommend: Goods[] = goodsList.slice(0, 4)
@@ -63,9 +66,12 @@ function goCategory(key: string): void {
 
 function goDetail(id: number): void {
 	// 携带 events 监听表：监听被打开页（详情页）回传的数据
-	const events = new Map<string, (data: any) => void>()
-	events.set('goodsDetailOpened', (data: any) => {
-		evtMsg.value = '详情页回传: ' + data.id + ' - ' + data.name
+	// 回调显式返回 any：原生端 events 回调以 Function1<Any, Any> 承载，返回 void 会因型变不匹配
+	const events: Map<string, (data: any) => any> = new Map<string, (data: any) => any>()
+	events.set('goodsDetailOpened', (data: any): any => {
+		const d = data as UTSJSONObject
+		evtMsg.value = '详情页回传: ' + (d['id'] as number).toString() + ' - ' + (d['name'] as string)
+		return '' as any
 	})
 	router.push({ path: 'pages/goods/detail', query: new Map([['id', id.toString()]]), events })
 }

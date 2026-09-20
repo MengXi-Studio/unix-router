@@ -9,8 +9,16 @@
 /** 查询参数值类型（uni-app x 中 query 统一以字符串在 URL 中传递） */
 export type QueryValue = string
 
-/** 路由名称（由 RouteNameMap 模块增强推导，未增强时回退为 string） */
+/**
+ * 路由名称
+ * H5/编辑器可经 RouteNameMap 模块增强推导字面量提示；
+ * 原生端 UTS 不支持 keyof 组合类型，退化为 string（配合 strict 校验兜底）
+ */
+// #ifdef WEB
 export type RouteName = keyof RouteNameMap & string
+// #else
+export type RouteName = string
+// #endif
 
 /** 路由路径（页面路径，带前导斜杠） */
 export type RoutePath = string
@@ -57,7 +65,7 @@ export type RawLocation = {
 	 * 页面间通信监听表（事件名 → 回调，监听被打开页回传的数据，EventsPlugin 消费）
 	 * 对齐官方 uni.navigateTo 的 events 参数语义
 	 */
-	events?: Map<string, (...args: any[]) => any>
+	events?: Map<string, (data: any) => any>
 }
 
 /** 路由位置原始输入（字符串路径或对象位置） */
@@ -71,7 +79,7 @@ export type RouteLocationNamedRaw = {
 	hash?: string
 	animationType?: string
 	animationDuration?: number
-	events?: Map<string, (...args: any[]) => any>
+	events?: Map<string, (data: any) => any>
 }
 
 /** 路径式路由输入（只允许 path 形式的对象） */
@@ -82,7 +90,7 @@ export type RouteLocationPathRaw = {
 	hash?: string
 	animationType?: string
 	animationDuration?: number
-	events?: Map<string, (...args: any[]) => any>
+	events?: Map<string, (data: any) => any>
 }
 
 /** 导航重定向指令（守卫返回此对象以重定向到其他路由） */
@@ -186,17 +194,16 @@ export type NavigationGuardReturn =
 	| Error
 	| null
 
-/** 全局前置 / 解析守卫（beforeEach / beforeResolve） */
-export type NavigationGuard = (
-	to: RouteLocation,
-	from: RouteLocation
-) => NavigationGuardReturn | Promise<NavigationGuardReturn>
+/** 全局前置 / 解析守卫（beforeEach / beforeResolve）
+ * 注意：返回类型放宽为 any —— 守卫返回值是多类型联合（boolean|string|位置对象|重定向|null），
+ * 非蒸汽（Kotlin/Swift）模式下需避免函数型变不匹配（Boolean? 无法赋给 union 生成的 Any）。 */
+export type NavigationGuard = (to: RouteLocation, from: RouteLocation) => any
 
-/** 全局后置守卫（afterEach），可接收可选失败信息 */
+/** 全局后置守卫（afterEach），可接收失败信息（UTS 函数类型参数不可选，用显式可空） */
 export type PostNavigationGuard = (
 	to: RouteLocation,
 	from: RouteLocation,
-	failure?: Error | null
+	failure: Error | null
 ) => void
 
 /** 组件内进入守卫（onBeforeRouteEnter） */

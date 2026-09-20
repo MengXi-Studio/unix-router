@@ -38,9 +38,9 @@
 			</view>
 
 			<view class="login-box">
-				<button class="login-btn" :class="{ logout: isLoggedIn() }" @click="toggleLogin">
-					<text class="login-text">{{ isLoggedIn() ? '退出登录' : '去登录' }}</text>
-				</button>
+				<view class="login-btn" :class="loginBtnClass()" @click="toggleLogin">
+					<text class="login-text" :class="loginTextClass()">{{ isLoggedIn() ? '退出登录' : '去登录' }}</text>
+				</view>
 			</view>
 		</view>
 	<!-- #ifdef APP -->
@@ -50,9 +50,27 @@
 
 <script setup lang="uts">
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { isLoggedIn, setLoggedIn, orders, cartTotalCount } from '../../router.uts'
+import { isLoggedIn as isLoggedIn$1, setLoggedIn, orders, cartTotalCount as calCount } from '../../router.uts'
 
 const router = useRouter()
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function isLoggedIn(): boolean { return isLoggedIn$1() }
+function cartTotalCount(): number { return calCount() }
+
+/** 登录按钮 class（模板内联 class 对象在 Kotlin 下无法推断泛型，改由本地函数返回） */
+function loginBtnClass(): Map<string, boolean> {
+	const m = new Map<string, boolean>()
+	m.set('logout', isLoggedIn())
+	return m
+}
+
+/** 登录文字 class（ucss 不支持复合/后代选择器，动态类切换文字颜色） */
+function loginTextClass(): Map<string, boolean> {
+	const m = new Map<string, boolean>()
+	m.set('logout-text', isLoggedIn())
+	return m
+}
 
 function goCart(): void {
 	router.push({ name: 'cart' })
@@ -95,7 +113,7 @@ function toggleLogin(): void {
 .menu-arrow { font-size: 36rpx; color: #ccc; }
 .login-box { margin-top: 40rpx; }
 .login-btn { background-color: #007aff; border-radius: 44rpx; align-items: center; padding: 24rpx 0; }
-.login-btn.logout { background-color: #f2f3f5; }
+.logout { background-color: #f2f3f5; }
 .login-text { font-size: 30rpx; color: #ffffff; }
-.login-btn.logout .login-text { color: #333; }
+.logout-text { color: #333; }
 </style>

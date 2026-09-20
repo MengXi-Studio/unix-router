@@ -1,3 +1,4 @@
+// #ifdef WEB
 /**
  * H5 页面过渡动画（Web Animations API 实现）
  *
@@ -165,3 +166,4 @@ export async function animatePageExit(animation: NavigationAnimation): Promise<v
 		setTimeout(() => resolve(), duration + 50)
 	})
 }
+// #endif

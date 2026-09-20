@@ -63,12 +63,7 @@ class UniRouter implements Router {
 		this.matcher = createRouteMatcher(options.routes, this.strict)
 		this.routeState = createRouteState(this.readyTimeout)
 		this.history = new UniHistory(this.matcher)
-		this.pluginHooks = new PluginHookManager({
-			getCurrentRoute: () => this.currentRoute,
-			resolve: location => this.matcher.resolve(location),
-			router: this,
-			paramsManager: createParamsManager(options.paramsPersistent === true)
-		})
+		this.pluginHooks = new PluginHookManager(this, createParamsManager(options.paramsPersistent === true))
 		this.pendingNavigation = null
 		this.errorHandlers = []
 		// 安装插件（在 matcher / routeState / history 就绪后，导航发生前注册 hook）
@@ -97,29 +92,30 @@ class UniRouter implements Router {
 	}
 
 	/** 返回上一页或多级页面（uni.navigateBack） */
-	async back(delta: number = 1): Promise<NavigationResult> {
-		if (this.pendingNavigation) {
+	async back(delta: number | null): Promise<NavigationResult> {
+		if (this.pendingNavigation != null) {
 			await this.pendingNavigation.catch(() => {})
 		}
 		const from = this.routeState.currentRoute.value
-		if (delta <= 0 || !Number.isInteger(delta)) {
+		const d = delta === null ? 1 : delta
+		if (d <= 0 || !Number.isInteger(d)) {
 			return this.failNavigation(from, from, new NavigationFailure(RouterErrorCode.ABORTED, 'back() 的 delta 必须为正整数', from, from))
 		}
 		const pages = getCurrentPagesSafe()
-		if (pages.length < 2 || delta >= pages.length) {
+		if (pages.length < 2 || d >= pages.length) {
 			return this.failNavigation(from, from, new NavigationFailure(RouterErrorCode.CANCELLED, '无法返回：页面栈中没有足够的上一页', from, from))
 		}
-		const targetPage = pages[pages.length - 1 - delta]
+		const targetPage = pages[pages.length - 1 - d]
 		const targetPath = '/' + targetPage.route
 		const to = this.matcher.resolve(targetPath)
 
 		const before = await this.guardManager.runBeforeEach(to, from, this.guardTimeout)
 		const handled = await this.handleGuardResult(before, to, from, 'push')
-		if (handled) return handled
+		if (handled != null) return handled
 
 		const resolveResult = await this.guardManager.runBeforeResolve(to, from, this.guardTimeout)
 		const handledResolve = await this.handleGuardResult(resolveResult, to, from, 'push')
-		if (handledResolve) return handledResolve
+		if (handledResolve != null) return handledResolve
 
 		// back 模式不经过 enrich/afterResolve，pluginData 为空
 		const pluginData: PluginData = new Map<string, any>()
@@ -138,9 +134,9 @@ class UniRouter implements Router {
 
 		try {
 			markRouterCall()
-			await goBack(delta, { type: navOptions.animationType, duration: navOptions.animationDuration })
+			await goBack(d, { type: navOptions.animationType, duration: navOptions.animationDuration })
 			this.routeState.setCurrentRoute(to)
-			this.guardManager.runAfter(to, from)
+			this.guardManager.runAfter(to, from, null)
 			return to
 		} catch (e) {
 			this.pluginHooks.runAbortHooks(pluginData)
@@ -201,10 +197,14 @@ class UniRouter implements Router {
 			this.pluginHooks.runRouteSyncHooks(query, params)
 			// 重建（query 可能已移除内部 key，需重算 fullPath）
 			const next: RouteLocation = {
-				...current,
+				path: current.path,
+				name: current.name,
+				meta: current.meta,
 				query,
 				params,
-				fullPath: buildFullPath(current.path, query)
+				fullPath: buildFullPath(current.path, query),
+				hash: current.hash,
+				matched: current.matched
 			}
 			this.routeState.setCurrentRoute(next)
 		} catch (e) {
@@ -214,18 +214,21 @@ class UniRouter implements Router {
 
 	/** 对指定路由补执行守卫链（冷启动），不执行实际导航 */
 	async guardRoute(location?: RouteLocationRaw, options?: GuardRouteOptions): Promise<RouteLocation> {
-		const target = location ? this.matcher.resolve(location) : this.routeState.currentRoute.value
+		const target = location != null ? this.matcher.resolve(location) : this.routeState.currentRoute.value
 		const from = this.routeState.currentRoute.value
 		const before = await this.guardManager.runBeforeEach(target, from, this.guardTimeout)
 		if (before.kind === 'abort') {
 			const failure = new NavigationFailure(before.code ?? RouterErrorCode.CANCELLED, '守卫中止了冷启动导航', target, from)
 			this.triggerErrorHandlers(failure, target, from)
-			if (options && options.onAbort) {
+			if (options != null && options.onAbort != null) {
 				options.onAbort(failure)
 			}
-			return Promise.reject(failure)
+			// UTS 中 Promise.reject 固定返回 Promise<void>，此处按目标类型构造已拒绝的 Promise
+			return new Promise<RouteLocation>((resolve, reject) => {
+				reject(failure)
+			})
 		}
-		if (before.kind === 'redirect' && before.redirect) {
+		if (before.kind === 'redirect' && before.redirect != null) {
 			const redirectMode = before.mode ?? 'relaunch'
 			return this.performNavigation(before.redirect, redirectMode === 'replace' ? 'replace' : redirectMode === 'push' ? 'push' : 'relaunch')
 		}
@@ -233,10 +236,9 @@ class UniRouter implements Router {
 	}
 
 	/** 安装路由器到 Vue 应用 */
-	install(app: App): void {
+	install(app: any): void {
+		// #ifdef WEB
 		app.provide(ROUTER_SYMBOL, this)
-		// 注册全局活跃路由器，供 useRouter() 在非 setup 上下文（选项式 methods / 事件回调）回退使用
-		setActiveGlobalRouter(this)
 		if (!('$router' in app.config.globalProperties)) {
 			app.config.globalProperties.$router = this
 		}
@@ -253,6 +255,9 @@ class UniRouter implements Router {
 				router.syncRoute()
 			}
 		})
+		// #endif
+		// 注册全局活跃路由器，供 useRouter() 在非 setup 上下文（选项式 methods / 事件回调）回退使用
+		setActiveGlobalRouter(this)
 		// 触发 app 级插件 hook（如拦截器的卸载清理）
 		this.pluginHooks.runAppInstallHooks(app)
 		this.routeState.markReady()
@@ -300,14 +305,14 @@ class UniRouter implements Router {
 		return {
 			path: to.path,
 			query,
-			isTab: !!(to.meta && to.meta.isTab),
+			isTab: to.meta.isTab === true,
 			meta: to.meta
 		}
 	}
 
 	/** 执行导航（带并发排队与重复导航检测） */
 	private async performNavigation(location: RouteLocationRaw, mode: NavigationMode): Promise<NavigationResult> {
-		if (this.pendingNavigation) {
+		if (this.pendingNavigation != null) {
 			await this.pendingNavigation.catch(() => {})
 		}
 		// 使用 params 但未注册 ParamsPlugin → PLUGIN_REQUIRED
@@ -369,17 +374,17 @@ class UniRouter implements Router {
 
 		const before = await this.guardManager.runBeforeEach(to, from, this.guardTimeout)
 		const handled = await this.handleGuardResult(before, to, from, mode, redirectDepth, pluginData)
-		if (handled) return handled
+		if (handled != null) return handled
 
-		if (config) {
+		if (config != null) {
 			const beforeEnter = await this.guardManager.runBeforeEnter(config, to, from, this.guardTimeout)
 			const handledEnter = await this.handleGuardResult(beforeEnter, to, from, mode, redirectDepth, pluginData)
-			if (handledEnter) return handledEnter
+			if (handledEnter != null) return handledEnter
 		}
 
 		const beforeResolve = await this.guardManager.runBeforeResolve(to, from, this.guardTimeout)
 		const handledResolve = await this.handleGuardResult(beforeResolve, to, from, mode, redirectDepth, pluginData)
-		if (handledResolve) return handledResolve
+		if (handledResolve != null) return handledResolve
 
 		const navOptions = this.buildNavOptions(to)
 		// prepareNavigation hooks（插件修改导航 query 与选项）
@@ -424,7 +429,7 @@ class UniRouter implements Router {
 			}
 			this.pluginHooks.completeNavigation(completeCtx)
 			result = completeCtx.result
-			this.guardManager.runAfter(to, from)
+			this.guardManager.runAfter(to, from, null)
 			return result
 		} catch (e) {
 			this.pluginHooks.runAbortHooks(pluginData)
@@ -477,7 +482,10 @@ class UniRouter implements Router {
 	private failNavigation(to: RouteLocation, from: RouteLocation, failure: Error): Promise<never> {
 		this.guardManager.runAfter(to, from, failure)
 		this.triggerErrorHandlers(failure, to, from)
-		return Promise.reject(failure)
+		// UTS 中 Promise.reject 固定返回 Promise<void>，此处按目标类型构造已拒绝的 Promise
+		return new Promise<never>((resolve, reject) => {
+			reject(failure)
+		})
 	}
 }
 

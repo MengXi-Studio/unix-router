@@ -68,8 +68,9 @@ let activeManager: InterceptorManager | null = null
  * 未安装拦截器时为安全空操作。
  */
 export function markRouterCall(): void {
-	if (activeManager !== null) {
-		activeManager.mark()
+	const active = activeManager
+	if (active !== null) {
+		active.mark()
 	}
 }
 
@@ -144,8 +145,9 @@ export function installInterceptors(router: Router): void {
 		warn('已有其他路由器实例注册了拦截器，将被新的实例替换（同一时刻仅支持一个）')
 		removeInterceptors()
 	}
-	activeManager = new InterceptorManager()
-	activeManager.setRouter(router)
+	const manager = new InterceptorManager()
+	activeManager = manager
+	manager.setRouter(router)
 
 	// Web 端 switchTab 需要差异化处理（阻止会导致 TabBar 组件状态卡死）
 	const isWeb = getPlatform().isH5
@@ -153,6 +155,8 @@ export function installInterceptors(router: Router): void {
 		const api = INTERCEPTED_APIS[i]
 		const interceptor: AddInterceptorOptions = {
 			invoke(args: Record<string, any>): boolean | void {
+				// uni.* 拦截参数在原生端为 UTSJSONObject，统一按索引读取/写入
+				const argObj = args as UTSJSONObject
 				// 放行路由器自身发起的调用（守卫已由路由器执行，避免二次拦截）
 				const active = activeManager
 				if (active !== null && active.isRouterCall()) {
@@ -163,11 +167,11 @@ export function installInterceptors(router: Router): void {
 					if (active !== null) {
 						const r = active.getRouter()
 						if (r !== null) {
-							const originalSuccess = args.success
-							args.success = (res: any): void => {
+							const originalSuccess = argObj['success']
+							argObj['success'] = (res: any): void => {
 								r.syncRoute()
-								if (typeof originalSuccess === 'function') {
-									originalSuccess(res)
+								if (originalSuccess !== null && typeof originalSuccess === 'function') {
+									;(originalSuccess as (res: any) => void)(res)
 								}
 							}
 						}
@@ -175,9 +179,11 @@ export function installInterceptors(router: Router): void {
 					return true
 				}
 				// 外部直接调用：转交路由器处理并阻止原始调用
-				dispatch(api, args.url, args.delta)
-				if ('url' in args) {
-					args.url = ''
+				const urlV = argObj['url']
+				const deltaV = argObj['delta']
+				dispatch(api, urlV === null ? null : urlV as string, deltaV === null ? null : deltaV as number)
+				if (argObj['url'] !== null) {
+					argObj['url'] = ''
 				}
 				return false
 			}
@@ -195,8 +201,9 @@ export function removeInterceptors(): void {
 			uni.removeInterceptor(INTERCEPTED_APIS[i])
 		}
 	}
-	if (activeManager !== null) {
-		activeManager.reset()
-		activeManager = null
+	const active = activeManager
+	if (active !== null) {
+		active.reset()
 	}
+	activeManager = null
 }

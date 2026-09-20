@@ -4,11 +4,11 @@
 	<!-- #endif -->
 		<view class="page" v-if="goods !== null">
 			<view class="detail-thumb">
-				<text class="thumb-tag">{{ goods.tag }}</text>
+				<text class="thumb-tag">{{ tag() }}</text>
 			</view>
-			<text class="goods-name">{{ goods.name }}</text>
-			<text class="goods-price">{{ formatPrice(goods.price) }}</text>
-			<text class="goods-desc">{{ goods.desc }}</text>
+			<text class="goods-name">{{ name() }}</text>
+			<text class="goods-price">{{ price() }}</text>
+			<text class="goods-desc">{{ desc() }}</text>
 
 			<view class="from-tip" v-if="from !== ''">
 				<text class="from-label">来源：</text>
@@ -31,7 +31,7 @@
 
 <script setup lang="uts">
 import { useRouter, useRoute, useOpenerEventChannel } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { goodsById, formatPrice, addToCart, type Goods } from '../../router.uts'
+import { goodsById, formatPrice as fmtPrice, addToCart, type Goods } from '../../router.uts'
 
 const router = useRouter()
 const route = useRoute()
@@ -41,9 +41,18 @@ const goods = ref(null as Goods | null)
 const from = ref('')
 const evtBack = ref('')
 
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function formatPrice(p: number): string { return fmtPrice(p) }
+
+/** 模板访问器：goods 可空，Kotlin 需判空后再取字段，避免对 nullable 接收者调用 */
+function tag(): string { return goods.value !== null ? goods.value!.tag : '' }
+function name(): string { return goods.value !== null ? goods.value!.name : '' }
+function desc(): string { return goods.value !== null ? goods.value!.desc : '' }
+function price(): string { return goods.value !== null ? formatPrice(goods.value!.price) : '' }
+
 onLoad((options: UTSJSONObject) => {
 	const idStr = options['id'] as string | null
-	if (idStr !== null && idStr !== undefined && idStr.length > 0) {
+	if (idStr !== null && idStr.length > 0) {
 		goods.value = goodsById(parseInt(idStr, 10))
 	} else {
 		goods.value = null

@@ -26,8 +26,9 @@ let cached: PlatformInfo | null = null
  * 在非 uni 环境（如纯 Node / 单测）下安全回退为 web。
  */
 export function getPlatform(): PlatformInfo {
-	if (cached !== null) {
-		return cached
+	const current = cached
+	if (current !== null) {
+		return current
 	}
 	const info = new PlatformInfo()
 	try {
