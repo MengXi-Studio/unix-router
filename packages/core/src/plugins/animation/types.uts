@@ -18,7 +18,7 @@ export function pickAnimation(location: RouteLocationRaw | null): NavigationAnim
 		return null
 	}
 	const raw = location as RawLocation
-	if (raw.animationType === null || raw.animationType === undefined || raw.animationType.length === 0) {
+	if (raw.animationType === null || raw.animationType.length === 0) {
 		return null
 	}
 	return {
@@ -33,7 +33,7 @@ export function pickAnimation(location: RouteLocationRaw | null): NavigationAnim
 export function normalizeAnimation(anim: NavigationAnimation): NavigationAnimation {
 	return {
 		type: anim.type,
-		duration: anim.duration === null || anim.duration === undefined ? DEFAULT_ANIMATION_DURATION : anim.duration
+		duration: anim.duration === null ? DEFAULT_ANIMATION_DURATION : anim.duration
 	}
 }
 

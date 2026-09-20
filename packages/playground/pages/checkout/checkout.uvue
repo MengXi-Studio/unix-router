@@ -34,9 +34,19 @@
 
 <script setup lang="uts">
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { cartItems, cartTotalPrice, clearCart, orders, type Order } from '../../router.uts'
+import { cartItems, cartTotalPrice as calTotal, clearCart, orders, formatPrice as fmtPrice, type Order } from '../../router.uts'
 
 const router = useRouter()
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function cartTotalPrice(): number { return calTotal() }
+function formatPrice(p: number): string { return fmtPrice(p) }
+
+/** 订单创建时间（先于 submit 声明，Kotlin 本地函数须先声明后使用） */
+function currentTime(): string {
+	const now = new Date()
+	return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate()
+}
 
 function submit(): void {
 	if (cartItems.length === 0) return
@@ -50,11 +60,6 @@ function submit(): void {
 	clearCart()
 	uni.showToast({ title: '下单成功', icon: 'success' })
 	router.replace({ name: 'orders' })
-}
-
-function currentTime(): string {
-	const now = new Date()
-	return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate()
 }
 
 function goHome(): void {

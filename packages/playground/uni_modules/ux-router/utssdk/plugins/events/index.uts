@@ -11,24 +11,13 @@
  * 注册方式：
  * ```ts
  * import { createRouter, EventsPlugin } from '@meng-xi/unix-router'
- * const router = createRouter({ routes, plugins: [EventsPlugin] })
+ * const router = createRouter({ routes, plugins: [new EventsPlugin()] })
  * ```
- * 使用方式：
- * ```ts
- * // 打开方：注册监听表
- * await router.push({
- *   path: 'pages/detail/detail',
- *   events: new Map([['acceptDataFromOpenedPage', (data: any) => { console.log('回传', data) }]])
- * })
  *
- * // 被打开页：回传数据
- * const channel = useOpenerEventChannel()
- * if (channel !== null) {
- *   channel.emit('acceptDataFromOpenedPage', { result: 'ok' })
- * }
- * ```
+ * class 实现：非蒸汽（Kotlin/Swift）端对象字面量含方法会被推断为 UTSJSONObject。
  */
-import type { PluginContext, RouterOptions, RouterPlugin, RouteLocationRaw } from '../../types'
+import type { PluginContext, RouterOptions, RouteLocationRaw } from '../../types'
+import { RouterPlugin } from '../../types'
 import { pickEvents, EVT_QUERY_KEY, CHANNEL_DATA_KEY, setCurrentChannelKey } from './types'
 import { channelManager } from './channel'
 import type { EventsMap } from './types'
@@ -41,10 +30,13 @@ export { pickEvents, EVT_QUERY_KEY, CHANNEL_DATA_KEY, setCurrentChannelKey, getC
  * EventsPlugin - 页面间定向通信插件
  * 需注册后 push 携带的 events 才生效；未注册时携带 events 的导航仍正常执行（events 被忽略）。
  */
-export const EventsPlugin: RouterPlugin = {
-	name: 'events',
+export class EventsPlugin extends RouterPlugin {
+	constructor() {
+		super()
+		this.name = 'events'
+	}
 
-	install(context: PluginContext, options: RouterOptions) {
+	override install(context: PluginContext, options: RouterOptions): void {
 		// 1. resolve 后：检测 events，创建通道并把监听表注册进通道
 		context.onAfterResolve((enrichedLocation: RouteLocationRaw, pluginData) => {
 			const events: EventsMap | null = pickEvents(enrichedLocation)
@@ -64,7 +56,7 @@ export const EventsPlugin: RouterPlugin = {
 		// 2. prepare：把通道 key 注入导航 URL 查询串（跨页桥接）
 		context.onPrepareNavigation(ctx => {
 			const key = ctx.pluginData.get(CHANNEL_DATA_KEY)
-			if (key !== null && key !== undefined) {
+			if (key !== null) {
 				ctx.query.set(EVT_QUERY_KEY, key as string)
 			}
 		})
@@ -72,7 +64,7 @@ export const EventsPlugin: RouterPlugin = {
 		// 3. routeSync：被打开页从 URL 查询串读回通道 key，暴露给 useOpenerEventChannel
 		context.onRouteSync((query, params) => {
 			const key = query.get(EVT_QUERY_KEY)
-			if (key !== null && key !== undefined && key.length > 0) {
+			if (key !== null && key.length > 0) {
 				setCurrentChannelKey(key)
 			} else {
 				// 当前页未携带通道时清空内存 key，避免上次导航的通道 key 残留导致误用
@@ -85,7 +77,7 @@ export const EventsPlugin: RouterPlugin = {
 		// 4. abort：导航中止/失败时清理本次通道（页面正常进栈时通道保留，供回传与返回后继续通信）
 		context.onNavigationAbort(pluginData => {
 			const key = pluginData.get(CHANNEL_DATA_KEY)
-			if (key !== null && key !== undefined) {
+			if (key !== null) {
 				channelManager.remove(key as string)
 			}
 		})

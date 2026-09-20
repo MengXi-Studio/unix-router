@@ -10,7 +10,7 @@ import type { RouteMatcher } from '../matcher/type'
 import { getCurrentPagesSafe } from '../navigation/context'
 
 /** 页面栈顶信息（具名类型，规避 UTS 不允许内联对象字面量类型作为注解） */
-export interface CurrentStackInfo {
+export type CurrentStackInfo = {
 	path: string
 	query: Map<string, string>
 }
@@ -33,10 +33,12 @@ export class UniHistory {
 		const query = new Map<string, string>()
 		const options = page.options
 		if (options !== null) {
-			for (const key in options) {
-				if (Object.prototype.hasOwnProperty.call(options, key)) {
-					query.set(key, options[key])
-				}
+			// UTS 原生端不支持 for..in 与 Object.prototype，改用 UTSJSONObject.keys 遍历（三端 API）
+			const obj = options as UTSJSONObject
+			const keys = UTSJSONObject.keys(obj)
+			for (var i = 0; i < keys.length; i++) {
+				const k = keys[i]
+				query.set(k, obj[k] as string)
 			}
 		}
 		return { path, query }

@@ -86,7 +86,7 @@ function withTimeout<T>(promise: Promise<T>, timeout: number, to: RouteLocation)
 				clearTimeout(timer)
 				resolve(value)
 			},
-			err => {
+			(err: any) => {
 				clearTimeout(timer)
 				reject(err)
 			}

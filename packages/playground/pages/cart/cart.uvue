@@ -38,9 +38,13 @@
 
 <script setup lang="uts">
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { cartItems, changeCartCount, cartTotalPrice, formatPrice } from '../../router.uts'
+import { cartItems, changeCartCount, cartTotalPrice as calTotal, formatPrice as fmtPrice } from '../../router.uts'
 
 const router = useRouter()
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function cartTotalPrice(): number { return calTotal() }
+function formatPrice(p: number): string { return fmtPrice(p) }
 
 function plus(id: number): void {
 	changeCartCount(id, 1)
@@ -75,7 +79,7 @@ function goHome(): void {
 .step-btn { width: 52rpx; height: 52rpx; align-items: center; justify-content: center; background-color: #f2f3f5; border-radius: 8rpx; font-size: 32rpx; color: #333; }
 .step-num { padding: 0 24rpx; font-size: 28rpx; color: #333; }
 .bottom-bar { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 12rpx; }
-.total-box { flex-direction: row; align-items: baseline; }
+.total-box { flex-direction: row; align-items: flex-start; }
 .total-label { font-size: 26rpx; color: #333; }
 .total-price { font-size: 36rpx; font-weight: bold; color: #dd524d; }
 .checkout-btn { background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 20rpx 56rpx; font-size: 28rpx; }

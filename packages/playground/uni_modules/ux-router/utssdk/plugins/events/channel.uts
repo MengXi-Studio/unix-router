@@ -8,7 +8,7 @@
  * 跨页桥接：通道 key 经导航 URL 查询串（__evt__=...）传递；
  * 内部监听存放在自研 eventBus（命名空间隔离），不依赖官方 uni.$on。
  */
-import { eventBus, type EventCallback } from './bus'
+import { eventBus } from './bus'
 
 /** 通道事件在总线上的命名空间分隔符 */
 const CHANNEL_NS = 'evt:'
@@ -33,12 +33,12 @@ export class EventChannel {
 	}
 
 	/** 监听打开方推送的事件（on/once/off 均基于自研总线） */
-	on(eventName: string, fn: EventCallback): number {
+	on(eventName: string, fn: (data: any) => any): number {
 		return eventBus.on(nsEvent(this.key, eventName), fn)
 	}
 
 	/** 监听一次打开方推送的事件 */
-	once(eventName: string, fn: EventCallback): number {
+	once(eventName: string, fn: (data: any) => any): number {
 		return eventBus.once(nsEvent(this.key, eventName), fn)
 	}
 
@@ -71,7 +71,7 @@ export class ChannelManager {
 	/** 按 key 获取通道（不存在时返回 null） */
 	get(key: string): EventChannel | null {
 		const ch = this.channels.get(key)
-		return ch === null || ch === undefined ? null : ch
+		return ch === null ? null : ch
 	}
 
 	/** 移除通道并清空其监听器（导航中止 / 页面销毁时调用） */

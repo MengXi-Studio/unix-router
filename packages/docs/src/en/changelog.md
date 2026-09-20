@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.7.0] - 2026-09-20
+
+### Breaking
+
+- **Plugins are now registered as instances**: on the native (Kotlin/Swift) end `RouterPlugin` becomes an abstract class (object literals cannot hold methods), and the built-in plugins extend it as
+  `class ParamsPlugin extends RouterPlugin`; registration changes from `plugins: [ParamsPlugin]` to `plugins: [new ParamsPlugin()]` (same for Interceptor / Animation / Events).
+
+### Fixed
+
+- **Full native-compilation (non-steam mode) compatibility**:
+  - Method-carrying object literals converted to classes: `RouteState` / `GuardManager` / `RouteMatcher` / `ParamsManager` / `PluginContext` are now classes instead of factory-returned object literals, eliminating the
+    Kotlin UTSJSONObject inference that broke method calls
+  - Explicit boolean conditions: removed all truthy checks (`if (x)` → `if (x != null)`) to satisfy the UTS rule that conditions must be boolean
+  - uni.* navigation options adapted per platform: App / Mini Program use animation-free object literals (matching the `NavigateToOptions` named parameter type), H5 uses UTSJSONObject carrying `animationType`
+  - Variadic function types made compatible: event callbacks changed from `(...args: any[]) => any` to single-arg `(data: any) => any` (Kotlin forbids vararg / modifiers on function-type parameters)
+  - Iteration and type cleanup: replaced `for..in` + `Object.prototype` with `UTSJSONObject.keys()`, removed `undefined` identifiers and `Promise.reject` return-type issues, made nullable parameters explicit
+  - Page layer: top-level functions used in templates are wrapped by local functions (exposed as properties on Kotlin-native); ucss compound/descendant selectors replaced by dynamic classes
+
 ## [0.6.0] - 2026-09-18
 
 ### Added

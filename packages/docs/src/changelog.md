@@ -1,5 +1,22 @@
 # 更新日志
 
+## [0.7.0] - 2026-09-20
+
+### 变更（破坏性）
+
+- **插件注册改为实例化**：非蒸汽（原生 Kotlin/Swift）端不支持「对象字面量承载方法」，`RouterPlugin` 由 type 调整为 abstract class，内置插件改为 `class ParamsPlugin extends RouterPlugin` 实现，注册写法从
+  `plugins: [ParamsPlugin]` 变更为 `plugins: [new ParamsPlugin()]`（Interceptor / Animation / Events 三个插件同理）
+
+### 修复
+
+- **非蒸汽（原生）编译全链路兼容**：
+  - 含方法的对象字面量 class 化：`RouteState` / `GuardManager` / `RouteMatcher` / `ParamsManager` / `PluginContext` 均由「工厂返回对象字面量」重构为 class，消除 Kotlin 端被推断为 UTSJSONObject 导致的方法调用失效
+  - 条件语句显式布尔化：全库移除 truthy 判断（`if (x)` → `if (x != null)`），符合 UTS 条件必须为布尔值的规范
+  - uni.* 导航 options 跨端适配：App / 小程序使用无动画字段的对象字面量（匹配 `NavigateToOptions` 具名参数），H5 使用 UTSJSONObject 携带 `animationType`
+  - 变参函数类型兼容：事件回调由 `(...args: any[]) => any` 调整为单参数 `(data: any) => any`（Kotlin 函数类型参数不支持 vararg / 修饰符）
+  - 遍历与类型清理：移除 `for..in` + `Object.prototype` 遍历（改用 `UTSJSONObject.keys()`）、清除 `undefined` 标识符与 `Promise.reject` 返回类型问题、显式可空参数
+  - 页面层：模板绑定顶层函数改为本地包装函数（非蒸汽下端顶层函数以属性对象暴露）；ucss 复合/后代选择器改为动态 class
+
 ## [0.6.0] - 2026-09-18
 
 ### 新增
