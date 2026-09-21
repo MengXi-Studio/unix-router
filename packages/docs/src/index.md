@@ -25,23 +25,33 @@ hero:
 features:
   - icon: 🧭
     title: 路由导航
-    details: push / replace / relaunch / back 四种导航，自动识别 TabBar（switchTab），useLink 声明式导航，AnimationPlugin 跨端窗口过渡动画
+    details: push / replace / relaunch / back 四种导航，meta.isTab 自动 switchTab，useLink / RouterLink 声明式导航；并发导航自动排队串行执行，重复导航拦截（DUPLICATED）
   - icon: 🛡️
     title: 路由守卫
-    details: 全局前置/解析/后置守卫 + 路由独享 beforeEnter + 组件内守卫，guardRoute 冷启动补执行，重定向与深度上限保护，InterceptorPlugin 拦截外部 uni.* 导航
+    details: 全局 beforeEach / beforeResolve / afterEach + 路由独享 beforeEnter + 组件内守卫，返回值风格重定向（深度上限 10），guardTimeout 超时保护，guardRoute 冷启动补执行守卫
   - icon: 📦
     title: 参数与查询增强
-    details: query 直接进 URL；params 经 ParamsPlugin（__params__ 通道）跨页传递，可持久化，未注册插件抛 PLUGIN_REQUIRED 明确引导
+    details: query 直接进 URL；params 经 ParamsPlugin（__params__ 内部 key 通道）跨页传递、可持久化；queryInt / queryNumber / queryBool 类型化读取
   - icon: 📡
     title: 页面事件通信
-    details: EventsPlugin 补齐 uni-app x 缺失的 events 能力：push 携带监听表、被打开页 useOpenerEventChannel 回传/推送，自研 eventBus 不依赖官方 uni.$on
+    details: EventsPlugin 补齐 uni-app x 缺失的 events 能力：push 携带监听表、被打开页 useOpenerEventChannel 回传/接收，另附全局 eventBus
+  - icon: 🎬
+    title: 跨端导航动画
+    details: AnimationPlugin 在 App / 小程序透传原生 animationType / animationDuration，H5 用 Web Animations API 实现，back 自动映射退出型动画
   - icon: 🔄
     title: 路由状态自动同步
-    details: install 注入全局 Mixin 自动 syncRoute()，页面栈与非路由器导航自动对齐
+    details: install 在 H5 注册全局 mixin（onShow 自动 syncRoute），原生端建议页面 onShow 自行调用，onRouteChange 监听路由变化，页面栈与非路由器导航始终对齐
   - icon: ⚠️
-    title: 错误处理
-    details: RouterError / NavigationFailure 完整体系，onError 全局捕获，isNavigationFailure() 精准判断，重复导航拦截
+    title: 可预测的错误体系
+    details: RouterError / NavigationFailure 共 7 类错误码，导航失败一律 reject，onError 全局捕获 + isNavigationFailure 精准判断
+  - icon: 🧩
+    title: 核心精简 + 插件扩展
+    details: 4 个内置插件（Params / Events / Animation / Interceptor）按需实例化注册，PluginContext 提供 8 个 hook 自定义扩展，未注册即抛 PLUGIN_REQUIRED 明确引导
   - icon: 💪
-    title: TypeScript / UTS 优先
-    details: 完整类型与组合式 API，useRouter / useRoute / useLink / onBeforeRouteLeave，与 Vue 3 无缝集成
+    title: UTS / TypeScript 优先
+    details: 严格类型（Map 带泛型、无隐式转换），useRouter / useRoute / useLink / useOpenerEventChannel 全套组合式 API
 ---
+
+## 快速上手路径
+
+[介绍](/guide/introduction) → [快速开始](/guide/getting-started) → [路由配置](/guide/route-config) → [路由导航](/guide/navigation) → [路由守卫](/guide/guards) → [完整实战](/guide/recipes)

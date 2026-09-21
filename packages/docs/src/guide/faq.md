@@ -2,6 +2,54 @@
 
 汇总使用 unix-router 过程中的高频问题与排查思路。
 
+## params 读不到
+
+**排查 1：是否正确注册了 ParamsPlugin**
+
+未注册 `ParamsPlugin` 时，带 `params` 的导航会直接 reject `PLUGIN_REQUIRED`；若导航正常但目标页 `route.params` 为空，先确认注册方式（插件必须实例化）：
+
+```ts
+// ❌ 旧写法：直接传 class（已废弃）
+createRouter({ routes, plugins: [ParamsPlugin] })
+
+// ✅ 实例化注册
+createRouter({ routes, plugins: [new ParamsPlugin()] })
+```
+
+**排查 2：是否读错了字段**
+
+params 与 query 是两个独立字段。params 经内部 key `__params__` 通道传递，**不会出现在用户可见的 URL query 中**；目标页在状态同步完成后才能读到重建后的 `route.params`。
+
+**排查 3：值是否可序列化**
+
+params 值为 `Map<string, string>`，内部经 JSON 序列化跨页，复杂对象请先转字符串（如 `JSON.stringify`），目标页再反序列化。
+
+## onShow 中读到旧 query
+
+**现象**：页面 `onShow` 里通过 `useRoute()` 读到的 `query` 是上一页 / 旧值。
+
+**原因**：`onShow` 的触发时机**早于**路由器完成 `syncRoute`（按页面栈同步 `currentRoute`），此时路由状态尚未更新到本页。
+
+**方案**：在页面 `onLoad(options)` 中直接读取 uni 传入的本页 query，不要依赖 `useRoute()`：
+
+```uts
+import { onLoad } from '@dcloudio/uni-app'
+
+onLoad((options: UTSJSONObject) => {
+	const id = options['id'] as string | null
+	// options 即本页 URL query，与本页加载同步
+})
+```
+
+## switchTab 丢 query
+
+`meta.isTab === true` 的页面导航会自动转用 `uni.switchTab`，而 **switchTab API 不支持携带 query**——传给 tab 页的 query 会丢失。
+
+需要向 tab 页传递数据时，改用：
+
+- **params**（ParamsPlugin，内部 key 通道不依赖 URL）
+- **EventsPlugin / eventBus** 事件通信
+
 ## 守卫不生效
 
 **排查 1：是否通过路由器调用**
@@ -14,7 +62,7 @@ uni.navigateTo({ url: '/pages/about/about' })
 await router.push({ name: 'about' })
 ```
 
-uni-app x 各端均支持 `uni.addInterceptor`（所需 HBuilderX 版本见[平台兼容性](./compatibility#原生导航-api-拦截addinterceptor)），但 unix-router **默认不拦截**原生导航 API，直接调用 `uni.navigateTo` 等会**绕过守卫**。请统一使用 `router.*` 或 `<RouterLink>`。
+unix-router **默认不拦截**原生导航 API，直接调用 `uni.navigateTo` 等会**绕过守卫**。要么统一使用 `router.*` 或 `<RouterLink>`，要么启用 InterceptorPlugin + `interceptUniApi: true` 拦截外部调用（详见[uni API 拦截](./interceptor)）。
 
 **排查 2：守卫是否正确返回**
 
@@ -42,57 +90,50 @@ router.beforeEach((to, from) => {
 // ✅ 用 async/await
 router.beforeEach(async (to, from) => {
 	const user = await fetchUser()
-	if (!user) {
+	if (user == null) {
 		return { name: 'login' }
 	}
 	return true
 })
 ```
 
-## query / params 丢失
+## 守卫超时中止
 
-`query` 与 `params` 均为 `Map<string, string>`，且以字符串在 URL 传递。
+**现象**：控制台出现守卫超时警告，导航被中止。
+
+**原因**：异步守卫在 `guardTimeout`（默认 **10000ms**，设为 0 禁用）内未返回，路由器超时后警告并中止本次导航。
+
+**排查**：
+
+1. 守卫内 Promise 是否永远不会 settle（如请求未配超时 / catch）。
+2. 是否 `await` 了一个卡死的任务。
+3. 守卫所有分支是否都有返回值（漏 return 会被一直挂起等待）。
+
+确认逻辑无误但仍需更长时间时，调大 `guardTimeout`：
 
 ```ts
-// ❌ 用点号访问
-route.query.id
-
-// ✅ 用 Map API
-route.query.get('id')
-route.query.has('id')
+const router = createRouter({
+	routes,
+	guardTimeout: 30000 // 30s；0 表示禁用超时保护
+})
 ```
 
-复杂对象数据需先序列化，或改由全局状态（如 Pinia）承载。
+## 重复导航报错（DUPLICATED）
 
-## 重复导航报错
-
-`push` 到相同位置（path + name + query 一致）会抛出 `DUPLICATED`。
+`push` 到相同位置（path + query 一致）会 reject `DUPLICATED`（仅 push 检测；与 vue-router 的 `resolve(false)` 不同，这里是真正的 reject）。
 
 ```ts
+import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
+
 try {
 	await router.push({ name: 'about' })
 } catch (err) {
-	if (err.code !== 16) throw err // RouterErrorCode.DUPLICATED
+	// 忽略重复导航，其余错误继续抛出
+	if (!isNavigationFailure(err, RouterErrorCode.DUPLICATED)) {
+		throw err
+	}
 }
 ```
-
-## 返回无法拦截
-
-不同平台对返回的拦截能力不同：
-
-- **App 端**：物理返回键 / 导航栏返回经返回守卫链，`onBeforeRouteLeave` 生效
-- **H5 端**：浏览器后退经返回守卫链，`onBeforeRouteLeave` 生效
-- **小程序端**：顶部返回箭头 / 滑动由宿主控制，**无法同步拦截**，用 `onRouteChange` 事后处理
-
-详见[平台兼容性](./compatibility#返回拦截)。
-
-## H5 刷新 404
-
-uni-app x H5 端使用 hash 模式，请访问形如 `https://example.com/#/pages/index/index` 的地址；避免直接访问不带 hash 的深层 URL。
-
-## 页面栈溢出
-
-小程序页面栈有上限，接近上限时改用 `relaunch`。参考[实战指南 - 页面栈深度管理](./recipes#页面栈深度管理)。
 
 ## 守卫中触发导航死锁
 
@@ -104,19 +145,42 @@ router.beforeEach((to, from) => {
 	if (needRedirect) {
 		return { name: 'other' }
 	}
+	return true
 })
 ```
 
-## 冷启动守卫校验
+重定向深度有上限（10 次），超限返回 `CANCELLED`，不会无限循环。
 
-在 `App.vue` 的 `onLaunch` 中对真实入口页面补执行守卫，可传入 `options.path`：
+## 返回无法拦截
 
-```ts
+不同平台对返回的拦截能力不同：
+
+- **App 端**：物理返回键 / 导航栏返回经返回守卫链，`onBeforeRouteLeave` 生效
+- **H5 端**：浏览器后退经返回守卫链，`onBeforeRouteLeave` 生效
+- **小程序端**：顶部返回箭头 / 滑动由宿主控制，**无法同步拦截**，用 `onRouteChange` 事后处理
+
+详见[平台兼容性](./compatibility#返回拦截)。
+
+## H5 冷启动直达页守卫不执行
+
+**现象**：用户通过 URL 直接打开深层页面（如分享链接进入详情页），全局守卫没有执行。
+
+**原因**：守卫链挂在导航调用上，冷启动直达页没有发起 `router.push`，守卫自然不会跑。
+
+**方案**：在 `App.uvue` 的 `onLaunch` 中，等路由器 ready 后用 `guardRoute` 对真实入口页**补执行守卫链**（不实际导航；守卫返回 abort 时触发 `onAbort` 并 reject，返回 redirect 时默认以 `relaunch` 执行真实跳转）：
+
+```uts
+import { onLaunch } from '@dcloudio/uni-app'
+
 onLaunch((options) => {
 	router.isReady().then(() => {
-		const launchPath = options?.path ? `/${options.path}` : undefined
+		let launchPath: string | null = null
+		if (options.path != null && options.path.length > 0) {
+			launchPath = '/' + options.path
+		}
 		router.guardRoute(launchPath, {
 			onAbort: (failure) => {
+				// 冷启动被守卫拦截：重定向到首页
 				router.relaunch({ name: 'home' })
 			}
 		})
@@ -126,12 +190,42 @@ onLaunch((options) => {
 
 直接在启动时访问 `router.currentRoute` 得到的可能是初始值，页面级数据仍以本页 `onLoad` / `onShow` 为准。
 
+## query / params 丢失
+
+`query` 与 `params` 均为 `Map<string, string>`，且以字符串传递。
+
+```ts
+// ❌ 用点号访问
+route.query.id
+
+// ✅ 用 Map API
+route.query.get('id')
+route.query.has('id')
+```
+
+数字 / 布尔语义可用内置工具读取：`queryInt(query, 'id')` / `queryNumber(query, 'price')` / `queryBool(query, 'enabled')`（均带默认值兜底）。
+
+复杂对象数据需先序列化；结构化数据跨页建议改用 params（ParamsPlugin）或 EventsPlugin / eventBus。
+
+## switchTab 页面收不到参数
+
+见上文「[switchTab 丢 query](#switchtab-丢-query)」：`switchTab` 不支持 query，改用 params 或事件通信。
+
+## 页面栈溢出
+
+小程序页面栈有上限，接近上限时改用 `relaunch`。参考[实战指南 - 页面栈深度管理](./recipes#页面栈深度管理)。
+
+## H5 刷新 404
+
+uni-app x H5 端使用 hash 模式，请访问形如 `https://example.com/#/pages/index/index` 的地址；避免直接访问不带 hash 的深层 URL。
+
 ## 路由跳转白屏
 
-1. 路径是否正确（应为 `pages/xxx/xxx` 完整页面路径）
+1. 路径是否正确（应为 `pages/xxx/xxx` 完整页面路径，不带前导 `/`）
 2. 页面是否已在 `pages.json` 注册
 3. 目标页面的 `onLoad` / `setup` 是否有报错
 4. 路由配置的 `path` 是否与 `pages.json` 完全一致
+5. 导航失败是否被 reject（`NAVIGATION_API_ERROR` 通常意味着栈顶校验未通过或目标页不存在）
 
 ## 路由懒加载
 

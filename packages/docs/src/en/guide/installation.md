@@ -3,17 +3,7 @@
 ## Requirements
 
 - A **uni-app x** project (`.uvue` pages)
-- Vue 3
-
-## Installing via the uni_modules Plugin Market (recommended)
-
-Import it directly from HBuilderX through the uni plugin market:
-
-**[https://ext.dcloud.net.cn/plugin?id=29561](https://ext.dcloud.net.cn/plugin?id=29561)**
-
-- In HBuilderX, open "Plugin Market", search for `ux-router` (plugin ID: `ux-router`), then click "Download Plugin and Import into HBuilderX"
-- The plugin is distributed as a self-contained **`uni_modules/ux-router`** (with the UTS source under `utssdk`); it works on App native (Android / iOS) as well as Web / Mini Program, with no extra setup required
-- Requires HBuilderX 3.1.0+ (use the HBuilderX version matching your uni-app x project)
+- Vue 3 — uni-app x already bundles Vue 3, so **no extra installation is needed**; the `vue` in this package is only declared as an optional peer dependency (`>=3.0.0`). See [peerDependencies](#peerdependencies-explained) below.
 
 ## Installing via npm
 
@@ -23,20 +13,38 @@ npm install @meng-xi/unix-router
 pnpm add @meng-xi/unix-router
 ```
 
-> This package is distributed as **UTS source**: it ships the `.uts` source code, which is compiled on the fly for each platform by the uni-app x build chain
-> (Web / Mini Program → JS, Android → Kotlin, iOS → Swift), with no pre-compilation required.
+### UTS Source Distribution
 
-## Usage in uni-app x
+This package ships as **UTS source**: what you get is the `.uts` source code itself (`main` / `exports` point directly to the sources). The uni-app x build chain compiles it on the fly for the target platform at build time — no pre-compilation required:
 
-A uni-app x project can `import` it directly:
+| Platform | Compiled output |
+| --- | --- |
+| Web / Mini Program | JavaScript |
+| Android | Kotlin |
+| iOS | Swift |
+
+Route logic is compiled directly to Kotlin / Swift code on each native platform, with no runtime JS bridge overhead.
+
+### peerDependencies Explained
+
+`vue` is declared as an **optional** peer dependency (`peerDependenciesMeta.vue.optional: true`, version `>=3.0.0`):
+
+- **uni-app x projects**: the framework already bundles Vue 3, so you neither need to nor should install `vue` separately.
+- **Reusing the source outside uni-app x**: only when reusing this package in a pure Vue 3 project do you need to provide the Vue 3 runtime yourself.
+
+## Installing via uni_modules
+
+Import it from the uni plugin market in HBuilderX (includes the UTS source under `utssdk`):
+
+**[https://ext.dcloud.net.cn/plugin?id=29561](https://ext.dcloud.net.cn/plugin?id=29561)**
+
+- In HBuilderX, open the "Plugin Market" and search for `ux-router` (plugin ID: `ux-router`), then click "Download Plugin and Import into HBuilderX"
+- The plugin is distributed as a self-contained **`uni_modules/ux-router`** (with the UTS source under `utssdk`); after importing, it works on App native (Android / iOS) as well as Web / Mini Program with no extra configuration
+- Import it in code by the uni_modules path (matching the repo playground style):
 
 ```uts
-import { createRouter } from '@meng-xi/unix-router'
+import { createRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 ```
-
-### About App Native Distribution
-
-If you need to use it on the App native (VDOM) side, it is recommended to distribute the UTS source in the **`uni_modules/<name>/utssdk`** form (refer to the uni-app x plugin ecosystem). For the Web / Mini Program sides, the build chain can consume the `.uts` source in `node_modules` directly.
 
 ## Verifying the Installation
 
@@ -44,7 +52,12 @@ If you need to use it on the App native (VDOM) side, it is recommended to distri
 import { createRouter } from '@meng-xi/unix-router'
 
 const router = createRouter({ routes: [] })
-console.log(router.currentRoute.path) // '/'（initial placeholder）
+console.log(router.currentRoute.path) // '/' (initial placeholder; becomes the real path after the first navigation or sync)
 ```
 
 > For a complete runnable example, see `packages/playground` at the repository root (open it with HBuilderX to run).
+
+## Next Steps
+
+- Ready to build something? Head to [Getting Started](./getting-started).
+- Curious about the design trade-offs? See [Differences from vue-router](./differences).

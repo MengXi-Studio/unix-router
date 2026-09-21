@@ -1,13 +1,13 @@
 # Router Instance
 
-The `Router` instance returned by `createRouter()` provides navigation, guards, and state querying. This page lists all its members.
+The `Router` instance returned by `createRouter()` provides navigation, guards, and state queries. This page lists all of its members.
 
 ## Properties
 
 ### `currentRoute`
 
-- Type: `RouteLocation`
-- Description: The current route location. It is a **reactive object triggered in templates**, and `useRoute()` is derived from it.
+- Signature: `get currentRoute(): RouteLocation` (**read-only**)
+- Description: the current route location, a reactive object from which [useRoute()](./use-route) is derived. Updated when a navigation completes (after stack-top confirmation) and when `syncRoute()` syncs state.
 
 ```ts
 console.log(router.currentRoute.path) // /pages/index/index
@@ -15,107 +15,137 @@ console.log(router.currentRoute.path) // /pages/index/index
 
 ## Navigation Methods
 
+All navigation methods return `Promise<NavigationResult>` (`NavigationResult` is the target [RouteLocation](./type-route-location); resolved on success, rejected on failure). Concurrent navigations are queued automatically; a failed navigation always rejects (see [Error Handling](../guide/error-handling)).
+
 ### `push(location)`
 
-- Returns: `Promise<NavigationResult>`
-- Description: Navigates to a new page (corresponds to `uni.navigateTo`; TabBar pages automatically use `uni.switchTab` instead).
+- Signature: `push(location: RouteLocationRaw): Promise<NavigationResult>`
+- Description: navigates to a new page, mapping to `uni.navigateTo`; when the target is a `meta.isTab` page it automatically uses `uni.switchTab` (no query carried). Pushing to an address identical to the current route rejects with `DUPLICATED`.
+
+```ts
+const to = await router.push({ name: 'detail', query: new Map<string, string>([['id', '1']]) })
+```
 
 ### `replace(location)`
 
-- Returns: `Promise<NavigationResult>`
-- Description: Replaces the current page (corresponds to `uni.redirectTo`).
+- Signature: `replace(location: RouteLocationRaw): Promise<NavigationResult>`
+- Description: replaces the current page, mapping to `uni.redirectTo`; when the target is a tabBar page it automatically uses `uni.switchTab`. No duplicate-navigation detection.
 
 ### `relaunch(location)`
 
-- Returns: `Promise<NavigationResult>`
-- Description: Closes all pages and opens the target (corresponds to `uni.reLaunch`).
+- Signature: `relaunch(location: RouteLocationRaw): Promise<NavigationResult>`
+- Description: closes all pages and opens the target page, mapping to `uni.reLaunch`; when the target is a tabBar page it automatically uses `uni.switchTab`.
 
 ### `back(delta?)`
 
-- Returns: `Promise<NavigationResult>`
-- Description: Goes back one or more pages (corresponds to `uni.navigateBack`); `delta` must be a positive integer.
+- Signature: `back(delta?: number | null): Promise<NavigationResult>`
+- Description: goes back one or multiple pages, mapping to `uni.navigateBack`. `delta` defaults to `1` (passing `null` is also treated as `1`):
+  - a non-positive integer → rejects `ABORTED`;
+  - an insufficient page stack (stack length < 2 or `delta >= stack length`) → rejects `CANCELLED`.
+- Before returning it only runs the `beforeEach` + `beforeResolve` guard chain; it does not pass through the plugins' enrich / afterResolve.
 
 ```ts
 await router.push({ name: 'about' })
-await router.back()      // go back one page
-await router.back(2)     // go back two pages
+await router.back()      // back one page
+await router.back(2)     // back two pages
 ```
 
 ## Guard Registration
 
-| Method | Returns | Description |
+The three guard registration methods all **return an unregister function**. Return-value semantics: `null | true` allows; `false` → `ABORTED`; `Error` → `CANCELLED`; a string or object location → redirect; `{ location, mode? }` → `NavigationRedirect`.
+
+| Method | Signature | Description |
 | --- | --- | --- |
-| `beforeEach(guard)` | `() => void` | Global before guard; returns an unregister function |
-| `beforeResolve(guard)` | `() => void` | Global resolve guard |
-| `afterEach(guard)` | `() => void` | Global after guard |
-| `onError(handler)` | `() => void` | Router error handling callback |
+| `beforeEach(guard)` | `(guard: NavigationGuard) => () => void` | Global before guard, the first to run after the navigation is queued |
+| `beforeResolve(guard)` | `(guard: NavigationGuard) => () => void` | Global resolve guard, the last gate before the uni API is actually invoked; in-component guards are implemented by filtering on it |
+| `afterEach(guard)` | `(guard: PostNavigationGuard) => () => void` | Global after guard, signature `(to, from, failure: Error \| null) => void`, fired after the navigation completes or fails |
 
 ```ts
 const off = router.beforeEach((to, from) => {
-	if (to.meta.requireAuth && !isLoggedIn()) return { name: 'login' }
+	if (to.meta.requireAuth === true && !isLoggedIn()) {
+		return { name: 'login' }
+	}
+	return true
 })
-// remove it when needed
+// remove when needed
 off()
 ```
 
 ## State and Utility Methods
 
-### `resolve(location)`
+### `getRoutes()`
 
-- Returns: `RouteLocation`
-- Description: Resolves a route location into a full `RouteLocation`, **without performing a navigation**.
+- Signature: `getRoutes(): RouteConfig[]`
+- Description: returns all registered route configs (a shallow copy).
 
 ### `hasRoute(name)`
 
-- Returns: `boolean`
-- Description: Checks whether a route with the given name exists.
+- Signature: `hasRoute(name: string): boolean`
+- Description: checks whether a route with the given name exists.
 
-### `getRoutes()`
+### `resolve(location)`
 
-- Returns: `RouteConfig[]`
-- Description: Gets all registered route configs.
+- Signature: `resolve(location: RouteLocationRaw): RouteLocation`
+- Description: resolves a route location into a full `RouteLocation`, **without navigating**. Resolving an invalid location (e.g. a missing named route) throws `RouterError ROUTE_NOT_FOUND`.
+
+```ts
+const to = router.resolve({ name: 'detail' })
+console.log(to.path) // /pages/detail/detail
+```
 
 ### `isReady()`
 
-- Returns: `Promise<void>`
-- Description: Waits for the router to finish initializing.
+- Signature: `isReady(): Promise<void>`
+- Description: waits for the router to finish initializing (`app.use(router)` marks it ready; constrained by the timeout when `readyTimeout` is configured).
+
+### `onError(handler)`
+
+- Signature: `onError(handler: (error: Error, to: RouteLocation, from: RouteLocation) => void): () => void`
+- Description: registers a navigation error callback, fired when a navigation fails (including guard aborts, API failures, and resolve failures); **returns an unregister function**.
+
+```ts
+const offError = router.onError((error, to, from) => {
+	console.error('Navigation failed:', error.message)
+})
+offError() // cancel
+```
+
+### `onRouteChange(listener)`
+
+- Signature: `onRouteChange(listener: (to: RouteLocation, from: RouteLocation) => void): () => void`
+- Description: registers a route-change listener, fired when a navigation completes or state syncs; **returns an unregister function**.
+
+```ts
+router.onRouteChange((to, from) => {
+	console.log('Route changed:', from.path, '→', to.path)
+})
+```
 
 ### `syncRoute()`
 
-- Returns: `void`
-- Description: Syncs the route state with the actual page stack (based on `getCurrentPages()`). On install, it is automatically called on the page's `onShow` through a global mixin.
+- Signature: `syncRoute(): void`
+- Description: syncs the route state from the page stack (`getCurrentPages`) into `currentRoute`. On H5, `app.use(router)` registers an `onShow` mixin that syncs automatically; **on native platforms it is recommended to call it yourself in each page's `onShow`**.
 
 ### `guardRoute(location?, options?)`
 
-- Returns: `Promise<RouteLocation>`
-- Description: Re-runs the guard chain for the given route (cold-start scenario), **without performing an actual navigation**.
+- Signature: `guardRoute(location?: RouteLocationRaw, options?: GuardRouteOptions): Promise<RouteLocation>`
+- Description: runs the guard chain for a given route (cold-start scenarios such as H5 direct URLs / deeplinks), **without performing actual navigation**. If the guard allows, it resolves with the target location; if it aborts, it fires `options.onAbort(failure)` and rejects; if it redirects, a **real navigation** is performed in the redirect mode (default `relaunch`).
 
 ```ts
 router.isReady().then(() => {
-	const launchPath = options?.path ? `/${options.path}` : undefined
+	const launchPath = options?.path != null ? `/${options.path}` : undefined
 	router.guardRoute(launchPath, {
 		onAbort: (failure) => {
-			router.relaunch({ name: 'home' })
+			router.relaunch({ name: 'home' }) // the page has loaded and cannot be blocked; jump to a safe page
 		}
-	})
+	}).catch(() => {})
 })
 ```
 
 ### `install(app)`
 
-- Returns: `void`
-- Description: Installs the router into the Vue app instance (**provides** `router` and `route` + mounts `$router` / `$route` + registers a global mixin). Usually invoked by `app.use(router)`.
-
-### `onRouteChange(listener)`
-
-- Returns: `() => void`
-- Description: Registers a route-change listener (triggered on a complete navigation or a state sync); returns an unregister function.
-
-```ts
-router.onRouteChange((to, from) => {
-	console.log('route change:', from.path, '→', to.path)
-})
-```
+- Signature: `install(app: any): void`
+- Description: installs the router into the Vue app instance, usually invoked by `app.use(router)`. **On H5 only**, it registers `provide` (for `useRouter` setup injection), mounts the `$router` / `$route` global properties, and registers the `onShow` global mixin (automatic `syncRoute()`); **on native platforms** it registers the global active router (for the non-setup context fallback) and triggers the plugins' app-level hook.
 
 ## Related APIs
 

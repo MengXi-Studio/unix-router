@@ -1,26 +1,26 @@
 # RouterErrorCode
 
-The router error code enum. The values align with vue-router 4's `NavigationFailureType`, with additional uni-app x platform-related error codes.
+The route error code enum. Its values are aligned with vue-router 4's `NavigationFailureType`, with additional uni-app x platform-specific error codes.
 
 ```ts
 import { RouterErrorCode } from '@meng-xi/unix-router'
 ```
 
-| Enum | Value | Description |
+| Error code | Value | Trigger scenario |
 | --- | --- | --- |
-| `ABORTED` | `4` | The navigation was aborted by a guard (the guard returned `false`) |
-| `CANCELLED` | `8` | A guard threw, or the redirect exceeded the maximum depth |
-| `DUPLICATED` | `16` | Duplicate navigation to the current route |
-| `ROUTE_NOT_FOUND` | `32` | No page route matched (uni-app x extension) |
-| `NAVIGATION_API_ERROR` | `64` | The `uni.*` native navigation API call failed (uni-app x extension) |
-| `SETUP_ERROR` | `128` | Error in the router installation environment (uni-app x extension) |
-| `PLUGIN_REQUIRED` | `256` | A capability of an unregistered plugin was used (e.g. using `params` without registering `ParamsPlugin`); register the corresponding plugin first (uni-app x extension) |
+| `ABORTED` | `4` | A guard returned `false`, aborting the navigation (including a non-positive-integer `delta` for `back()`) |
+| `CANCELLED` | `8` | A guard threw an `Error`, guard timeout (`guardTimeout` default 10000ms), redirect exceeded the max depth (10), or `back()` with an insufficient page stack |
+| `DUPLICATED` | `16` | Repeatedly `push` to the current address (`path`+`query`+`params`+`hash` all identical to current; checked by `push` only) |
+| `ROUTE_NOT_FOUND` | `32` | No route matched (a `name` not registered in strict mode) or an invalid location (uni-app x extension) |
+| `NAVIGATION_API_ERROR` | `64` | A `uni.*` native navigation API call failed, or the page-stack-top confirmation failed after navigation completed (uni-app x extension) |
+| `SETUP_ERROR` | `128` | Router installation environment error (uni-app x extension) |
+| `PLUGIN_REQUIRED` | `256` | Using a plugin capability without registering the corresponding plugin (e.g. using `params` without `ParamsPlugin`, or `events` without `EventsPlugin`) (uni-app x extension) |
 
-::: tip
-It is recommended to use `0b` bitwise operations or direct comparison, e.g. `failure.code === RouterErrorCode.ROUTE_NOT_FOUND`.
+::: tip How to check
+Pair with `isNavigationFailure(error, codes?)` to narrow the check, or compare directly (`failure.code === RouterErrorCode.ROUTE_NOT_FOUND`). The `to` / `from` fields of `NavigationFailure` help locate the failure context further.
 :::
 
-## Related APIs
+## Related API
 
 - [isNavigationFailure](./type-navigation-guard)
 - [Error Handling Guide](../guide/error-handling)

@@ -30,7 +30,7 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 
 		/** 导航栏 */
 		nav: [
-			{ text: '指南', link: '/guide/getting-started' },
+			{ text: '指南', link: '/guide/introduction' },
 			{ text: '组件', link: '/api/router-link' },
 			{ text: 'API', link: '/api/create-router' },
 			{ text: '更新日志', link: '/changelog' },
@@ -58,25 +58,31 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					items: [
 						{ text: '路由配置', link: '/guide/route-config' },
 						{ text: '路由导航', link: '/guide/navigation' },
-						{ text: '组合式 API', link: '/guide/composables' },
-						{ text: '路由元信息', link: '/guide/meta' },
-						{ text: '路由守卫', link: '/guide/guards' }
+						{ text: '组合式 API', link: '/guide/composables' }
 					]
 				},
 				{
-					text: '插件',
-					items: [{ text: '插件系统', link: '/guide/plugins' }]
+					text: '进阶',
+					items: [
+						{ text: '路由元信息', link: '/guide/meta' },
+						{ text: '路由守卫', link: '/guide/guards' },
+						{ text: '错误处理', link: '/guide/error-handling' }
+					]
 				},
 				{
-					text: '原理深入',
+					text: '插件体系',
 					items: [
-						{ text: '导航流程原理', link: '/guide/navigation-flow' },
-						{ text: '错误处理', link: '/guide/error-handling' }
+						{ text: '插件系统（总览）', link: '/guide/plugins' },
+						{ text: '参数传递 · ParamsPlugin', link: '/guide/params' },
+						{ text: '页面间通信 · EventsPlugin', link: '/guide/events' },
+						{ text: '导航动画 · AnimationPlugin', link: '/guide/animation' },
+						{ text: 'uni API 拦截 · InterceptorPlugin', link: '/guide/interceptor' }
 					]
 				},
 				{
 					text: '精通',
 					items: [
+						{ text: '导航流程原理', link: '/guide/navigation-flow' },
 						{ text: '完整实战', link: '/guide/recipes' },
 						{ text: '平台兼容性', link: '/guide/compatibility' },
 						{ text: '与 vue-router 的差异', link: '/guide/differences' },

@@ -1,30 +1,34 @@
 # 平台兼容性
 
-unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现场编译。
+unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现场编译。本章说明各平台的功能支持矩阵、版本门槛与平台差异。
 
-## 编译产物
+## 功能支持矩阵
+
+| 能力 | Web / H5 | 微信小程序 | App-Android | App-iOS | App-HarmonyOS |
+| --- | --- | --- | --- | --- | --- |
+| 核心导航（push / replace / relaunch / back） | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 路由守卫（beforeEach / beforeEnter / beforeResolve / afterEach） | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 组合式 API（useRouter / useRoute / useLink / useOpenerEventChannel） | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `<RouterLink>` 组件 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ParamsPlugin（参数传递） | ✅ | ✅ | ✅ | ✅ | ✅ |
+| EventsPlugin（页面间通信） | ✅ | ✅ | ✅ | ✅ | ✅ |
+| AnimationPlugin（导航动画） | ✅（Web Animations API） | ✅（原生透传） | ✅（原生透传） | ✅（原生透传） | ✅（原生透传） |
+| InterceptorPlugin（uni API 拦截） | ✅（≥ 4.0） | ✅（≥ 4.41） | ✅（≥ 3.97） | ✅（≥ 4.11） | ✅（≥ 4.61） |
+
+> 底层仅依赖 `uni.navigateTo / redirectTo / reLaunch / navigateBack / switchTab` 与 `getCurrentPages`，各平台由 uni-app x 原生适配层抹平。
+
+## 编译产物与运行模式
 
 | 平台 | 编译为 | 是否支持 |
 | --- | --- | --- |
 | Web / H5 | JavaScript | ✅ |
 | 微信小程序 | JavaScript | ✅ |
-| Android（VDOM / 蒸汽模式） | Kotlin / JS | ✅ |
-| iOS（VDOM） | Swift / JS | ✅ |
-| App-Android（VDOM 原生） | Kotlin | ✅（经 UTS 编译） |
+| App-Android | Kotlin | ✅（经 UTS 编译） |
+| App-iOS | Swift | ✅（经 UTS 编译） |
+| App-HarmonyOS | ArkTS | ✅（经 UTS 编译） |
 
-> 依据官方规则：目标语言为 JS 时直接引用 ts/js；非 JS（Android）时仅可引用 ts 文件并当作 UTS 处理。因此本库以 `.uts` 源分发，确保全端可编译。
-
-## 导航 API 平台差异
-
-底层仅依赖 `uni.navigateTo / redirectTo / reLaunch / navigateBack / switchTab`，各平台由 uni-app x 原生适配层抹平。
-
-- `switchTab`（tabBar 页）：各端一致。
-- App 返回键 / 侧滑：不经过路由器，由 `syncRoute()` 在 `onShow` 同步。
-
-## 运行模式
-
-- **VDOM 模式**（第一代）：脚本编译为 Kotlin/Swift，依赖 UTS 强类型 → 本库已适配。
-- **蒸汽模式**（2026 起新一代）：全端运行 JS → 本库同样可运行。
+- **VDOM 模式**（第一代）：脚本编译为 Kotlin/Swift/ArkTS，依赖 UTS 强类型 → 本库已适配。
+- **蒸汽模式**（新一代）：全端运行 JS → 本库同样可运行。
 
 两种模式均可直接使用，无需改动代码。
 
@@ -47,9 +51,9 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 
 **实操建议**：安装 HBuilderX **最新稳定版**即可覆盖 VDOM + 蒸汽 + 鸿蒙三个方向，无需刻意下探到最低版本。
 
-## 原生导航 API 拦截（addInterceptor）
+## uni API 拦截版本门槛（addInterceptor）
 
-uni-app x 提供 `uni.addInterceptor(name, interceptor)` / `uni.removeInterceptor(name, interceptor?)` 拦截原生导航 API。**开启拦截所需的最低 HBuilderX 版本（官方兼容性表）**：
+[InterceptorPlugin](./interceptor) 依赖 `uni.addInterceptor(name, interceptor)` / `uni.removeInterceptor(name, interceptor?)`。**开启拦截所需的最低 HBuilderX 版本（官方兼容性表）**：
 
 | 平台 | 最低 HBuilderX 版本 |
 | --- | --- |
@@ -59,24 +63,41 @@ uni-app x 提供 `uni.addInterceptor(name, interceptor)` / `uni.removeIntercepto
 | iOS | 4.11 |
 | HarmonyOS | 4.61 |
 
-可拦截的导航相关 API：`navigateTo` / `redirectTo` / `reLaunch` / `switchTab` / `navigateBack`（另有 `loadFontFace`、`pageScrollTo`、`setNavigationBarTitle` 等）。
+::: warning 自动降级
+运行平台的 `uni.addInterceptor` 缺失（版本低于上表）时，拦截**自动降级**并输出警告：导航仍正常进行，但外部直接调用 `uni.navigateTo` 不会被转交路由器，守卫对这部分调用不生效。
+:::
 
 ::: tip 版本口径说明
 早期 uni-app x 的 `interceptor` API 文档曾在"系统版本"兼容表中标注 iOS 暂不支持（x）；据最新 HBuilderX（含 Alpha 分支）官方文档，iOS 端已支持（≥ 4.11）。请以你所用 HBuilderX 的实际表现为准。
 :::
 
-::: warning 对本库的意义
-- 以**插件**形式提供：`createRouter({ routes, plugins: [InterceptorPlugin], interceptUniApi: true })`。开启后，外部直接调用 `uni.navigateTo` 等会被转交路由器执行完整守卫链（避免绕过守卫）。
-- 拦截器仅针对"外部直接调用"生效；**路由器自身的 `router.*` 调用不会被二次拦截**。
-- 若运行平台的 HBuilderX 版本低于上表，运行时无法注册 `addInterceptor`，拦截自动降级并输出警告。
-:::
+拦截器仅针对**外部直接调用**生效；路由器自身 `router.*` 发起的 uni 调用不会被二次拦截（内部标记区分）。微信小程序端 `<navigator>` 组件跳转与点击 tabBar（底层不触发 `uni.switchTab`）无法被拦截，此场景需在页面 `onShow` 兜底守卫。
 
-### 使用约定
+## H5 与原生差异
 
-- 推荐统一使用 `router.push / replace / relaunch / back` 或 `<RouterLink>` 进行导航。
-- 直接调用 `uni.navigateTo` 等原生 API 会**绕过路由守卫**；需时可通过开启原生导航拦截将其转由路由器处理。
+| 差异点 | H5（Web） | 原生端（App / 小程序） |
+| --- | --- | --- |
+| `router.install()`（`app.use(router)`） | 注册 `provide`（`useRouter` setup 注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（自动 `syncRoute()`） | 仅注册全局活跃路由器（`useRouter` 非 setup 回退可用）；建议在页面 `onShow` 手动调用 `router.syncRoute()` |
+| 导航动画 | AnimationPlugin 用 **Web Animations API**（`element.animate`）对页面容器播放进入 / 退出动画 | 透传原生 `animationType` / `animationDuration` 给 `uni.*` 导航 API |
+| `RouteName` 路由名类型增强 | 经 `RouteNameMap` 模块增强，推导字面量提示（`keyof RouteNameMap & string`） | UTS 不支持 keyof 组合类型，退化为 `string`（配合 `strict` 校验兜底） |
+| `hash` | 恒为 `''`（uni-app x 不支持 hash 路由，保留字段） | 恒为 `''` |
+| 物理返回 / 侧滑 | 不经过路由器 | 不经过路由器，由 `syncRoute()` 在 `onShow` 对齐状态 |
+
+## UTS 强类型相关注意
+
+本库面向原生端编译，API 设计受 UTS 强类型约束，使用者同样会遇到：
+
+- **query / params 是 `Map<string, string>`**，不是普通对象：读取用 `.get(key)`、判断用 `.has(key)`、写入用 `.set(key, value)`；构造时带泛型 `new Map<string, string>([['id', '1']])`。
+- **没有 `undefined`**：可空值统一为 `null`（如 `route.name` 为 `string | null`），判断用 `!= null` 而非 `!= undefined`；条件语句须为显式布尔表达式（`if (redirect != null)`，不能写 truthy 判断 `if (redirect)`）。
+- **插件 / 含方法的配置必须用 class**：非蒸汽（Kotlin/Swift）端对象字面量含方法会被推断为 `UTSJSONObject`，见[插件系统 - 平台注意](./plugins#平台注意-uts-强类型)。
 
 ## 验证方式
 
 - Web / 小程序：`packages/playground` 内 `pages/test` 自检页输出 PASS/FAIL。
 - App 原生：HBuilderX 打开 playground 打包验证。
+
+## 下一步
+
+- [与 vue-router 的差异](./differences) — API 语义层面的差异清单
+- [uni API 拦截](./interceptor) — InterceptorPlugin 用法与降级行为
+- [导航流程原理](./navigation-flow) — `syncRoute` 的触发时机与设计依据

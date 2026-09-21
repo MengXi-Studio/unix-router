@@ -1,8 +1,8 @@
 # RouterLink Component
 
-`<RouterLink>` is a declarative navigation component built on [useLink()](./use-link), providing a clickable navigation entry.
+`<RouterLink>` is a declarative navigation component built on [useLink()](./use-link): a click triggers navigation, providing an interactive navigation entry point.
 
-> Note: uni-app x uses a static page model, so there is no in-page rendering slot like vue-router's `<router-view>`; this component only serves as an interactive navigation entry.
+> Note: uni-app x uses a static page model with no vue-router-style in-page render outlet (`<router-view>`), so this component **only serves as an "interactive navigation entry point"** and does not render route content.
 
 ## Import
 
@@ -16,44 +16,56 @@ import { RouterLink } from '@meng-xi/unix-router'
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `to` | `string` | `''` | Target route path (string) |
-| `replace` | `boolean` | `false` | Whether to use `replace` navigation (replace the current page) |
-| `relaunch` | `boolean` | `false` | Whether to use `relaunch` navigation (close all pages, then open the target) |
+| `to` | `String` | `''` | Target route path (a string) |
+| `replace` | `Boolean` | `false` | Whether to navigate with `replace` (the current page is replaced by the target page) |
+| `relaunch` | `Boolean` | `false` | Whether to navigate with `relaunch` (all pages close, then the target opens) |
 
-> `replace` and `relaunch` are mutually exclusive: when both are `true`, `relaunch` takes precedence (same semantics as `useLink`).
+::: warning No active-class or other vue-router extension props
+vue-router props like `active-class`, `custom`, and `exact-active-class` **do not exist** on this component. The static page model of uni-app x has no in-page render outlet; implement active states and similar needs yourself based on [useLink()](./use-link)'s `isActive` / `isExactActive`.
+:::
 
-## Usage
+When `replace` and `relaunch` are both `true`, `relaunch` takes precedence (matching `useLink` semantics).
+
+## Basic Usage
 
 ```vue
-<template>
-	<view class="page">
-		<RouterLink to="pages/about/about">About</RouterLink>
-		<RouterLink to="pages/detail/detail" replace>Replace</RouterLink>
-		<RouterLink to="pages/index/index" relaunch>Relaunch</RouterLink>
-	</view>
-</template>
-
 <script setup lang="uts">
 import { RouterLink } from '@meng-xi/unix-router'
 </script>
+
+<template>
+	<view class="page">
+		<RouterLink to="pages/about/about">
+			<text>About</text>
+		</RouterLink>
+		<RouterLink to="pages/detail/detail" :replace="true">
+			<text>Replace navigation</text>
+		</RouterLink>
+		<RouterLink to="pages/index/index" :relaunch="true">
+			<text>Relaunch navigation</text>
+		</RouterLink>
+	</view>
+</template>
 ```
 
-Clicking the component triggers navigation; navigation failures are handled by `router.onError` / the caller.
+Clicking the component triggers the internal `useLink().navigate()` to navigate; navigation failures surface via Promise reject and are handled by `router.onError` or the caller.
 
-## Relation to useLink
+## Relationship with useLink
 
-Under the hood the component is a thin wrapper around `useLink({ to, replace, relaunch })` (it calls `link.navigate()` on click). For custom interactions (e.g. menu active states, more style control), implement it directly with [useLink()](./use-link):
+Internally, the component is a thin wrapper around `useLink({ to, replace, relaunch })` (a click calls `link.navigate()`). If you need custom interactions (menu active states, more style control), implement them yourself with [useLink()](./use-link):
 
 ```vue
 <script setup lang="uts">
 import { useLink } from '@meng-xi/unix-router'
 
 const link = useLink({ to: 'pages/about/about' })
-const onClick = () => link.navigate()
+const onClick = (): void => {
+	link.navigate()
+}
 </script>
 ```
 
 ## Related APIs
 
 - [useLink()](./use-link)
-- [Composition API guide](../guide/composables)
+- [Composable API Guide](../guide/composables)

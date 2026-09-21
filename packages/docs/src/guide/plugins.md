@@ -2,258 +2,172 @@
 
 unix-router 采用**核心 + 插件**架构（对齐 uni-router / Swiper.js 风格）：
 
-- **核心**只提供路由匹配、导航执行、守卫链、状态同步等 uni-app x 原生能力；
-- **扩展能力**（页面参数、uni 原生导航拦截等）通过插件提供，按需注册。
+- **核心**只做四件事：路由匹配、导航执行、守卫链、状态同步；
+- **其余扩展能力**（页面参数、页面间通信、导航动画、uni API 拦截等）全部插件化，**opt-in** 按需注册。
 
-## 设计原则
+不注册插件时，对应能力完全不存在：核心包保持精简稳定；未注册却使用会直接抛 `PLUGIN_REQUIRED` 错误，明确引导而非静默失败。
 
-1. **核心精简**：核心不含业务扩展，保持稳定与轻量。
-2. **插件扩展**：非核心能力均以插件形式在 `createRouter({ plugins: [...] })` 注册。
-3. **零侵入**：不注册插件时该功能不可用；未注册却使用会抛 `PLUGIN_REQUIRED` 错误，明确引导。
-4. **可组合**：插件按数组顺序安装，通过 `PluginContext` 注册 hook，注入到导航流程的各个阶段。
+## 内置插件速览
 
-## 快速上手
+| 插件 | name | 能力 | 配套选项 | 详情 |
+| --- | --- | --- | --- | --- |
+| `ParamsPlugin` | `params` | 页面参数传递（内存 / 持久化） | `paramsPersistent` | [参数传递](./params) |
+| `EventsPlugin` | `events` | 页面间通信（`events` 监听表 + EventChannel 回传） | — | [页面间通信](./events) |
+| `AnimationPlugin` | `animation` | 导航窗口动画（原生透传 / H5 WAAPI） | `animation` | [导航动画](./animation) |
+| `InterceptorPlugin` | `interceptor` | 拦截 uni 原生导航 API，守卫下沉到 uni API 层 | `interceptUniApi` | [uni API 拦截](./interceptor) |
+
+## 注册插件
+
+插件是 `RouterPlugin` 抽象类的实例，注册时**必须实例化**：
 
 ```ts
-import { createRouter, ParamsPlugin, InterceptorPlugin } from '@meng-xi/unix-router'
+import { createRouter, ParamsPlugin, EventsPlugin, AnimationPlugin, InterceptorPlugin } from '@meng-xi/unix-router'
 
 const router = createRouter({
 	routes,
-	strict: true,
-	plugins: [ParamsPlugin, InterceptorPlugin], // 启用：页面参数 + uni 导航拦截
-	interceptUniApi: true // InterceptorPlugin 的开关，默认 false
+	plugins: [new ParamsPlugin(), new EventsPlugin(), new AnimationPlugin(), new InterceptorPlugin()],
+	interceptUniApi: true // 须配合 InterceptorPlugin，默认 false
 })
 ```
 
-> 只需注册你需要的插件。未注册插件却使用对应功能将抛出 `PLUGIN_REQUIRED`。
-
-## 内置插件
-
-| 插件 | name | 能力 | 配套选项 |
-| --- | --- | --- | --- |
-| `ParamsPlugin` | `params` | 页面参数传递（`params`，内存/持久化） | `paramsPersistent` |
-| `InterceptorPlugin` | `interceptor` | 拦截 uni 原生导航 API，守卫下沉到 uni API 层 | `interceptUniApi` |
-
-### ParamsPlugin：页面参数
-
-uni-app x 是静态页面模型，URL 不适合携带复杂对象。ParamsPlugin 采用"**内存存储 + `__params__` 内部 key**"方案：发起页把 `params` 存入管理器并生成 key，目标页通过 key 取回。
-
-```ts
-import { createRouter, ParamsPlugin } from '@meng-xi/unix-router'
-
-const router = createRouter({ routes, plugins: [ParamsPlugin] })
-
-// 传递字符串参数（经内部 key 通道）
-await router.push({
-	name: 'detail',
-	params: new Map<string, string>([['id', '1024']])
-})
-
-// 目标页读取（route.params 由 ParamsPlugin 在状态同步时重建）
-const route = useRoute()
-console.log(route.params.get('id')) // '1024'
-```
-
-**持久化到 storage**：默认 params 存内存；需要跨刷新/重进保留时开启持久化：
-
-```ts
-const router = createRouter({
-	routes,
-	plugins: [ParamsPlugin],
-	paramsPersistent: true // 默认将所有 params 持久化到 uni storage
-})
-```
-
-::: warning 需要注册 ParamsPlugin
-未注册 `ParamsPlugin` 却调用带 `params` 的导航，会抛 `PLUGIN_REQUIRED`：
-
-```
-使用 params 需注册 ParamsPlugin：createRouter({ plugins: [ParamsPlugin] })
-```
+::: warning 旧写法已废弃
+`plugins: [ParamsPlugin]`（直接传类）为旧版写法，已废弃。插件以 abstract class 实现，必须传入实例 `new XxxPlugin()`。
 :::
 
-**导出**：`ParamsPlugin`（插件本体）+ `createParamsManager(options)`（底层参数管理器，供自定义插件复用）。
+插件按数组顺序安装，安装时通过 `PluginContext` 注册 hook，注入到导航流程的各个阶段。设置了插件配套选项但未注册对应插件时（如 `interceptUniApi: true` 却没有 `InterceptorPlugin`），该选项被忽略并输出警告。
 
-### InterceptorPlugin：uni 导航拦截
+## RouterPlugin 抽象类
 
-直接调用 `uni.navigateTo` 会**绕过路由守卫**。启用拦截后，外部直接调用也会被转交 `router.*` 走完整守卫链，守卫"下沉"到 uni API 层。
-
-```ts
-import { createRouter, InterceptorPlugin } from '@meng-xi/unix-router'
-
-const router = createRouter({
-	routes,
-	plugins: [InterceptorPlugin],
-	interceptUniApi: true
-})
-
-// 现在两者等价，守卫都生效：
-await router.push({ name: 'about' })        // 走 router，守卫生效
-uni.navigateTo({ url: '/pages/about/about' }) // 被拦截 → 转交 router，守卫生效
-```
-
-**各端所需最低 HBuilderX 版本**（官方 addInterceptor 兼容表）：
-
-| 平台 | 最低 HBuilderX 版本 |
-| --- | --- |
-| Web | 4.0 |
-| 微信小程序 | 4.41 |
-| Android | 3.97 |
-| iOS | 4.11 |
-| HarmonyOS | 4.61 |
-
-::: warning 不影响路由器自身调用
-拦截器仅针对**外部直接调用**生效；`router.push/replace/relaunch/back` 内部发起的 uni 调用不会二次拦截（通过内部标记区分）。
-:::
-
-拦截的 API：`navigateTo / redirectTo / switchTab / reLaunch / navigateBack`。同时会给出 `installInterceptors` / `removeInterceptors` 供底层使用。
-
-**导出**：`InterceptorPlugin`（插件本体，注册 `plugins: [InterceptorPlugin]` 且 `interceptUniApi: true` 时自动安装）+ `installInterceptors(router)` / `removeInterceptors()`（手动安装/卸载拦截器，用于 Router 实例化后的精细化控制）。
-
-### AnimationPlugin：导航窗口动画
-
-为导航注入窗口过渡动画（对齐 uni-app x 原生 `animationType`）：
-- **App / 小程序**：透传 `animationType` / `animationDuration` 给 `uni.*` 原生导航 API（原生窗口动画）；
-- **H5**：通过 Web Animations API（`element.animate`）对页面容器播放进入 / 退出动画（无需 CSS `@keyframes`）。
+自定义插件继承 `RouterPlugin`，实现 `name` 字段与 `install(context, options)` 抽象方法：
 
 ```ts
-import { createRouter, AnimationPlugin } from '@meng-xi/unix-router'
+import { RouterPlugin } from '@meng-xi/unix-router'
+import type { PluginContext, RouterOptions } from '@meng-xi/unix-router'
 
-const router = createRouter({
-	routes,
-	plugins: [AnimationPlugin],
-	animation: { type: 'slide-in-right', duration: 300 } // 全局默认动画（可选）
-})
+class MyPlugin extends RouterPlugin {
+	name = 'my-plugin'
 
-// 单次覆盖：本次导航使用 fade-in
-router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDuration: 500 })
-```
-
-**动画类型**：`slide-in-right` / `slide-in-left` / `slide-in-top` / `slide-in-bottom` / `fade-in` / `zoom-in` / `zoom-fade-in` / `pop-in` / `auto` / `none`。
-
-- `back()` 使用全局默认动画作为**关闭动画**（back 无 location 可传，单次覆盖仅对前向导航有效）。
-- 未注册插件时携带 `animationType` 的导航仍正常执行（动画被忽略）。
-- H5 端依赖 `onBeforeNavigation` 异步钩子：返回时会先播完退出动画再真正 `navigateBack`。
-
-**H5 动画时序**（防止首次进入卡顿）：`onCompleteNavigation` 时 uni-app x H5 已把新页内容替换进 `uni-page`（`data-page` 已切换），此时**同步应用动画起点样式**（如 `translateX(100%)` + 强制 reflow），让新页渲染首帧即位于屏幕外，再于下一帧播放滑入动画——避免"内容原位闪现后再跳到屏幕外滑入"的割裂感；动画结束后清理内联起点样式，避免残留影响后续 back 的退出动画。
-
-**导出**：`AnimationPlugin`（插件本体）+ `DEFAULT_ANIMATION_DURATION`（默认动画时长常量，300ms）。
-
-### EventsPlugin：页面间事件通信
-
-补齐 uni-app x 的 `events`（页面间通信）能力：打开方 `push` 携带 `events` 监听表，被打开页通过通道**回传数据**给打开方（对齐 uni-app 官方 `navigateTo` events 语义，但不受官方 `uni.$on` 版本门槛限制）。
-
-```ts
-import { createRouter, EventsPlugin, useOpenerEventChannel } from '@meng-xi/unix-router'
-
-const router = createRouter({ routes, plugins: [EventsPlugin] })
-
-// 打开方：注册监听表，监听被打开页回传的数据
-await router.push({
-	path: 'pages/detail/detail',
-	events: new Map([
-		['acceptDataFromOpenedPage', (data: any) => console.log('收到回传', data)]
-	])
-})
-
-// 被打开页：emit 回传数据 / on 接收打开方推送
-const channel = useOpenerEventChannel() // EventChannel | null
-if (channel !== null) {
-	channel.emit('acceptDataFromOpenedPage', { result: 'ok' })
-	channel.on('someEvent', (data: any) => {})
+	install(context: PluginContext, options: RouterOptions): void {
+		// 通过 context 注册 hook，从 options 读取插件选项
+	}
 }
 ```
 
-**EventChannel API**：`on` / `once` / `off`（移除监听器，传 `$on`/`$once` 返回的 id）/ `emit`。通道 key 经 URL 查询串 `__evt__` 跨页桥接，状态同步时剔除（不暴露给用户）。
+- `name: string`：插件唯一标识，`hasPlugin(name)` 依据它判断注册状态（`params` / `events` 的 `PLUGIN_REQUIRED` 预检也按 name 匹配）。
+- `install(context, options)`：安装时调用一次，在 `createRouter` 内部、任何导航发生之前执行。
 
-`useOpenerEventChannel()` 不依赖路由状态同步时机：页面 `onShow` 执行早于 `onRouteSync`，内存 key 缺失时会按当前页面 URL 查询串（`__evt__`）兜底读取，因此 **onShow 内即可直接回传数据**。
+## PluginContext：8 个 hook
 
-::: warning 需要注册 EventsPlugin
-未注册 `EventsPlugin` 却调用带 `events` 的导航，会抛 `PLUGIN_REQUIRED`：
+每个 hook 在导航流程的固定时机被调用。逐一举例：
 
-```
-使用 events 需注册 EventsPlugin：createRouter({ plugins: [EventsPlugin] })
-```
+| hook | 签名 | 触发时机 |
+| --- | --- | --- |
+| `onEnrichLocation` | `(location: RouteLocationRaw) => RouteLocationRaw` | `matcher.resolve()` **之前**，增强原始路由位置（如注入内部 key）。链式执行，前一个的返回值是下一个的输入 |
+| `onAfterResolve` | `(enrichedLocation: RouteLocationRaw, pluginData: PluginData) => void` | resolve 之后、守卫链之前，从增强后的位置中提取插件数据写入 `pluginData` |
+| `onPrepareNavigation` | `(ctx: NavigationPrepareContext) => void` | uni API 调用**之前**，可修改导航 URL 的 `ctx.query` 与 `ctx.options`（如追加内部 key、改写动画参数） |
+| `onBeforeNavigation` | `(ctx: NavigationPrepareContext) => Promise<void> \| void` | 真正调用 uni API 之前，**可异步**（如 H5 返回需先播完退出动画），多个 hook **串行**执行 |
+| `onCompleteNavigation` | `(ctx: NavigationCompleteContext) => void` | uni API 调用**成功**且页面栈确认后，可扩展导航结果 `ctx.result` |
+| `onNavigationAbort` | `(pluginData: PluginData) => void` | 导航中止或失败时执行清理（异常被吞掉，不会中断失败流程） |
+| `onRouteSync` | `(query: Map<string, string>, params: Map<string, string>) => void` | 路由状态同步期间，从 URL query 提取插件数据（如按 `__params__` key 重建 params），内部 key 应从此处移除 |
+| `onAppInstall` | `(app: any) => void` | `router.install()` 被调用（`app.use(router)`）时触发，可注册 app 级清理逻辑 |
+
+::: tip PluginData
+`PluginData` 即 `Map<string, any>`，一次导航内各阶段共享：`onAfterResolve` 写入 → `onPrepareNavigation` / `onBeforeNavigation` / `onCompleteNavigation` 读取 → `onNavigationAbort` 清理。重定向会复用同一个 `pluginData`。
 :::
 
-**导出**：`EventsPlugin`（插件本体）+ `eventBus`（自研全局事件总线实例 `$on` / `$off` / `$once` / `$emit`，按 id 移除监听器）。
+## 上下文成员
 
-## 插件上下文（PluginContext）
+`PluginContext` 除 hook 注册方法外，还暴露：
 
-每个插件在 `install(context, options)` 里通过 `context` 注册 hook，路由器在导航流程各阶段调用：
-
-| hook | 时机 | 用途 |
+| 成员 | 类型 | 说明 |
 | --- | --- | --- |
-| `onEnrichLocation` | `resolve` 前 | 增强原始路由位置（如注入内部 key） |
-| `onAfterResolve` | resolve 后、守卫前 | 从增强位置提取插件数据 |
-| `onPrepareNavigation` | uni API 调用前 | 修改导航 URL query 与选项 |
-| `onCompleteNavigation` | uni API 调用成功后 | 扩展导航结果 |
-| `onNavigationAbort` | 导航中止/失败时 | 清理插件资源 |
-| `onRouteSync` | 状态同步期间 | 从 URL query 重建插件数据 |
-| `onAppInstall` | `router.install()` 时 | 注册 app 级清理逻辑 |
+| `currentRoute` | `RouteLocation` | 当前路由位置（只读 getter，经注入的读取器实时取值） |
+| `resolve` | `(location: RouteLocationRaw) => RouteLocation` | 解析路由位置为完整 `RouteLocation`（与 `router.resolve` 等价） |
+| `router` | `any` | 路由器实例引用。声明为 `any` 以规避原生端 interface 跨文件退化，插件内按需 `as Router` |
+| `paramsManager` | `any` | 核心共享的 `ParamsManager` 实例（供 `ParamsPlugin` 使用；按需 `as ParamsManager`） |
+| `hasPlugin` | `(name: string) => boolean` | 检查指定插件是否已注册 |
 
-`context` 还暴露只读成员：`currentRoute`、`resolve()`、`router`、`paramsManager`、`hasPlugin()`。
+## 完整自定义插件示例
 
-## 自定义插件
-
-实现 `RouterPlugin` 接口（`name` + `install`）：
+以「导航埋点」插件为例，演示 class 继承、多 hook 协作与 `pluginData` 跨阶段传值：
 
 ```ts
-import type { RouterPlugin, PluginContext, RouterOptions } from '@meng-xi/unix-router'
+import { RouterPlugin } from '@meng-xi/unix-router'
+import type {
+	PluginContext,
+	PluginData,
+	RouterOptions,
+	NavigationPrepareContext,
+	NavigationCompleteContext
+} from '@meng-xi/unix-router'
 
-/** 埋点插件：在每次导航完成时上报路由 */
-const AnalyticsPlugin: RouterPlugin = {
-	name: 'analytics',
+/** 埋点插件：为每次导航打上开始时间戳，成功后上报 */
+class AnalyticsPlugin extends RouterPlugin {
+	name = 'analytics'
 
-	install(context: PluginContext, options: RouterOptions) {
-		// 1. 导航开始前：给目标注入一个内部 key（可选）
-		context.onEnrichLocation(location => location)
-
-		// 2. resolve 后：记录目标
-		context.onAfterResolve((enrichedLocation, pluginData) => {
-			pluginData.set('timestamp', Date.now())
+	override install(context: PluginContext, options: RouterOptions): void {
+		// 1. resolve 前记录开始时间（写入 pluginData 的挂载点在 afterResolve 更稳妥）
+		context.onEnrichLocation((location) => {
+			// 如需给导航 URL 追加内部 key，在这里返回增强后的位置
+			return location
 		})
 
-		// 3. uni API 调用前：改写 query（可选）
-		context.onPrepareNavigation(ctx => {
-			// ctx.query.set('_t', String(Date.now()))
+		// 2. resolve 后：提取数据，记录导航开始时间
+		context.onAfterResolve((enrichedLocation, pluginData) => {
+			pluginData.set('startedAt', Date.now())
+		})
+
+		// 3. uni API 调用前：改写导航 query（可选，示例追加时间戳标记）
+		context.onPrepareNavigation((ctx: NavigationPrepareContext) => {
+			ctx.query.set('_t', String(Date.now()))
 		})
 
 		// 4. 导航成功后上报
-		context.onCompleteNavigation(ctx => {
-			const ts = ctx.pluginData.get('timestamp')
-			reportAnalytics(ctx.to.path, ts as number)
+		context.onCompleteNavigation((ctx: NavigationCompleteContext) => {
+			const startedAt = ctx.pluginData.get('startedAt')
+			reportAnalytics(ctx.to.path, startedAt as number)
 		})
 
-		// 5. 导航中止时清理
-		context.onNavigationAbort(pluginData => {
+		// 5. 中止 / 失败时清理
+		context.onNavigationAbort((pluginData: PluginData) => {
 			pluginData.clear()
 		})
 	}
 }
 
-// 注册
-const router = createRouter({ routes, plugins: [AnalyticsPlugin] })
+// 注册：传入实例
+const router = createRouter({ routes, plugins: [new AnalyticsPlugin()] })
 ```
-
-::: tip pluginData
-`pluginData` 是 `Map`，在 `onAfterResolve` 阶段写入、`onPrepareNavigation/onCompleteNavigation/onNavigationAbort` 阶段读取，实现插件跨阶段传递数据。
-:::
 
 ## 执行顺序
 
-`createRouter` 创建时按 `plugins` 数组顺序安装；导航时 hook 按阶段执行：
+`createRouter` 创建时按 `plugins` 数组顺序安装；一次前向导航中 hook 按阶段执行：
 
 ```
-push → enrichLocation → matcher.resolve → afterResolve
-     → beforeEach → beforeEnter → beforeResolve
-     → prepareNavigation → uni API → (成功) setRoute + completeNavigation + afterEach
-     → (失败/中止) navigationAbort
+push / replace / relaunch
+  → onEnrichLocation（增强原始位置）
+  → matcher.resolve（解析目标）
+  → onAfterResolve（提取插件数据到 pluginData）
+  → beforeEach → beforeEnter → beforeResolve（守卫链）
+  → onPrepareNavigation（改 query / 选项）
+  → onBeforeNavigation（可异步，串行）
+  → uni API（navigateTo / redirectTo / reLaunch / switchTab）
+  → 页面栈顶确认 → onCompleteNavigation → afterEach
+  →（任一环节失败）onNavigationAbort → afterEach(failure) → onError
 ```
+
+## 平台注意（UTS 强类型）
+
+::: warning 非蒸汽（Kotlin / Swift）端必须用 class 实现插件
+在编译到 Kotlin / Swift 的平台上，**含方法的对象字面量会被推断为 `UTSJSONObject`**，无法作为插件工作。因此：
+
+- 插件必须以 **class 继承 `RouterPlugin`** 实现，hook 注册均为 class 方法；
+- 注册时传入**实例** `plugins: [new MyPlugin()]`，不能传类或对象字面量；
+- 同理 `PluginContext` 也是 class 而非 type。
+:::
 
 ## 下一步
 
-- [导航守卫](./guards) — 守卫在插件流程中的位置
-- [平台兼容性](./compatibility) — 各端 addInterceptor 版本要求
-- [实战指南](./recipes) — 登录认证、权限、埋点等完整方案
-- [API 参考](../api/create-router) — `plugins` / `interceptUniApi` / `paramsPersistent` 选项
+- [导航流程原理](./navigation-flow) — 各 hook 在完整导航时序中的精确位置
+- [RouterOptions](../api/type-router-options) — `plugins` 与各插件配套选项
+- [参数传递](./params) / [页面间通信](./events) / [导航动画](./animation) / [uni API 拦截](./interceptor) — 四个内置插件的完整用法

@@ -1,8 +1,8 @@
 # Route Configuration
 
-unix-router is based on the uni-app x **static page model**: one route = one page registered in `pages.json`, and the route path is the page path.
+unix-router is built on the **static page model** of uni-app x: one route = one page registered in `pages.json`, and the route path is the page path.
 
-## One-to-One Mapping of Routes and Pages
+## One-to-One Mapping Between Routes and Pages
 
 ```
 pages.json                            router.config.ts
@@ -12,29 +12,28 @@ pages/                                routes:
   about/about.uvue   ◀── maps ───▶   { path: 'pages/about/about', name: 'about', ... }
 ```
 
-**Key constraint**: `RouteConfig.path` must **exactly match** the page path registered in `pages.json`, otherwise the target page will not be compiled into the bundle and navigation will white-screen. This is also why unix-router does **not** support dynamic routes (a route cannot compile a page into the bundle at runtime).
+**Key constraint**: `RouteConfig.path` must be **exactly identical** to the page path registered in `pages.json`; otherwise the target page will not be compiled into the bundle and navigation will result in a white screen. This is also why unix-router does **not** support dynamic routes (a newly added route cannot compile a page into the bundle at runtime).
 
 ## RouteConfig Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `path` | `string` | Page path; must match `pages.json`, e.g. `pages/index/index` |
+| `path` | `string` | **Required**. Page path, identical to the registration in `pages.json`, **without a leading slash**, e.g. `pages/index/index` |
 | `name` | `string?` | Named route, for navigation by name (recommended) |
 | `meta` | `RouteMeta?` | Route metadata (see [Route Meta](./meta)) |
-| `beforeEnter` | `NavigationGuard \| NavigationGuard[]?` | Route-local guard (runs only when entering this route) |
-| `redirect` | `RouteLocationRaw?` | Redirect target |
+| `beforeEnter` | `NavigationGuard \| NavigationGuard[]?` | Route-exclusive before guard (runs only when entering this route) |
 
 ```ts
 import type { RouteConfig } from '@meng-xi/unix-router'
 
 export const routes: RouteConfig[] = [
-	// Minimal: only path
+	// Minimal: path only
 	{ path: 'pages/index/index' },
 
-	// Common: path + name + meta (isTab decides switchTab)
+	// Common: path + name + meta (isTab decides whether switchTab is used)
 	{ path: 'pages/home/home', name: 'home', meta: { title: 'Home', isTab: true } },
 
-	// With route-local guard beforeEnter (only for this route)
+	// Route-exclusive guard, function form: runs only when this route is visited
 	{
 		path: 'pages/profile/profile',
 		name: 'profile',
@@ -42,64 +41,96 @@ export const routes: RouteConfig[] = [
 		beforeEnter: (to, from) => (isLoggedIn() ? true : { name: 'login' })
 	},
 
-	// Redirect: visiting the old path jumps to the new path
-	{ path: 'pages/old/home', redirect: 'pages/home/home' }
+	// Route-exclusive guard, array form: runs in order; any rejection stops the chain
+	{
+		path: 'pages/admin/admin',
+		name: 'admin',
+		beforeEnter: [checkLogin, checkAdmin]
+	}
 ]
 ```
 
 ## `path` or `name`: Which to Navigate By
 
-- **`name`**: decouples the path from callers. If a page path changes, update only `router.config.ts`; recommended for business code.
-- **`path`**: good for ad-hoc jumps and small projects; the string form can inline query, e.g. `router.push('/pages/detail/detail?id=1')`.
+- **`name`**: decouples the path from callers. When a page path changes, you only update one place in `router.config.ts`; navigating by `name` uniformly in business code is recommended.
+- **`path`**: suitable for ad-hoc jumps and small projects; the string form can inline a query, e.g. `router.push('/pages/detail/detail?id=1')`.
 
 ## Path Normalization
 
-Paths are normalized automatically (leading `/` added, trailing `/` removed):
+The `path` in the config carries no leading slash (consistent with `pages.json`); internally the router normalizes all paths to the canonical form with a leading slash and no trailing slash:
 
 - `pages/index/index` → `/pages/index/index`
-- `'/pages/about/about/'` → `/pages/about/about`
+- `/pages/about/about/` → `/pages/about/about`
 
-## Strict Mode via `strict`
+Navigation inputs (the string or object passed to `push`) work with or without a leading slash — the parsed result is identical.
 
-- `strict: true` (default): navigating with an **unregistered `name`** → throws `ROUTE_NOT_FOUND`, catching typos early.
-- `strict: false`: does not throw; falls back to path (`/` + name) with a warning.
+## Strict Mode `strict`
+
+- `strict: true` (default): navigating by an **unregistered `name`** → throws a `RouterError` of `ROUTE_NOT_FOUND`, which helps catch typos early.
+- `strict: false`: does not throw; logs a warning and degrades to path-based handling (`/` + name).
 
 ```ts
 // with strict: true
 router.resolve({ name: 'homee' }) // throws RouterError(ROUTE_NOT_FOUND)
 ```
 
-## Duplicate Names / Paths
+## Duplicate `name` / `path` Detection
 
-Configs with the same name or path **override earlier ones** and log a warning. Prefer unique `name`s in your config.
+Configs with the same name or the same path: **a warning is logged and the later one overrides the earlier one**:
 
-## On "Named Route Type Hints"
+```
+检测到重复路由名称 "home"，后者将覆盖前者。
+检测到重复路由路径 "/pages/index/index"，后者将覆盖前者。
+```
 
-The repo ships an empty `RouteNameMap` interface. To get type hints for `name`, extend it via module augmentation:
+Keep `name` unique; when pages "jump to the wrong place", first check for duplicate `name` / `path` entries.
+
+## The Named Route Type RouteName
+
+`RouteName` is the exported type of named route names:
+
+- **WEB**: `keyof RouteNameMap & string`. `RouteNameMap` is a built-in empty interface that can be extended via module augmentation, providing literal hints for route names:
 
 ```ts
-// Only affects TS / editor hints
+// Only effective for TS / editor hints
 declare module '@meng-xi/unix-router' {
 	interface RouteNameMap {
-		home: void
-		about: void
+		home: 'home'
+		about: 'about'
 	}
 }
 ```
 
-> ⚠️ **UTS limitation**: uni-app x native (Kotlin/Swift) does **not** support interface declaration merging, so this augmentation won't apply on App native compile — it only helps H5/editor (TypeScript) autocomplete. On native, use string `name` plus the `strict` mode as a safety net.
+- **Native platforms**: UTS does not support `keyof` union types, so `RouteName` degrades to `string` (paired with `strict` mode as a safety net against typos).
+
+A typical usage is to annotate parameter types in your business wrappers:
+
+```ts
+import type { RouteName } from '@meng-xi/unix-router'
+
+function go(where: RouteName) {
+	router.push({ name: where })
+}
+// On H5, `where` gets literal completion; on native it is equivalent to string
+```
 
 ## Common Pitfalls
 
 - **Wrong / unregistered path**: white screen. Cross-check `pages.json`.
-- **`name` typo**: with `strict: true` it throws; with `false` it silently degrades and is easy to miss.
-- **Duplicate names**: later one wins; if jumping to the wrong page, first check for duplicate `name`s.
+- **`name` typo**: throws when `strict: true`; when `false` it silently degrades to path navigation and is easy to miss.
+- **Duplicate names**: the later one overrides; if pages jump to the wrong place, first check for duplicate `name`s.
 
 ## Unsupported Capabilities
 
-The static page model does not support (see [Differences from vue-router](./differences)):
+Not supported under the static page model (see [Differences from vue-router](./differences)):
 
 - Dynamic routes `addRoute` / `removeRoute`
 - Nested routes `children`
 - Named views / `RouterView`
 - `scrollBehavior`
+
+## Next Steps
+
+- [Navigation](./navigation) — the four navigation methods and how to pass data
+- [Route Meta](./meta) — built-in meta fields and customization
+- [RouteConfig API](../api/type-route-config) — the complete type definition

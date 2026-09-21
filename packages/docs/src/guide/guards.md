@@ -1,130 +1,229 @@
 # 路由守卫
 
-守卫用于在导航过程中**控制、校验、重定向**，是鉴权与埋点的核心。语义对齐 vue-router 4。本篇以「登录鉴权」为主线讲透。
+守卫用于在导航过程中**控制、校验、重定向**，是鉴权与埋点的核心，语义对齐 vue-router 4。
 
-## 一次导航的守卫顺序
+## 守卫链执行顺序
+
+一次导航的守卫按以下顺序执行：
 
 ```
 beforeEach → beforeEnter(路由独享) → beforeResolve → 执行导航 → afterEach
 ```
 
-一个守卫返回 `false` / `Error` / 重定向位置都会中止改道。任一守卫即可阻断整条链路。
+- 任意守卫返回「中止 / 重定向」都会结束当前链路；
+- 守卫返回重定向时，会以新目标**重新走完整守卫链**；
+- `afterEach(to, from, failure)` 在导航完成后调用：成功时 `failure` 为 `null`，失败时携带 `Error`，不阻断流程。
 
-## 三种全局 + 一种独享 + 一种组件内
+## 守卫类型总览
 
-| 类型 | 注册 | 执行时机 |
+| 类型 | 注册方式 | 执行时机 |
 | --- | --- | --- |
-| 全局前置 | `router.beforeEach` | 导航触发前，所有导航生效 |
-| 全局解析 | `router.beforeResolve` | 所有前置/独享守卫之后、真正导航前 |
-| 全局后置 | `router.afterEach` | 导航完成后（不阻断） |
+| 全局前置 | `router.beforeEach` | 导航触发时最先执行 |
 | 路由独享 | `RouteConfig.beforeEnter` | 仅进入该路由时 |
-| 组件内 | `onBeforeRouteLeave` 等 | 离开/进入当前组件时 |
+| 全局解析 | `router.beforeResolve` | 所有前置 / 独享守卫之后、真正导航前 |
+| 全局后置 | `router.afterEach` | 导航完成后（不阻断） |
+| 组件内 | `onBeforeRouteLeave` 等 | 离开 / 进入 / 更新当前页面时 |
 
-## 返回值语义
+## 守卫返回值全表
 
-| 返回 | 行为 |
+守卫返回值决定导航走向。支持异步：`async` 守卫返回 `Promise` 会被解析后再决策（受 `guardTimeout` 约束）。
+
+| 返回值 | 行为 |
 | --- | --- |
-| `true` / `null` | 放行（推荐显式 `return null` 或 `true`） |
-| `false` | 中止导航（`ABORTED`） |
-| `Error` | 取消导航（`CANCELLED`） |
-| 字符串 / 位置对象 | 重定向到目标 |
-| `Promise` | 支持异步守卫（`async`） |
+| `null` / `true` | 放行，继续后续守卫 |
+| `false` | 中止导航（错误码 `ABORTED`） |
+| `Error` | 中止导航，该错误作为失败原因（错误码 `CANCELLED`） |
+| `string` | 重定向到该路径 |
+| 位置对象（`{ path }` / `{ name }` / `{ name, query }` 等） | 重定向到该位置 |
+| `{ location, mode? }` | `NavigationRedirect`：重定向并指定导航方式 |
+
+`NavigationRedirect` 结构：
 
 ```ts
-router.beforeEach((to, from) => {
-	if (to.meta.requireAuth === true && !isLoggedIn()) {
-		return { name: 'login' }        // 重定向
-	}
-	return true                          // 放行
-})
-
-router.afterEach((to, from, failure) => {
-	console.log(`导航: ${from.fullPath} -> ${to.fullPath}`, failure?.message ?? '')
-})
-```
-
-注销守卫：注册函数返回**取消函数**：
-
-```ts
-const off = router.beforeEach(g)
-off() // 移除
-```
-
-## 实战：完整登录鉴权流程
-
-**目标**：未登录访问 `requireAuth` 页面 → 拦截 → 登录页 → 登录后回跳。
-
-**1) 路由配置**（`router.config.ts`）：
-
-```ts
-export const routes: RouteConfig[] = [
-	{ path: 'pages/login/login', name: 'login', meta: { title: '登录' } },
-	{ path: 'pages/profile/profile', name: 'profile', meta: { title: '我的', requireAuth: true } }
-]
-```
-
-**2) 全局前置守卫**（`router.ts`）：
-
-```ts
-export const router = createRouter({ routes, strict: true })
-
-router.beforeEach((to, from) => {
-	if (to.meta.requireAuth === true && !isLoggedIn()) {
-		// 记录来源 fullPath，登录后可回跳
-		return {
-			name: 'login',
-			query: new Map([['redirect', to.fullPath]])
-		}
-	}
-	return true
-})
-```
-
-**3) 登录页**（`pages/login/login.uvue`），登录成功后回跳：
-
-```ts
-import { useRouter, useRoute } from '@meng-xi/unix-router'
-const router = useRouter()
-const route = useRoute()
-
-function loginOk() {
-	setLoggedIn(true)
-	const target = route.query.get('redirect') ?? '/pages/index/index'
-	router.replace(target) // replace：登录页不留在栈中
+{
+	location: RouteLocationRaw             // 重定向目标（字符串路径或位置对象）
+	mode?: 'push' | 'replace' | 'relaunch' // 导航方式，缺省沿用原导航模式
 }
 ```
 
-> 关键点：守卫里用 `return { name: 'login' }` 而非 `router.push` —— 见下方「坑」。
+::: tip 两类对象如何区分
+返回对象携带 `location` 字段 → 按 `NavigationRedirect` 处理（可指定 `mode`）；否则按普通位置对象处理（沿用原导航模式）。
+:::
+
+重定向会**重新走完整守卫链**。深度上限为 `10`，超出（例如守卫互相重定向成环）按 `CANCELLED` 取消，防止死循环。
+
+## 全局守卫注册
+
+三个全局守卫均返回**取消函数**，调用即注销：
+
+```ts
+const offBefore = router.beforeEach((to, from) => {
+	console.log('前置', from.fullPath, '->', to.fullPath)
+	return true
+})
+
+const offResolve = router.beforeResolve((to, from) => {
+	return true
+})
+
+const offAfter = router.afterEach((to, from, failure) => {
+	// failure: Error | null
+	console.log('完成', to.fullPath, failure?.message ?? '')
+})
+
+// 注销
+offBefore()
+offResolve()
+offAfter()
+```
+
+::: tip beforeEach 与 beforeResolve 的分工
+`beforeEach` 在守卫链最前（适合鉴权、埋点）；`beforeResolve` 在路由独享守卫之后、导航真正执行前（适合依赖「目标已最终确定」的逻辑，组件内守卫也基于它过滤实现）。
+:::
+
+## 守卫超时 guardTimeout
+
+`createRouter` 的 `guardTimeout` 选项（默认 `10000`ms）约束守卫的执行时长：
+
+- 超时输出警告并**中止导航**（`CANCELLED`）；
+- 设为 `0` 关闭超时检测；
+- 异步守卫（返回 `Promise`）同样受超时约束。
+
+```ts
+const router = createRouter({
+	routes,
+	guardTimeout: 5000 // 5s
+})
+```
 
 ## 路由独享 beforeEnter
 
-定义在 `RouteConfig`，仅对**本路由**生效：
+定义在 `RouteConfig` 上，仅对**本路由**生效，可传单函数或数组：
 
 ```ts
 {
 	path: 'pages/admin/admin',
 	name: 'admin',
-	meta: { requireAdmin: true },
-	beforeEnter: (to, from) => (isAdmin() ? true : { name: 'login' })
+	meta: { title: '管理后台' },
+	beforeEnter: (to, from) => {
+		return isAdmin() ? true : { name: 'login' }
+	}
 }
 ```
 
-## 组件内守卫（onBeforeRouteLeave）
+## 组件内守卫
 
-在页面 `setup` 中注册，**返回 `false` 真正阻止离开**（如未保存离开确认）：
+在页面 `setup` 中注册，基于全局 `beforeResolve` 过滤实现，可与全局解析守卫协同：
+
+| API | 触发场景 |
+| --- | --- |
+| `onBeforeRouteLeave` | 从本页面离开（导航到其他页 / back 返回） |
+| `onBeforeRouteEnter` | 导航进入本页面路径时 |
+| `onBeforeRouteUpdate` | 路径不变、参数变化的「更新」 |
 
 ```ts
 import { onBeforeRouteLeave } from '@meng-xi/unix-router'
 
 onBeforeRouteLeave((to, from) => {
 	if (hasUnsavedChanges) {
-		return false // 中止离开
+		return false // 阻止离开
 	}
 	return true
 })
 ```
 
-> uni-app x 页面每次导航新建实例（无 keep-alive），因此 `onBeforeRouteUpdate` 极少触发、`onBeforeRouteEnter` 效果有限；**`onBeforeRouteLeave` 最实用**。
+::: warning 适用场景有限
+uni-app x 页面每次导航都会新建实例（无 keep-alive 复用）：`onBeforeRouteLeave` **最可靠**；`onBeforeRouteEnter` 在首次进入时页面已在创建途中、效果有限；`onBeforeRouteUpdate` 在静态页面模型下极少触发。
+:::
+
+## 实战：完整登录鉴权流程
+
+**目标**：未登录访问 `requireAuth` 页面 → 拦截 → 登录页 → 登录后回跳原页面。
+
+**1) 路由配置**（`router/routes.ts`）：
+
+```ts
+import type { RouteConfig } from '@meng-xi/unix-router'
+
+export const routes: RouteConfig[] = [
+	{ path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
+	{ path: 'pages/login/login', name: 'login', meta: { title: '登录' } },
+	{ path: 'pages/profile/profile', name: 'profile', meta: { title: '我的', requireAuth: true } }
+]
+```
+
+**2) 全局前置守卫**（`router/index.ts`）——用 `NavigationRedirect` 重定向并携带 `redirect` query：
+
+```ts
+import { createRouter } from '@meng-xi/unix-router'
+import { routes } from './routes'
+
+export const router = createRouter({ routes, strict: true })
+
+let loggedIn: boolean = false
+export function isLoggedIn(): boolean {
+	return loggedIn
+}
+export function setLoggedIn(value: boolean): void {
+	loggedIn = value
+}
+
+router.beforeEach((to, from) => {
+	if (to.meta.requireAuth === true && !isLoggedIn()) {
+		return {
+			location: { name: 'login', query: new Map<string, string>([['redirect', to.fullPath]]) },
+			mode: 'replace' // replace：登录页不留在返回栈
+		}
+	}
+	return true
+})
+```
+
+**3) 登录页回跳**（`pages/login/login.uvue`）：
+
+```vue
+<script setup lang="uts">
+import { useRouter, useRoute } from '@meng-xi/unix-router'
+import { setLoggedIn } from '../../router'
+
+const router = useRouter()
+const route = useRoute()
+
+const onLogin = () => {
+	setLoggedIn(true)
+	const redirect = route.query.get('redirect')
+	router.replace(redirect !== null ? redirect : '/pages/index/index')
+}
+</script>
+
+<template>
+	<view class="page">
+		<text class="title">登录</text>
+		<button @click="onLogin">登录并回跳</button>
+	</view>
+</template>
+```
+
+::: danger 守卫里不要调 router.push
+守卫中应 `return 重定向位置`，而不是调用 `router.push`——后者会发起新导航并被排队，产生不可预期的导航序列。
+:::
+
+## 注册取消与清理
+
+所有守卫注册都写入全局守卫队列，长期运行的应用要注意注销，避免重复注册堆积：
+
+```ts
+const off = router.beforeEach(reportNavigation)
+
+// 无需时取消（如退出登录、页面卸载、测试 teardown）
+off()
+```
+
+## back 也走守卫
+
+`router.back(delta)` 在返回前**只执行 `beforeEach → beforeResolve`**（不执行路由独享 `beforeEnter`），返回成功后 `afterEach` 照常触发。想在「返回时」拦截：在全局守卫里判断 `to.path`（返回目标），或在被离开页面的 `onBeforeRouteLeave` 里拦截。
+
+- `delta` 默认 `1`；非正整数 → `ABORTED`；页面栈不足 → `CANCELLED`。
 
 ## guardRoute：冷启动补执行守卫
 
@@ -149,24 +248,16 @@ export function App() {
 - 重定向：自动导航到守卫返回的目标
 - 中止：触发 `onAbort`，可跳安全页
 
-## 守卫超时与重定向深度
-
-- `guardTimeout`（默认 `10000ms`）：守卫超时则告警并中止导航，`0` 关闭。
-- **重定向深度上限**：守卫返回重定向会递归导航；超过 `MAX_REDIRECT_DEPTH` 时取消（`CANCELLED`），防死循环。
-
-## back 也走守卫
-
-`router.back(delta)` 会执行 `beforeEach → beforeResolve`，因此想在"返回时"拦截，可在这些守卫里判断 `to.path`（返回目标）或在 `onBeforeRouteLeave` 里拦截。
-
 ## 常见坑
 
-1. **守卫里调 `router.push` 死锁**：应 `return 重定向位置`，不要 `router.push`。
-2. **漏写放行分支**：守卫没在任何分支 `return true/null` → 后续导航状态不明。每个分支显式返回。
-3. **异步守卫没 await**：用 `async` 守卫；`Promise` 会被解析后再决策。
-4. **误用 truthy 判断**：`if (to.meta.requireAuth)` 读可选字段应 `=== true`。
-5. **直接用 `uni.navigateTo` 绕过守卫**：unix-router **不拦截原生导航 API**，请统一走 `router.*`。
+1. **守卫里调 `router.push`**：会产生排队导航、行为不可预期。应 `return 重定向位置`。
+2. **漏写放行分支**：每个分支显式 `return true` / `return null`。
+3. **异步守卫**：直接用 `async` 函数；`Promise` 会被解析后决策（受 `guardTimeout` 约束）。
+4. **误用 truthy 判断**：读可选字段用 `to.meta.requireAuth === true`。
+5. **业务代码直调 `uni.navigateTo` 绕过守卫**：默认不拦截；可启用 [uni API 拦截](./interceptor)让原生调用也走守卫链。
 
-## 相关
+## 下一步
 
-- 执行时序细节：见[导航流程原理](./navigation-flow)
-- 平台对返回拦截的差异：见[平台兼容性](./compatibility#返回拦截)
+- [页面间通信](./events) — 导航完成后的页面间定向通信
+- [错误处理](./error-handling) — 中止 / 取消 / 重定向失败的错误体系
+- [NavigationGuard 类型](../api/type-navigation-guard) — 守卫返回值类型全解

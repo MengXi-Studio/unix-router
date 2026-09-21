@@ -1,259 +1,173 @@
 # Plugin System
 
-unix-router uses a **core + plugin** architecture (in the style of uni-router / Swiper.js):
+unix-router adopts a **core + plugins** architecture (in the style of uni-router / Swiper.js):
 
-- The **core** only provides uni-app x native capabilities such as route matching, navigation execution, guard chains, and state sync;
-- **Extended capabilities** (page parameters, uni native navigation interception, etc.) are provided via plugins and registered on demand.
+- The **core** does only four things: route matching, navigation execution, the guard chain, and state sync;
+- **All other extended capabilities** (page params, page-to-page communication, navigation animations, uni API interception, etc.) are fully pluginized and registered on demand (**opt-in**).
 
-## Design Principles
+Without a plugin registered, the corresponding capability simply does not exist: the core package stays lean and stable; using an unregistered capability throws a `PLUGIN_REQUIRED` error that explicitly guides you instead of failing silently.
 
-1. **Lean core**: the core contains no business extensions, keeping it stable and lightweight.
-2. **Plugin expansion**: non-core capabilities are all registered as plugins in `createRouter({ plugins: [...] })`.
-3. **Zero intrusion**: a feature is unavailable until its plugin is registered; using an unregistered feature throws a `PLUGIN_REQUIRED` error that clearly guides you.
-4. **Composable**: plugins are installed in array order and register hooks through `PluginContext`, injecting into each stage of the navigation flow.
+## Built-in Plugins at a Glance
 
-## Quick Start
+| Plugin | name | Capability | Companion option | Details |
+| --- | --- | --- | --- | --- |
+| `ParamsPlugin` | `params` | Page parameter passing (in-memory / persisted) | `paramsPersistent` | [Parameter Passing](./params) |
+| `EventsPlugin` | `events` | Page-to-page communication (`events` listener map + EventChannel callbacks) | — | [Page-to-Page Communication](./events) |
+| `AnimationPlugin` | `animation` | Navigation window animation (native pass-through / H5 WAAPI) | `animation` | [Navigation Animation](./animation) |
+| `InterceptorPlugin` | `interceptor` | Intercepts the uni native navigation APIs, sinking guards down to the uni API layer | `interceptUniApi` | [uni API Interception](./interceptor) |
+
+## Registering Plugins
+
+A plugin is an instance of the `RouterPlugin` abstract class; you **must instantiate it** when registering:
 
 ```ts
-import { createRouter, ParamsPlugin, InterceptorPlugin } from '@meng-xi/unix-router'
+import { createRouter, ParamsPlugin, EventsPlugin, AnimationPlugin, InterceptorPlugin } from '@meng-xi/unix-router'
 
 const router = createRouter({
 	routes,
-	strict: true,
-	plugins: [ParamsPlugin, InterceptorPlugin], // enable: page params + uni navigation interception
-	interceptUniApi: true // InterceptorPlugin switch, defaults to false
+	plugins: [new ParamsPlugin(), new EventsPlugin(), new AnimationPlugin(), new InterceptorPlugin()],
+	interceptUniApi: true // requires InterceptorPlugin, defaults to false
 })
 ```
 
-> Only register the plugins you need. Using a corresponding feature without registering its plugin throws `PLUGIN_REQUIRED`.
-
-## Built-in Plugins
-
-| Plugin | name | Capability | Companion option |
-| --- | --- | --- | --- |
-| `ParamsPlugin` | `params` | Page parameter passing (`params`, in-memory / persisted) | `paramsPersistent` |
-| `InterceptorPlugin` | `interceptor` | Intercepts the uni native navigation APIs, sinking guards down to the uni API layer | `interceptUniApi` |
-
-### ParamsPlugin: page params
-
-uni-app x uses a static page model, so URLs are not suitable for carrying complex objects. ParamsPlugin uses an "**in-memory store + internal `__params__` key**" scheme: the source page stores `params` into the manager and generates a key, and the target page retrieves them by that key.
-
-```ts
-import { createRouter, ParamsPlugin } from '@meng-xi/unix-router'
-
-const router = createRouter({ routes, plugins: [ParamsPlugin] })
-
-// Pass string params (through the internal key channel)
-await router.push({
-	name: 'detail',
-	params: new Map<string, string>([['id', '1024']])
-})
-
-// Read on the target page (route.params is rebuilt by ParamsPlugin during state sync)
-const route = useRoute()
-console.log(route.params.get('id')) // '1024'
-```
-
-**Persisting to storage**: params live in memory by default; enable persistence to keep them across refresh / re-entry:
-
-```ts
-const router = createRouter({
-	routes,
-	plugins: [ParamsPlugin],
-	paramsPersistent: true // persists all params to uni storage by default
-})
-```
-
-::: warning ParamsPlugin required
-Calling a navigation with `params` without registering `ParamsPlugin` throws `PLUGIN_REQUIRED`:
-
-```
-Use params requires registering ParamsPlugin: createRouter({ plugins: [ParamsPlugin] })
-```
+::: warning The old syntax is deprecated
+`plugins: [ParamsPlugin]` (passing the class directly) is the legacy syntax and has been deprecated. Plugins are implemented as abstract classes; always pass an instance `new XxxPlugin()`.
 :::
 
-**Exports**: `ParamsPlugin` (the plugin) + `createParamsManager(options)` (low-level params manager for reuse in custom plugins).
+Plugins are installed in array order. At install time they register hooks through the `PluginContext` and are injected into each stage of the navigation flow. When a companion option is set but the corresponding plugin is not registered (e.g. `interceptUniApi: true` without `InterceptorPlugin`), the option is ignored with a warning.
 
-### InterceptorPlugin: uni navigation interception
+## The RouterPlugin Abstract Class
 
-Calling `uni.navigateTo` directly **bypasses the route guards**. When interception is enabled, external direct calls are also handed over to `router.*` so the full guard chain runs — guards are "sunk down" to the uni API layer.
-
-```ts
-import { createRouter, InterceptorPlugin } from '@meng-xi/unix-router'
-
-const router = createRouter({
-	routes,
-	plugins: [InterceptorPlugin],
-	interceptUniApi: true
-})
-
-// Now both are equivalent and guards always take effect:
-await router.push({ name: 'about' })        // goes through router, guards take effect
-uni.navigateTo({ url: '/pages/about/about' }) // intercepted → handed to router, guards take effect
-```
-
-**Minimum HBuilderX versions required per platform** (official addInterceptor compatibility table):
-
-| Platform | Minimum HBuilderX version |
-| --- | --- |
-| Web | 4.0 |
-| WeChat Mini Program | 4.41 |
-| Android | 3.97 |
-| iOS | 4.11 |
-| HarmonyOS | 4.61 |
-
-::: warning Does not affect the router's own calls
-The interceptor only applies to **external direct calls**; the `uni` calls issued internally by `router.push/replace/relaunch/back` are not re-intercepted (distinguished via an internal marker).
-:::
-
-Intercepted APIs: `navigateTo / redirectTo / switchTab / reLaunch / navigateBack`. It also exposes `installInterceptors` / `removeInterceptors` for low-level use.
-
-**Exports**: `InterceptorPlugin` (the plugin; auto-installs when registered via `plugins: [InterceptorPlugin]` with `interceptUniApi: true`) + `installInterceptors(router)` / `removeInterceptors()` (manually install/uninstall the interceptors for fine-grained control after the Router is instantiated).
-
-### AnimationPlugin: navigation window animation
-
-Injects window transition animations into navigations (aligned with uni-app x's native `animationType`):
-- **App / Mini Program**: passes `animationType` / `animationDuration` through to the `uni.*` native navigation APIs (native window animation);
-- **H5**: plays enter / exit animations on the page container with the Web Animations API (`element.animate`) — no CSS `@keyframes` needed.
+To write a custom plugin, extend `RouterPlugin` and implement the `name` field plus the abstract `install(context, options)` method:
 
 ```ts
-import { createRouter, AnimationPlugin } from '@meng-xi/unix-router'
+import { RouterPlugin } from '@meng-xi/unix-router'
+import type { PluginContext, RouterOptions } from '@meng-xi/unix-router'
 
-const router = createRouter({
-	routes,
-	plugins: [AnimationPlugin],
-	animation: { type: 'slide-in-right', duration: 300 } // global default animation (optional)
-})
+class MyPlugin extends RouterPlugin {
+	name = 'my-plugin'
 
-// Per-navigation override: this navigation uses fade-in
-router.push({ path: 'pages/detail/detail', animationType: 'fade-in', animationDuration: 500 })
-```
-
-**Animation types**: `slide-in-right` / `slide-in-left` / `slide-in-top` / `slide-in-bottom` / `fade-in` / `zoom-in` / `zoom-fade-in` / `pop-in` / `auto` / `none`.
-
-- `back()` uses the global default animation as the **exit animation** (back has no location to carry; per-navigation override only applies to forward navigations).
-- Without the plugin registered, navigations carrying `animationType` still run normally (the animation is ignored).
-- On H5, this relies on the `onBeforeNavigation` async hook: before returning, the exit animation plays to completion, then the real `navigateBack` runs.
-
-**H5 animation timing** (prevents lag on first entry): when `onCompleteNavigation` fires, uni-app x H5 has already swapped the new page's content into `uni-page` (its `data-page` is switched). At that moment the plugin **synchronously applies the animation start style** (e.g. `translateX(100%)` + forced reflow), so the new page's first rendered frame is already off-screen; the slide-in animation plays on the next frame — this avoids the jarring "content flashes in place, then jumps off-screen and slides in" effect. The inline start style is cleared after the animation ends, so it cannot affect the exit animation of a later `back()`.
-
-**Exports**: `AnimationPlugin` (the plugin) + `DEFAULT_ANIMATION_DURATION` (default animation duration constant, 300ms).
-
-### EventsPlugin: page-to-page event communication
-
-Bridges the `events` (page-to-page communication) capability missing in uni-app x: the opener passes an `events` listener map in `push`, and the opened page sends data **back** to the opener through a channel (mirrors the official `navigateTo` events semantics, without the version gate of the official `uni.$on`).
-
-```ts
-import { createRouter, EventsPlugin, useOpenerEventChannel } from '@meng-xi/unix-router'
-
-const router = createRouter({ routes, plugins: [EventsPlugin] })
-
-// Opener: register listeners for data sent back by the opened page
-await router.push({
-	path: 'pages/detail/detail',
-	events: new Map([
-		['acceptDataFromOpenedPage', (data: any) => console.log('received', data)]
-	])
-})
-
-// Opened page: emit data back / listen for pushes from the opener
-const channel = useOpenerEventChannel() // EventChannel | null
-if (channel !== null) {
-	channel.emit('acceptDataFromOpenedPage', { result: 'ok' })
-	channel.on('someEvent', (data: any) => {})
+	install(context: PluginContext, options: RouterOptions): void {
+		// register hooks via the context, read plugin options from options
+	}
 }
 ```
 
-**EventChannel API**: `on` / `once` / `off` (remove a listener by the id returned from `on`/`once`) / `emit`. The channel key is bridged across pages via the `__evt__` URL query key and stripped during state sync (never exposed to users).
+- `name: string`: the plugin's unique identifier. `hasPlugin(name)` uses it to check registration status (the `params` / `events` `PLUGIN_REQUIRED` pre-checks also match by name).
+- `install(context, options)`: called once at install time, inside `createRouter` before any navigation happens.
 
-`useOpenerEventChannel()` does not depend on route-sync timing: a page's `onShow` runs before `onRouteSync`, so when the in-memory key is missing it falls back to reading the current page's URL query string (`__evt__`) — you can emit data back **right inside `onShow`**.
+## PluginContext: 8 Hooks
 
-::: warning EventsPlugin required
-Calling a navigation with `events` without registering `EventsPlugin` throws `PLUGIN_REQUIRED`:
+Each hook is invoked at a fixed point in the navigation flow. Examples for every hook:
 
-```
-Use events requires registering EventsPlugin: createRouter({ plugins: [EventsPlugin] })
-```
+| hook | Signature | Trigger point |
+| --- | --- | --- |
+| `onEnrichLocation` | `(location: RouteLocationRaw) => RouteLocationRaw` | **Before** `matcher.resolve()`, enriches the raw route location (e.g. injecting internal keys). Runs in a chain — the previous hook's return value is the next one's input |
+| `onAfterResolve` | `(enrichedLocation: RouteLocationRaw, pluginData: PluginData) => void` | After resolve, before the guard chain. Extracts plugin data from the enriched location into `pluginData` |
+| `onPrepareNavigation` | `(ctx: NavigationPrepareContext) => void` | **Before** the uni API call. May modify the navigation URL's `ctx.query` and `ctx.options` (e.g. appending internal keys, rewriting animation params) |
+| `onBeforeNavigation` | `(ctx: NavigationPrepareContext) => Promise<void> \| void` | Just before the uni API is actually invoked. **May be async** (e.g. on H5, back waits for the exit animation to finish); multiple hooks run **serially** |
+| `onCompleteNavigation` | `(ctx: NavigationCompleteContext) => void` | After the uni API call **succeeds** and the page stack is confirmed. May extend the navigation result `ctx.result` |
+| `onNavigationAbort` | `(pluginData: PluginData) => void` | Runs cleanup when a navigation aborts or fails (exceptions are swallowed and never interrupt the failure flow) |
+| `onRouteSync` | `(query: Map<string, string>, params: Map<string, string>) => void` | During route state sync. Extracts plugin data from the URL query (e.g. rebuilding params from the `__params__` key); internal keys should be removed here |
+| `onAppInstall` | `(app: any) => void` | Fired when `router.install()` is called (`app.use(router)`); may register app-level cleanup logic |
+
+::: tip PluginData
+`PluginData` is simply `Map<string, any>`, shared across stages within a single navigation: `onAfterResolve` writes → `onPrepareNavigation` / `onBeforeNavigation` / `onCompleteNavigation` read → `onNavigationAbort` cleans up. A redirect reuses the same `pluginData`.
 :::
 
-**Exports**: `EventsPlugin` (the plugin) + `eventBus` (the built-in global event bus instance with `$on` / `$off` / `$once` / `$emit`, removing listeners by id).
+## Context Members
 
-## Plugin Context
+Besides the hook registration methods, `PluginContext` exposes:
 
-Each plugin registers hooks through `context` in `install(context, options)`, and the router invokes them at each stage of the navigation flow:
-
-| hook | Timing | Purpose |
+| Member | Type | Description |
 | --- | --- | --- |
-| `onEnrichLocation` | before `resolve` | Enrich the raw route location (e.g. inject an internal key) |
-| `onAfterResolve` | after resolve, before guards | Extract plugin data from the enriched location |
-| `onPrepareNavigation` | before the uni API call | Modify the navigation URL query and options |
-| `onCompleteNavigation` | after the uni API call succeeds | Extend the navigation result |
-| `onNavigationAbort` | when a navigation aborts / fails | Clean up plugin resources |
-| `onRouteSync` | during state sync | Rebuild plugin data from the URL query |
-| `onAppInstall` | on `router.install()` | Register app-level cleanup logic |
+| `currentRoute` | `RouteLocation` | The current route location (read-only getter, fetched in real time via an injected reader) |
+| `resolve` | `(location: RouteLocationRaw) => RouteLocation` | Resolves a route location into a full `RouteLocation` (equivalent to `router.resolve`) |
+| `router` | `any` | Reference to the router instance. Declared as `any` to avoid native-side interface degradation across files; cast with `as Router` inside plugins as needed |
+| `paramsManager` | `any` | The core's shared `ParamsManager` instance (used by `ParamsPlugin`; cast with `as ParamsManager` as needed) |
+| `hasPlugin` | `(name: string) => boolean` | Checks whether a given plugin is registered |
 
-`context` also exposes read-only members: `currentRoute`, `resolve()`, `router`, `paramsManager`, `hasPlugin()`.
+## Complete Custom Plugin Example
 
-## Custom Plugin
-
-Implement the `RouterPlugin` interface (`name` + `install`):
+Taking a "navigation analytics" plugin as an example, demonstrating class inheritance, multi-hook cooperation, and passing values across stages via `pluginData`:
 
 ```ts
-import type { RouterPlugin, PluginContext, RouterOptions } from '@meng-xi/unix-router'
+import { RouterPlugin } from '@meng-xi/unix-router'
+import type {
+	PluginContext,
+	PluginData,
+	RouterOptions,
+	NavigationPrepareContext,
+	NavigationCompleteContext
+} from '@meng-xi/unix-router'
 
-/** Analytics plugin: reports the route on every completed navigation */
-const AnalyticsPlugin: RouterPlugin = {
-	name: 'analytics',
+/** Analytics plugin: stamps each navigation with a start timestamp and reports on success */
+class AnalyticsPlugin extends RouterPlugin {
+	name = 'analytics'
 
-	install(context: PluginContext, options: RouterOptions) {
-		// 1. Before navigation starts: inject an internal key into the target (optional)
-		context.onEnrichLocation(location => location)
-
-		// 2. After resolve: record the target
-		context.onAfterResolve((enrichedLocation, pluginData) => {
-			pluginData.set('timestamp', Date.now())
+	override install(context: PluginContext, options: RouterOptions): void {
+		// 1. Record the start time before resolve (mounting it into pluginData in afterResolve is safer)
+		context.onEnrichLocation((location) => {
+			// If you need to append an internal key to the navigation URL, return the enriched location here
+			return location
 		})
 
-		// 3. Before the uni API call: rewrite the query (optional)
-		context.onPrepareNavigation(ctx => {
-			// ctx.query.set('_t', String(Date.now()))
+		// 2. After resolve: extract data, record the navigation start time
+		context.onAfterResolve((enrichedLocation, pluginData) => {
+			pluginData.set('startedAt', Date.now())
+		})
+
+		// 3. Before the uni API call: rewrite the navigation query (optional; example appends a timestamp marker)
+		context.onPrepareNavigation((ctx: NavigationPrepareContext) => {
+			ctx.query.set('_t', String(Date.now()))
 		})
 
 		// 4. Report after a successful navigation
-		context.onCompleteNavigation(ctx => {
-			const ts = ctx.pluginData.get('timestamp')
-			reportAnalytics(ctx.to.path, ts as number)
+		context.onCompleteNavigation((ctx: NavigationCompleteContext) => {
+			const startedAt = ctx.pluginData.get('startedAt')
+			reportAnalytics(ctx.to.path, startedAt as number)
 		})
 
-		// 5. Clean up on navigation abort
-		context.onNavigationAbort(pluginData => {
+		// 5. Clean up on abort / failure
+		context.onNavigationAbort((pluginData: PluginData) => {
 			pluginData.clear()
 		})
 	}
 }
 
-// register
-const router = createRouter({ routes, plugins: [AnalyticsPlugin] })
+// Register: pass an instance
+const router = createRouter({ routes, plugins: [new AnalyticsPlugin()] })
 ```
-
-::: tip pluginData
-`pluginData` is a `Map`, written in the `onAfterResolve` stage and read in `onPrepareNavigation` / `onCompleteNavigation` / `onNavigationAbort`, letting a plugin pass data across stages.
-:::
 
 ## Execution Order
 
-When `createRouter` is invoked, plugins are installed in `plugins` array order; during a navigation the hooks run stage by stage:
+At `createRouter` time, plugins are installed in the `plugins` array order. During a forward navigation, hooks execute by stage:
 
 ```
-push → enrichLocation → matcher.resolve → afterResolve
-     → beforeEach → beforeEnter → beforeResolve
-     → prepareNavigation → uni API → (success) setRoute + completeNavigation + afterEach
-     → (failure / abort) navigationAbort
+push / replace / relaunch
+  → onEnrichLocation (enrich the raw location)
+  → matcher.resolve (resolve the target)
+  → onAfterResolve (extract plugin data into pluginData)
+  → beforeEach → beforeEnter → beforeResolve (guard chain)
+  → onPrepareNavigation (rewrite query / options)
+  → onBeforeNavigation (may be async, serial)
+  → uni API (navigateTo / redirectTo / reLaunch / switchTab)
+  → page stack top confirmed → onCompleteNavigation → afterEach
+  → (any stage fails) onNavigationAbort → afterEach(failure) → onError
 ```
+
+## Platform Notes (UTS Strong Typing)
+
+::: warning On non-vapor platforms (Kotlin / Swift), plugins must be implemented as classes
+On platforms compiled to Kotlin / Swift, **object literals containing methods are inferred as `UTSJSONObject`** and cannot work as plugins. Therefore:
+
+- Plugins must be implemented by **extending `RouterPlugin` with a class**; hook registration is done through class methods;
+- Pass an **instance** when registering: `plugins: [new MyPlugin()]` — never the class itself or an object literal;
+- Likewise, `PluginContext` is a class, not a type.
+:::
 
 ## Next Steps
 
-- [Navigation Guards](./guards) — where guards sit in the plugin flow
-- [Platform Compatibility](./compatibility) — addInterceptor version requirements per platform
-- [Recipes](./recipes) — auth, permissions, analytics and other complete solutions
-- [API Reference](../api/create-router) — the `plugins` / `interceptUniApi` / `paramsPersistent` options
+- [Navigation Flow](./navigation-flow) — the exact position of each hook in the full navigation timeline
+- [RouterOptions](../api/type-router-options) — the `plugins` option and each plugin's companion options
+- [Parameter Passing](./params) / [Page-to-Page Communication](./events) / [Navigation Animation](./animation) / [uni API Interception](./interceptor) — complete usage of the four built-in plugins

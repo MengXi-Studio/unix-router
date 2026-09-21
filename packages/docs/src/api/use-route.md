@@ -1,6 +1,6 @@
 # useRoute()
 
-`useRoute()` 返回**响应式**的当前 [RouteLocation](./type-route-location)（基于 `router.currentRoute` 派生）。必须在组件 `setup` 中调用。
+`useRoute(): RouteLocation` 返回当前 [RouteLocation](./type-route-location)。必须在组件 `setup`（或 `script setup`）中调用。
 
 ```ts
 import { useRoute } from '@meng-xi/unix-router'
@@ -10,7 +10,24 @@ const route = useRoute()
 
 ## 返回值
 
-返回响应式 `RouteLocation`，其属性变化会触发依赖它的渲染 / 计算更新。
+返回**全局 reactive 对象**，直接访问字段即可——**没有 `.value`**。
+
+::: warning 与 vue-router 的差异
+vue-router 中 `route` 是一个 ref 风格对象，模板中可用 `route.path`、脚本中访问原始值需借助 `computed` 等方式。本库的 `useRoute()` 返回的就是全局 reactive 的 `RouteLocation`，脚本与模板中**都直接 `route.path` 访问**，无需 `.value`，也不需要解包。
+:::
+
+## 字段
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `path` | `string` | 页面路径（带前导斜杠，如 `/pages/index/index`） |
+| `name` | `string \| null` | 命名路由名，未命名时为 `null` |
+| `meta` | `RouteMeta` | 路由元信息（`title` / `isTab` / `requireAuth`） |
+| `query` | `Map<string, string>` | 查询参数，读取用 `.get(key)` |
+| `params` | `Map<string, string>` | 路由参数（须注册 `ParamsPlugin`） |
+| `fullPath` | `string` | 完整路径（`path` + 序列化 query） |
+| `hash` | `string` | 恒为 `''`（uni-app x 不支持 hash，保留字段） |
+| `matched` | `RouteConfig[]` | 匹配到的路由记录（扁平模型下为单个 record 数组） |
 
 ## 读取路由信息
 
@@ -20,28 +37,32 @@ import { useRoute } from '@meng-xi/unix-router'
 
 const route = useRoute()
 
-// 响应式读取
-console.log(route.path)      // /pages/detail/detail
-console.log(route.fullPath)  // /pages/detail/detail?id=1
+// 直接访问字段（无 .value）
+console.log(route.path)            // /pages/detail/detail
+console.log(route.fullPath)        // /pages/detail/detail?id=1
 console.log(route.query.get('id')) // '1'
-console.log(route.name)
-console.log(route.meta)
+console.log(route.name)            // 'detail'（未命名时为 null）
 </script>
 
 <template>
-	<text>当前页：{{ route.path }}</text>
+	<view class="page">
+		<text>当前页：{{ route.path }}</text>
+	</view>
 </template>
 ```
 
 ::: tip query 与 params 均为 Map
-uni-app x 中 query 以字符串在 URL 传递，`RouteLocation.query` / `params` 均为 `Map<string, string>`，读取用 `.get(...)`，判断用 `.has(...)`。
+uni-app x 中 query 以字符串在 URL 传递，`route.query` / `route.params` 均为 `Map<string, string>`，读取用 `.get(...)`，判断用 `.has(...)`。
 :::
 
-## 注意事项
+## 更新时机
 
-- 仅可在组件 `setup`（或 `script setup`）中调用
-- 依赖路由器已安装，否则抛出 `SETUP_ERROR`
-- 在页面 `onLoad` 之前若需读取路由，可先手动调用一次 `router.syncRoute()`
+- **导航完成时**：uni API 调用成功且目标页经页面栈顶确认后自动更新（剥离插件内部 key 后写入）。
+- **`syncRoute()` 时**：物理返回、tab 切换等不经过路由器的行为，由 `syncRoute()` 从页面栈重建状态并更新（H5 端 `app.use(router)` 注册的 `onShow` mixin 自动触发；原生端建议页面 `onShow` 手动调用）。
+
+## onShow 时机提示
+
+页面 `onShow` 可能**早于路由状态同步**执行。若需要在 `onShow` 里确定性地读取本次页面参数，优先在页面 `onLoad(options)` 中读取原生 `options`（即 URL query），或先手动调用一次 `router.syncRoute()` 再读 `route`。
 
 ## 相关 API
 

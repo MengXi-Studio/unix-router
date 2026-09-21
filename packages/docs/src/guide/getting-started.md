@@ -15,11 +15,11 @@ npm install @meng-xi/unix-router
 pnpm add @meng-xi/unix-router
 ```
 
-> uni-app x 中也可通过 `uni_modules` 方式引入 UTS 源码（本库以 `.uts` 源分发，按平台现场编译）。
+> uni-app x 中也可通过 `uni_modules` 方式引入 UTS 源码（本库以 `.uts` 源分发，按平台现场编译），详见[安装](./installation)。
 
 ## 2. 定义路由配置
 
-路径须与 `pages.json` 注册一致：
+路径须与 `pages.json` 注册一致（不带前导 `/`）：
 
 ```ts
 // router/routes.ts
@@ -35,6 +35,8 @@ export const routes: RouteConfig[] = [
 
 ## 3. 创建路由器（含插件）
 
+插件是 `RouterPlugin` 抽象类的子类，注册时**必须实例化**：
+
 ```ts
 // router/index.ts
 import { createRouter, ParamsPlugin, InterceptorPlugin } from '@meng-xi/unix-router'
@@ -43,10 +45,14 @@ import { routes } from './routes'
 export const router = createRouter({
 	routes,
 	strict: true, // 未匹配的命名路由抛 ROUTE_NOT_FOUND
-	plugins: [ParamsPlugin, InterceptorPlugin], // 页面参数 + uni 导航拦截
+	plugins: [new ParamsPlugin(), new InterceptorPlugin()], // 页面参数 + uni 导航拦截
 	interceptUniApi: true // InterceptorPlugin 开关：外部 uni.navigateTo 也走守卫
 })
 ```
+
+::: warning 旧写法已废弃
+`plugins: [ParamsPlugin]`（直接传 class）已不再支持——插件为 abstract class，必须 `new` 出实例后注册。
+:::
 
 ## 4. 安装到 Vue 应用
 
@@ -58,7 +64,7 @@ import { router } from './router'
 
 export function createApp() {
 	const app = createSSRApp(App)
-	app.use(router) // provide($router/$route) + 全局 onShow 自动 syncRoute
+	app.use(router) // H5 端注册全局 mixin（onShow 自动 syncRoute）；App/小程序端建议在页面 onShow 自行调用 router.syncRoute()
 	return { app }
 }
 ```
@@ -73,7 +79,7 @@ import { useRouter } from '@meng-xi/unix-router'
 const router = useRouter()
 
 const goAbout = () => {
-	router.push({ name: 'about', query: new Map([['from', 'home']]) })
+	router.push({ name: 'about', query: new Map<string, string>([['from', 'home']]) })
 }
 </script>
 
@@ -92,18 +98,20 @@ const goAbout = () => {
 
 ## 6. 守卫（权限）
 
+守卫为**返回值风格**：返回 `true`（或 `null`）放行；返回位置对象表示重定向，`{ location, mode }` 可指定重定向的导航方式：
+
 ```ts
 // router/index.ts
 router.beforeEach((to, from) => {
 	// 未登录访问受保护页 → 重定向登录页并记录来源
-	if (to.meta.requireAuth && !isLoggedIn()) {
+	if (to.meta.requireAuth == true && !isLoggedIn()) {
 		return {
-			location: { name: 'login', query: new Map([['redirect', to.fullPath]]) },
+			location: { name: 'login', query: new Map<string, string>([['redirect', to.fullPath]]) },
 			mode: 'replace'
 		}
 	}
 	// 已登录访问登录页 → 去首页
-	if (to.name === 'login' && isLoggedIn()) {
+	if (to.name == 'login' && isLoggedIn()) {
 		return { name: 'home' }
 	}
 	return true
@@ -111,6 +119,8 @@ router.beforeEach((to, from) => {
 ```
 
 ## 7. 参数传递（ParamsPlugin）
+
+params 经 `__params__` 内部 key 通道跨页传递（不出现在用户可见的 URL query 中），值为 `Map<string, string>`：
 
 ```ts
 // 发起页
@@ -123,6 +133,10 @@ await router.push({
 const route = useRoute()
 console.log(route.params.get('id')) // '1024'
 ```
+
+::: tip
+`params` 需注册 `ParamsPlugin`（上方第 3 步已注册）；未注册却使用会 reject `PLUGIN_REQUIRED`。详见[插件系统](./plugins)与[参数传递](./params)。
+:::
 
 ## 完整可运行模板
 
@@ -140,7 +154,7 @@ console.log(route.params.get('id')) // '1024'
 
 ## 下一步
 
+- [路由配置](./route-config) — RouteConfig / RouteMeta / 命名路由
 - [路由导航](./navigation) — 四种导航方式与传参
-- [路由守卫](./guards) — 守卫体系详解
-- [插件系统](./plugins) — ParamsPlugin / InterceptorPlugin / 自定义插件
+- [参数传递](./params) — params 跨页传递与 query 解析工具
 - [组合式 API](./composables) — useRouter / useRoute / useLink

@@ -8,6 +8,7 @@ import type { RouterOptions } from '@meng-xi/unix-router'
 const options: RouterOptions = {
 	routes,
 	strict: true,
+	plugins: [new ParamsPlugin()],
 	guardTimeout: 10000,
 	readyTimeout: 0
 }
@@ -18,15 +19,19 @@ const options: RouterOptions = {
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `routes` | `RouteConfig[]` | — | **Required**. The route configuration list; paths must match the registration in `pages.json` |
-| `strict` | `boolean` | `true` | Strict mode; when enabled, unmatched named routes throw `ROUTE_NOT_FOUND` |
-| `guardTimeout` | `number` | `10000` | Guard timeout (ms); `0` disables it |
-| `readyTimeout` | `number` | `0` | Ready timeout (ms); `0` never times out |
-| `interceptUniApi` | `boolean` | `false` | **Opt-in**. When enabled, intercepts the `uni.*` native navigation APIs (`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`); navigations that bypass the router and call these APIs directly are rerouted through `router.*` so the full guard chain runs — guards are sunk down to the uni API layer. Runtime support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61; requires `plugins: [InterceptorPlugin]` |
-| `plugins` | `RouterPlugin[]` | — | Plugin list; register extension capabilities on demand, e.g. `[InterceptorPlugin]` (with `interceptUniApi` for native navigation interception), `[ParamsPlugin]` (enable params passing) |
-| `paramsPersistent` | `boolean` | `false` | Whether to persist params to storage by default (requires `plugins: [ParamsPlugin]`) |
-| `animation` | `NavigationAnimation` | — | Default navigation animation for all navigations (requires `plugins: [AnimationPlugin]`). On App / Mini Program it passes through the native `animationType`; on H5 the plugin implements it with the Web Animations API |
+| `strict` | `boolean` | `true` | Strict mode. When `true`, an unmatched named route throws `RouterError ROUTE_NOT_FOUND`; when `false`, only a warning is emitted and the route is handled by path |
+| `guardTimeout` | `number` | `10000` | Guard timeout (ms); `0` disables it. On timeout a warning is printed and the navigation is aborted |
+| `readyTimeout` | `number` | `0` | Ready timeout (ms); `0` means never time out |
+| `interceptUniApi` | `boolean` | `false` | **Opt-in**. When enabled, intercepts the `uni.*` native navigation APIs (`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`); external direct calls are also handed to `router.*` and run the full guard chain. **Requires `InterceptorPlugin`**. Subject to runtime version support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61; it automatically downgrades with a warning when missing |
+| `plugins` | `RouterPlugin[]` | — | Plugin list; register extended capabilities on demand. **Pass instances**: `[new ParamsPlugin(), new InterceptorPlugin(), new EventsPlugin(), new AnimationPlugin()]`, see [Plugin System](../guide/plugins) |
+| `paramsPersistent` | `boolean` | `false` | Whether to persist params to storage by default (automatically falls back to memory if a write fails). **Requires `ParamsPlugin`** |
+| `animation` | `NavigationAnimation` | — | Global default navigation animation `{ type: AnimationType, duration?: number }` (`duration` defaults to 300ms). On App / Mini Program the native `animationType` is passed through; on H5 the plugin implements it with the Web Animations API. **Requires `AnimationPlugin`** |
 
-> **Note**: On WeChat Mini Program, `<navigator>` component jumps and tabBar clicks (which do not trigger `uni.switchTab` under the hood) cannot be intercepted; cover these scenarios with an `onShow` fallback guard.
+::: warning Plugin-related options require their companion plugins
+`interceptUniApi` / `paramsPersistent` / `animation` depend on `InterceptorPlugin` / `ParamsPlugin` / `AnimationPlugin` respectively; if an option is registered but the corresponding plugin is not, the option is ignored with a warning.
+:::
+
+> **Note**: on WeChat Mini Program, `<navigator>` component jumps and tabBar taps (which do not trigger `uni.switchTab` under the hood) cannot be intercepted; handle those scenarios with an `onShow` fallback guard in the page.
 
 ## Related APIs
 

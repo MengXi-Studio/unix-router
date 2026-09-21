@@ -1,117 +1,125 @@
-# Route Guards
+# Navigation Guards
 
-Guards control, validate, and redirect navigation, and are the core of auth and analytics. Semantics align with vue-router 4. This page walks through it using a **login-auth** example.
+Guards **control, validate, and redirect** navigation. They are the core of authentication and analytics, with semantics aligned to vue-router 4.
 
-## Guard Order in One Navigation
+## Guard Chain Execution Order
+
+Guards run in the following order during a single navigation:
 
 ```
-beforeEach → beforeEnter(route-local) → beforeResolve → navigation → afterEach
+beforeEach → beforeEnter(per-route) → beforeResolve → navigate → afterEach
 ```
 
-If any guard returns `false` / `Error` / a redirect location, the flow stops or is redirected. Any single guard can block the whole chain.
+- Any guard returning "abort / redirect" ends the current chain;
+- When a guard returns a redirect, the **full guard chain re-runs** toward the new target;
+- `afterEach(to, from, failure)` is called after the navigation completes: `failure` is `null` on success and carries an `Error` on failure. It never blocks the flow.
 
-## Three Global + One Route-Local + One In-Component
+## Guard Types Overview
 
-| Type | Register | When it runs |
+| Type | Registration | Timing |
 | --- | --- | --- |
-| Global before | `router.beforeEach` | before the navigation, applies to all |
-| Global resolve | `router.beforeResolve` | after all before/enter guards, before navigation |
-| Global after | `router.afterEach` | after navigation completes (non-blocking) |
-| Route-local | `RouteConfig.beforeEnter` | only when entering this route |
-| In-component | `onBeforeRouteLeave` etc. | when leaving/entering the component |
+| Global before | `router.beforeEach` | Runs first when navigation is triggered |
+| Per-route | `RouteConfig.beforeEnter` | Only when entering that route |
+| Global resolve | `router.beforeResolve` | After all before / per-route guards, right before the actual navigation |
+| Global after | `router.afterEach` | After navigation completes (non-blocking) |
+| In-component | `onBeforeRouteLeave` etc. | When leaving / entering / updating the current page |
 
-## Return Value Semantics
+## Full Table of Guard Return Values
 
-| Return | Behavior |
+A guard's return value decides where the navigation goes. Async is supported: an `async` guard's returned `Promise` is resolved before the decision (subject to `guardTimeout`).
+
+| Return value | Behavior |
 | --- | --- |
-| `true` / `null` | Continue (prefer an explicit `return null` or `true`) |
-| `false` | Abort navigation (`ABORTED`) |
-| `Error` | Cancel navigation (`CANCELLED`) |
-| string / location object | Redirect to the target |
-| `Promise` | Async guards supported (`async`) |
+| `null` / `true` | Allow, continue with the remaining guards |
+| `false` | Abort the navigation (error code `ABORTED`) |
+| `Error` | Abort the navigation with that error as the failure reason (error code `CANCELLED`) |
+| `string` | Redirect to that path |
+| Location object (`{ path }` / `{ name }` / `{ name, query }` etc.) | Redirect to that location |
+| `{ location, mode? }` | `NavigationRedirect`: redirect with an explicit navigation mode |
+
+The `NavigationRedirect` structure:
 
 ```ts
-router.beforeEach((to, from) => {
-	if (to.meta.requireAuth === true && !isLoggedIn()) {
-		return { name: 'login' }   // redirect
-	}
-	return true                    // continue
-})
-
-router.afterEach((to, from, failure) => {
-	console.log(`Nav: ${from.fullPath} -> ${to.fullPath}`, failure?.message ?? '')
-})
-```
-
-Remove a guard: the registration function returns an **off function**:
-
-```ts
-const off = router.beforeEach(g)
-off() // remove
-```
-
-## Practice: a Complete Login Auth Flow
-
-**Goal**: unauthenticated access to a `requireAuth` page → intercepted → login page → redirect back after login.
-
-**1) Route config** (`router.config.ts`):
-
-```ts
-export const routes: RouteConfig[] = [
-	{ path: 'pages/login/login', name: 'login', meta: { title: 'Login' } },
-	{ path: 'pages/profile/profile', name: 'profile', meta: { title: 'Profile', requireAuth: true } }
-]
-```
-
-**2) Global before guard** (`router.ts`):
-
-```ts
-export const router = createRouter({ routes, strict: true })
-
-router.beforeEach((to, from) => {
-	if (to.meta.requireAuth === true && !isLoggedIn()) {
-		// record the source fullPath so it can redirect back after login
-		return {
-			name: 'login',
-			query: new Map([['redirect', to.fullPath]])
-		}
-	}
-	return true
-})
-```
-
-**3) Login page** (`pages/login/login.uvue`), redirect back on success:
-
-```ts
-import { useRouter, useRoute } from '@meng-xi/unix-router'
-const router = useRouter()
-const route = useRoute()
-
-function loginOk() {
-	setLoggedIn(true)
-	const target = route.query.get('redirect') ?? '/pages/index/index'
-	router.replace(target) // replace: the login page is not kept in the stack
+{
+	location: RouteLocationRaw             // redirect target (a string path or a location object)
+	mode?: 'push' | 'replace' | 'relaunch' // navigation mode; omitted means keep the original mode
 }
 ```
 
-> Key point: use `return { name: 'login' }` inside the guard, not `router.push` — see "Pitfalls".
+::: tip How the two object kinds are distinguished
+If the returned object carries a `location` field → treated as `NavigationRedirect` (may specify `mode`); otherwise treated as a plain location object (keeps the original navigation mode).
+:::
 
-## Route-Local beforeEnter
+A redirect **re-runs the full guard chain**. The depth limit is `10`; exceeding it (e.g. guards redirecting each other in a loop) cancels with `CANCELLED` to prevent infinite loops.
 
-Defined in `RouteConfig` and applies **only to this route**:
+## Registering Global Guards
+
+All three global guards return a **cancel function** — call it to unregister:
+
+```ts
+const offBefore = router.beforeEach((to, from) => {
+	console.log('before', from.fullPath, '->', to.fullPath)
+	return true
+})
+
+const offResolve = router.beforeResolve((to, from) => {
+	return true
+})
+
+const offAfter = router.afterEach((to, from, failure) => {
+	// failure: Error | null
+	console.log('done', to.fullPath, failure?.message ?? '')
+})
+
+// Unregister
+offBefore()
+offResolve()
+offAfter()
+```
+
+::: tip beforeEach vs beforeResolve
+`beforeEach` runs at the front of the guard chain (best for auth and analytics); `beforeResolve` runs after per-route guards and right before the navigation actually executes (best for logic depending on a "finalized" target; in-component guards are also implemented as a filter on top of it).
+:::
+
+## Guard Timeout guardTimeout
+
+The `guardTimeout` option of `createRouter` (default `10000`ms) bounds guard execution time:
+
+- On timeout it logs a warning and **aborts the navigation** (`CANCELLED`);
+- Set it to `0` to disable the timeout check;
+- Async guards (returning `Promise`) are subject to the same timeout.
+
+```ts
+const router = createRouter({
+	routes,
+	guardTimeout: 5000 // 5s
+})
+```
+
+## Per-route beforeEnter
+
+Defined on `RouteConfig`, effective **only for that route**. Accepts a single function or an array:
 
 ```ts
 {
 	path: 'pages/admin/admin',
 	name: 'admin',
-	meta: { requireAdmin: true },
-	beforeEnter: (to, from) => (isAdmin() ? true : { name: 'login' })
+	meta: { title: 'Admin' },
+	beforeEnter: (to, from) => {
+		return isAdmin() ? true : { name: 'login' }
+	}
 }
 ```
 
-## In-Component Guard (onBeforeRouteLeave)
+## In-component Guards
 
-Registered in page `setup`; **returning `false` truly blocks leaving** (e.g. unsaved-changes confirmation):
+Registered in a page's `setup`, implemented as a filter on the global `beforeResolve`, and they cooperate with the global resolve guard:
+
+| API | Triggered when |
+| --- | --- |
+| `onBeforeRouteLeave` | Leaving this page (navigating elsewhere / going back) |
+| `onBeforeRouteEnter` | Navigating into this page's path |
+| `onBeforeRouteUpdate` | Same path with changed parameters ("update") |
 
 ```ts
 import { onBeforeRouteLeave } from '@meng-xi/unix-router'
@@ -124,11 +132,102 @@ onBeforeRouteLeave((to, from) => {
 })
 ```
 
-> uni-app x creates a new page instance on every navigation (no keep-alive), so `onBeforeRouteUpdate` rarely fires and `onBeforeRouteEnter` has limited effect; **`onBeforeRouteLeave` is the most useful**.
+::: warning Limited applicability
+uni-app x creates a new page instance for every navigation (no keep-alive reuse): `onBeforeRouteLeave` is the **most reliable**; `onBeforeRouteEnter` has limited effect because the page is already being created when first entered; `onBeforeRouteUpdate` rarely triggers under the static page model.
+:::
 
-## guardRoute: Cold-Start Guard Re-run
+## In Practice: Full Login Auth Flow
 
-When a page is entered directly (H5 URL / scene value / deeplink), the framework has already loaded it and guards never ran. Re-run in `App.uvue`'s `onLaunch`:
+**Goal**: an unauthenticated user visits a `requireAuth` page → intercepted → login page → redirected back to the original page after login.
+
+**1) Route config** (`router/routes.ts`):
+
+```ts
+import type { RouteConfig } from '@meng-xi/unix-router'
+
+export const routes: RouteConfig[] = [
+	{ path: 'pages/index/index', name: 'home', meta: { title: 'Home', isTab: true } },
+	{ path: 'pages/login/login', name: 'login', meta: { title: 'Login' } },
+	{ path: 'pages/profile/profile', name: 'profile', meta: { title: 'Profile', requireAuth: true } }
+]
+```
+
+**2) Global before guard** (`router/index.ts`) — redirect via `NavigationRedirect` carrying a `redirect` query:
+
+```ts
+import { createRouter } from '@meng-xi/unix-router'
+import { routes } from './routes'
+
+export const router = createRouter({ routes, strict: true })
+
+let loggedIn: boolean = false
+export function isLoggedIn(): boolean {
+	return loggedIn
+}
+export function setLoggedIn(value: boolean): void {
+	loggedIn = value
+}
+
+router.beforeEach((to, from) => {
+	if (to.meta.requireAuth === true && !isLoggedIn()) {
+		return {
+			location: { name: 'login', query: new Map<string, string>([['redirect', to.fullPath]]) },
+			mode: 'replace' // replace: the login page doesn't stay in the back stack
+		}
+	}
+	return true
+})
+```
+
+**3) Redirect back after login** (`pages/login/login.uvue`):
+
+```vue
+<script setup lang="uts">
+import { useRouter, useRoute } from '@meng-xi/unix-router'
+import { setLoggedIn } from '../../router'
+
+const router = useRouter()
+const route = useRoute()
+
+const onLogin = () => {
+	setLoggedIn(true)
+	const redirect = route.query.get('redirect')
+	router.replace(redirect !== null ? redirect : '/pages/index/index')
+}
+</script>
+
+<template>
+	<view class="page">
+		<text class="title">Login</text>
+		<button @click="onLogin">Login and go back</button>
+	</view>
+</template>
+```
+
+::: danger Don't call router.push inside guards
+Inside a guard, `return` a redirect location instead of calling `router.push` — the latter starts a new navigation that gets queued, producing an unpredictable navigation sequence.
+:::
+
+## Registration Cancellation and Cleanup
+
+All guard registrations go into a global guard queue. Long-running apps should unregister to avoid piling up duplicate registrations:
+
+```ts
+const off = router.beforeEach(reportNavigation)
+
+// Cancel when no longer needed (logout, page unmount, test teardown, etc.)
+off()
+```
+
+## back Also Runs Guards
+
+`router.back(delta)` runs **only `beforeEach → beforeResolve`** before going back (per-route `beforeEnter` is not executed); `afterEach` fires as usual after a successful back. To intercept on "back": check `to.path` (the back target) in a global guard, or intercept in `onBeforeRouteLeave` of the page being left.
+
+- `delta` defaults to `1`; a non-positive integer → `ABORTED`; insufficient page stack → `CANCELLED`.
+
+## guardRoute: Running Guards on Cold Start
+
+When an H5 URL / App scene value / deeplink lands directly on a page, the framework has already loaded the page and **the guards never ran**. Re-run them in `onLaunch` of `App.uvue`:
 
 ```ts
 import { router } from './router'
@@ -145,28 +244,20 @@ export function App() {
 }
 ```
 
-- Continue: returns the target route
-- Redirect: automatically navigates to the guard's target
-- Abort: triggers `onAbort`, where you can jump to a safe page
-
-## Guard Timeout and Redirect Depth
-
-- `guardTimeout` (default `10000ms`): warns and aborts on timeout; `0` disables it.
-- **Redirect depth limit**: a guard returning a redirect recurses navigation; beyond `MAX_REDIRECT_DEPTH` it cancels (`CANCELLED`) to prevent infinite loops.
-
-## back Also Runs Guards
-
-`router.back(delta)` runs `beforeEach → beforeResolve`, so to intercept "going back", check `to.path` (the back target) in those guards, or intercept in `onBeforeRouteLeave`.
+- Allow: returns the target route
+- Redirect: automatically navigates to the guard-returned target
+- Abort: triggers `onAbort`; you can jump to a safe page
 
 ## Common Pitfalls
 
-1. **Deadlock by calling `router.push` in a guard**: `return` a redirect location instead.
-2. **Missing a continue branch**: a guard not returning `true`/`null` in every branch leaves the flow undefined. Return explicitly in each branch.
-3. **Async guard not awaited**: use `async` guards; `Promise` is resolved before deciding.
-4. **Misusing truthiness**: reading optional `to.meta.requireAuth` should use `=== true`.
-5. **Bypassing guards with `uni.navigateTo`**: unix-router does **not** intercept native navigation APIs; always use `router.*`.
+1. **Calling `router.push` inside a guard**: produces queued navigations with unpredictable behavior. `return` a redirect location instead.
+2. **Missing the allow branch**: explicitly `return true` / `return null` in every branch.
+3. **Async guards**: just use an `async` function; the `Promise` is resolved before the decision (subject to `guardTimeout`).
+4. **Misusing truthiness checks**: read optional fields with `to.meta.requireAuth === true`.
+5. **Business code calling `uni.navigateTo` directly, bypassing guards**: not intercepted by default; enable [uni API interception](./interceptor) to route native calls through the guard chain too.
 
-## Related
+## Next Steps
 
-- Execution order details: see [Navigation Flow](./navigation-flow)
-- Platform differences on back interception: see [Platform Compatibility](./compatibility#back-interception)
+- [Inter-page Communication](./events) — targeted communication between pages after navigation completes
+- [Error Handling](./error-handling) — the error system for aborted / cancelled / redirect failures
+- [NavigationGuard Type](../api/type-navigation-guard) — the complete guide to guard return value types

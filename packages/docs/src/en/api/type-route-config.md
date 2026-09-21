@@ -1,13 +1,13 @@
 # RouteConfig
 
-A single route configuration record. Because uni-app x uses the static `pages.json` page model, **the page path is the route path**, and `path` must match the registration in `pages.json`.
+A single route configuration record. Since uni-app x adopts the static `pages.json` page model, **the page path is the route path**, and `path` must match the registration in `pages.json`.
 
 ```ts
 import type { RouteConfig } from '@meng-xi/unix-router'
 
 export const routes: RouteConfig[] = [
 	{ path: 'pages/index/index', name: 'home', meta: { title: 'Home', isTab: true } },
-	{ path: 'pages/about/about', name: 'about', meta: { title: 'About', requireAuth: true } },
+	{ path: 'pages/about/about', name: 'about', meta: { title: 'About' } },
 	{
 		path: 'pages/admin/admin',
 		name: 'admin',
@@ -23,11 +23,10 @@ export const routes: RouteConfig[] = [
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `path` | `string` | — | **Required**. The page path, must match `pages.json` (e.g. `pages/index/index`) |
-| `name` | `string` | — | The named route name, for navigating by name |
-| `redirect` | `RouteLocationRaw` | — | The redirect target (when not provided, navigations to this path are redirected directly) |
-| `meta` | `RouteMeta` | — | Route metadata |
-| `beforeEnter` | `NavigationGuard \| NavigationGuard[]` | — | Route-local before guard |
+| `path` | `string` | — | **Required**. Page path, must match `pages.json` (e.g. `pages/index/index`), without a leading slash; normalized to `/pages/index/index` after parsing |
+| `name` | `string` | — | Named route name, for navigation by name; a duplicate `name` logs a warning and the later one overrides the earlier one |
+| `meta` | `RouteMeta` | — | Route metadata (`title` / `isTab` / `requireAuth`) |
+| `beforeEnter` | `NavigationGuard \| NavigationGuard[]` | — | Route-exclusive before guard: a function or an array, runs only when entering this route (before the global `beforeResolve`) |
 
 ## Related APIs
 

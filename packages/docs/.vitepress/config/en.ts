@@ -29,7 +29,7 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 
 		/** 导航栏 */
 		nav: [
-			{ text: 'Guide', link: '/en/guide/getting-started' },
+			{ text: 'Guide', link: '/en/guide/introduction' },
 			{ text: 'Components', link: '/en/api/router-link' },
 			{ text: 'API', link: '/en/api/create-router' },
 			{ text: 'Changelog', link: '/en/changelog' },
@@ -57,25 +57,31 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					items: [
 						{ text: 'Route Configuration', link: '/en/guide/route-config' },
 						{ text: 'Navigation', link: '/en/guide/navigation' },
-						{ text: 'Composables', link: '/en/guide/composables' },
-						{ text: 'Route Meta', link: '/en/guide/meta' },
-						{ text: 'Route Guards', link: '/en/guide/guards' }
+						{ text: 'Composables', link: '/en/guide/composables' }
 					]
 				},
 				{
-					text: 'Plugins',
-					items: [{ text: 'Plugin System', link: '/en/guide/plugins' }]
+					text: 'Advanced',
+					items: [
+						{ text: 'Route Meta', link: '/en/guide/meta' },
+						{ text: 'Route Guards', link: '/en/guide/guards' },
+						{ text: 'Error Handling', link: '/en/guide/error-handling' }
+					]
 				},
 				{
-					text: 'Principles In Depth',
+					text: 'Plugin System',
 					items: [
-						{ text: 'Navigation Flow', link: '/en/guide/navigation-flow' },
-						{ text: 'Error Handling', link: '/en/guide/error-handling' }
+						{ text: 'Plugins (Overview)', link: '/en/guide/plugins' },
+						{ text: 'Passing Params · ParamsPlugin', link: '/en/guide/params' },
+						{ text: 'Page Communication · EventsPlugin', link: '/en/guide/events' },
+						{ text: 'Navigation Animations · AnimationPlugin', link: '/en/guide/animation' },
+						{ text: 'uni API Interception · InterceptorPlugin', link: '/en/guide/interceptor' }
 					]
 				},
 				{
 					text: 'Mastery',
 					items: [
+						{ text: 'Navigation Flow', link: '/en/guide/navigation-flow' },
 						{ text: 'Recipes', link: '/en/guide/recipes' },
 						{ text: 'Platform Compatibility', link: '/en/guide/compatibility' },
 						{ text: 'Differences from vue-router', link: '/en/guide/differences' },

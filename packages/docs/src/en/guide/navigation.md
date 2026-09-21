@@ -1,78 +1,45 @@
 # Navigation
 
-unix-router provides four navigation methods — `push / replace / relaunch / back` — mapped to the uni native navigation APIs, with automatic tabBar page detection.
+unix-router provides four navigation methods — `push / replace / relaunch / back` — which map to the uni native navigation APIs underneath and automatically detect tabBar pages. Each navigation returns `Promise<NavigationResult>`: on success it **resolves with the target route location**, on failure it **rejects with a `NavigationFailure`**.
 
 ## Navigation Methods
 
-| Method | Corresponding uni API | Notes |
+| Method | Corresponding uni API | Description |
 | --- | --- | --- |
-| `push` | `navigateTo` / `switchTab` | Pushes onto the stack, can go back |
+| `push` | `navigateTo` / `switchTab` | Pushes onto the stack; can go back |
 | `replace` | `redirectTo` / `switchTab` | Replaces the current page, no new stack entry |
 | `relaunch` | `reLaunch` / `switchTab` | Closes all pages and opens the target |
-| `back` | `navigateBack` | Goes back one / several pages |
+| `back` | `navigateBack` | Goes back one or several pages |
 
-`router.push` and friends all return a `Promise`: resolves on success and rejects on failure (detected with `isNavigationFailure`).
-
-## Location Form (RouteLocationRaw)
+## Location Forms (RouteLocationRaw)
 
 Both a string and an object are supported:
 
 ```ts
-// 1. String path
-await router.push('/pages/about/about')
+// 1. String path (can inline ?query)
+await router.push('/pages/detail/detail?id=1024')
 
 // 2. Path object (path takes precedence over name)
-await router.push({ path: 'pages/about/about', query: new Map([['a', '1']]) })
+await router.push({ path: 'pages/detail/detail', query: new Map<string, string>([['id', '1024']]) })
 
-// 3. Named object (name is recommended for compile-time consistency)
-await router.push({ name: 'about', query: new Map([['a', '1']]) })
+// 3. Named object (recommended: a path change only requires updating the config)
+await router.push({ name: 'detail', query: new Map<string, string>([['id', '1024']]) })
 ```
 
-::: tip query and params are both Maps
-uni-app x carries query/params as `Map<string, string>`; read them with `.get(key)` / `.has(key)`.
+::: tip Both query and params are Maps
+uni-app x carries query / params as `Map<string, string>`; read them with `.get(key)` / `.has(key)`.
 :::
 
-## Passing query
+## Passing Data: query or params?
 
-query shows up in the URL and survives refresh:
+- **query**: visible in the URL, survives refresh and bookmarking; suitable for short values like ids or source tags. Available directly with any navigation method.
+- **params**: never enters the URL; passed across pages via the associated store of `ParamsPlugin`, suitable for structured data or content you do not want exposed in the address bar.
 
-```ts
-await router.push({
-	name: 'detail',
-	query: new Map([['id', '1024']])
-})
-
-// target page
-const route = useRoute()
-console.log(route.query.get('id')) // '1024'
-```
-
-## Passing object params (ParamsPlugin)
-
-Complex objects are not suitable for stuffing into a URL. After registering `ParamsPlugin`, `params` are passed through the `__params__` in-memory key channel:
-
-```ts
-import { createRouter, ParamsPlugin } from '@meng-xi/unix-router'
-
-const router = createRouter({ routes, plugins: [ParamsPlugin] })
-
-// source page
-await router.push({
-	name: 'detail',
-	params: new Map<string, string>([['id', '1024'], ['name', 'Zhang Wei']])
-})
-
-// read on the target page
-const route = useRoute()
-console.log(route.params.get('id'))   // '1024'
-console.log(route.params.get('name')) // 'Zhang Wei'
-```
-
-> To keep params across refresh, enable `paramsPersistent: true` (stored to storage). Using `params` without registering `ParamsPlugin` throws `PLUGIN_REQUIRED`. See [Plugin System](./plugins).
+For a full comparison and usage of both, see [Passing Parameters](./params).
 
 ## tabBar Pages
 
-When the target route has `meta.isTab === true`, the router automatically uses `uni.switchTab`:
+When the target route has `meta.isTab === true`, `push` / `replace` / `relaunch` automatically switch to `uni.switchTab`:
 
 ```ts
 const routes: RouteConfig[] = [
@@ -83,32 +50,75 @@ const routes: RouteConfig[] = [
 await router.push({ name: 'mine' }) // automatically uses switchTab
 ```
 
-> `switchTab` does not support query; on a tabBar page pass params via `onShow` + global state instead (see [Recipes](./recipes#tabbar-page-data)).
+::: warning switchTab carries no query
+uni's `switchTab` does not support query parameters, and the router will not append a URL query string for it. To pass data to a tabBar page, use `params` (ParamsPlugin) or global state (see [Recipes](./recipes#tabbar-application)).
+:::
 
 ## Going Back
 
 ```ts
-await router.back()   // back one page
-await router.back(2)  // back two pages
+await router.back()   // delta defaults to 1, back one page
+await router.back(2)  // back two levels
 ```
 
-- `delta` must be a positive integer
-- Returning `CANCELLED` when the page stack is insufficient
-- On App/H5, going back goes through the guard chain; on Mini Program the host back must be handled afterwards via `onRouteChange` (see [Platform Compatibility](./compatibility))
+Behavior details:
 
-## Duplicate Navigation and Concurrency
+- `delta` defaults to `1`; it must be a **positive integer**, otherwise no navigation is started and the promise rejects with `ABORTED` immediately
+- Insufficient page stack (fewer than two pages, or `delta` exceeds the stack depth) → rejects with `CANCELLED`
+- The back target is resolved by the **page stack** (the `delta`-th page counting from the top), then matched back to a route record by path
+- The guard phase before going back only runs the global `beforeEach` + `beforeResolve` (the route-exclusive `beforeEnter` does not participate); `afterEach` still fires after a successful back
 
-- **Duplicate navigation**: pushing to a location identical to the current one throws `DUPLICATED`; use `replace` or catch and ignore it
-- **Concurrency queueing**: while a previous navigation is unfinished, a new one waits for it to finish
+## Duplicate Navigation Detection
+
+Only `push` detects duplicates: when the target location is fully identical to the current route's `path` / `query` / `params` / `hash`, it rejects with `DUPLICATED`. `replace` / `relaunch` mean "force arrival" by semantics and perform no detection.
 
 ```ts
 try {
 	await router.push({ name: 'about' })
-} catch (err) {
-	if (router.code === 16) return // RouterErrorCode.DUPLICATED, ignore
-	// other navigation failures: handle them
+} catch (e) {
+	if (isNavigationFailure(e, RouterErrorCode.DUPLICATED)) return // ignore duplicate navigation
+	throw e
 }
 ```
+
+## Concurrent Navigation Queueing
+
+When the previous navigation has not finished, a new navigation **automatically waits for it to complete before executing** (serialized queueing internally) — no manual locking or debouncing needed.
+
+## Handling Navigation Failures
+
+A failed navigation rejects the promise; branch on the error code:
+
+```ts
+import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
+
+const goDetail = async () => {
+	try {
+		await router.push({ name: 'detail' })
+	} catch (e) {
+		if (isNavigationFailure(e, RouterErrorCode.ABORTED)) return     // blocked by a guard, normal business flow
+		if (isNavigationFailure(e, RouterErrorCode.DUPLICATED)) return  // duplicate navigation, ignore
+		// the rest: ROUTE_NOT_FOUND / NAVIGATION_API_ERROR / PLUGIN_REQUIRED ...
+		uni.showToast({ title: 'Navigation failed', icon: 'none' })
+	}
+}
+```
+
+You can also use `router.onError` as a global fallback; see [Error Handling](./error-handling).
+
+## Per-Navigation Animation
+
+After registering `AnimationPlugin`, the global default animation applies; a single navigation can override it on the location object:
+
+```ts
+await router.push({
+	name: 'detail',
+	animationType: 'slide-in-right',
+	animationDuration: 300
+})
+```
+
+See [Navigation Animation](./animation) for details.
 
 ## Programmatic vs Declarative Navigation
 
@@ -118,14 +128,16 @@ Besides calling `router.push`, you can also:
 // programmatic (any context)
 router.replace('/pages/login/login')
 
-// declarative (components)
+// declarative (in components)
 import { RouterLink } from '@meng-xi/unix-router'
 // <RouterLink to="pages/about/about">About</RouterLink>
 ```
 
+The props of `RouterLink` are only `to` / `replace` / `relaunch`; see the [RouterLink API](../api/router-link).
+
 ## Cold-Start Direct Entry
 
-Cold-start / direct-URL entries into a page in `uni-app x` **do not go through the guard chain** (the page is loaded straight from `pages.json`). To re-run guards, use `guardRoute`:
+Cold start / direct-URL entry into a page in `uni-app x` **does not go through the guard chain** (the page is loaded directly by `pages.json`). To re-run guards, use `guardRoute`:
 
 ```ts
 // App.vue onLaunch
@@ -138,6 +150,6 @@ router.isReady().then(() => {
 
 ## Next Steps
 
-- [Route Guards](./guards) — permission control during navigation
-- [Plugin System](./plugins) — ParamsPlugin / InterceptorPlugin
-- [Composables](./composables) — useRoute / useLink
+- [Passing Parameters](./params) — choosing between query / params and ParamsPlugin
+- [Composables](./composables) — useRouter / useRoute / useLink
+- [Router Instance](../api/router-instance) — full signatures of the navigation methods

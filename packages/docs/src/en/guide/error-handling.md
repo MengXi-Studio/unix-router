@@ -1,117 +1,120 @@
 # Error Handling
 
-unix-router provides a complete vue-router-style error system.
+unix-router provides a complete vue-router-style error system: navigation failures are uniformly expressed as `Promise` rejections, precisely classified by error codes.
 
-## Error Types
+## Error Object Hierarchy
 
-| Type | Description |
-| --- | --- |
-| `RouterError` | Base class for router errors (contains `code` / `to` / `from`) |
-| `NavigationFailure` | A navigation failure (inherits `RouterError`; thrown when aborted, cancelled, or duplicated) |
-| `RouterErrorCode` | Error code enum |
-| `UniNavigationApiError` | The `fail` callback payload of the `uni.*` native navigation APIs (`errMsg` / `context`) |
+```
+Error
+└── RouterError          // router error base class
+    └── NavigationFailure // navigation failure (aborted / cancelled / duplicated, etc.)
+```
 
-## Error Object Shape
-
-`RouterError` / `NavigationFailure` are both `Error` subclasses; besides `message` / `name` they carry three fields:
+Besides `message` / `name`, `RouterError` / `NavigationFailure` carry three fields:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `code` | `RouterErrorCode` | The error code; see the enum table below |
+| `code` | `RouterErrorCode` | The error code; see the full table below |
 | `to` | `RouteLocation` | The target route that triggered the error |
 | `from` | `RouteLocation` | The source route that triggered the error |
 
-```ts
-catch (e) {
-  const failure = e as NavigationFailure
-  console.log(failure.code)     // RouterErrorCode enum
-  console.log(failure.to.path)  // the failed target
-  console.log(failure.from.path)
-}
-```
+There is also `UniNavigationApiError` (an interface): the error payload (`errMsg` / `context`) of the `fail` callback of the `uni.*` native navigation APIs, used to locate the native failure cause.
 
-## Error Codes RouterErrorCode
+## Precise Checks with isNavigationFailure
 
-| Enum | Value | Description |
-| --- | --- | --- |
-| `ABORTED` | 4 | A guard returned `false`, aborting the navigation |
-| `CANCELLED` | 8 | A guard threw, or the redirect exceeded the depth limit |
-| `DUPLICATED` | 16 | Duplicate navigation (`push` to a location identical in `path+query+params+hash`) |
-| `ROUTE_NOT_FOUND` | 32 | No named route matched in strict mode |
-| `NAVIGATION_API_ERROR` | 64 | The `uni.*` native navigation API failed |
-| `SETUP_ERROR` | 128 | Error in the router installation environment |
-
-## Catching Navigation Failures
-
-Programmatic navigation can reject; narrow the check with `isNavigationFailure`:
+`isNavigationFailure(error, codes?)` checks whether an error is a navigation failure (of the specified types):
 
 ```ts
 import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
 
-try {
-	await router.push('/pages/index/index')
-} catch (e) {
-	// e is an Error; isNavigationFailure narrows it to a NavigationFailure
-	const failure = e as NavigationFailure
-	if (isNavigationFailure(failure, RouterErrorCode.DUPLICATED)) {
-		// duplicate navigation, can be ignored
-	} else if (isNavigationFailure(failure, RouterErrorCode.ABORTED)) {
-		// aborted by a guard
-	}
-}
+// With an error code: check whether it is that kind of navigation failure
+isNavigationFailure(err, RouterErrorCode.DUPLICATED) // boolean
+// Without an error code: check whether it is a navigation failure at all
+isNavigationFailure(err)
 ```
 
-## Global Error Handling onError
+## Full Error Code Table
 
-Errors thrown by navigation synchronously trigger all `onError` handlers (`afterEach` also receives the failure):
-
-```ts
-router.onError((error, to, from) => {
-	console.warn(`navigation failed(${to.fullPath}): ${error.message}`)
-})
-```
-
-## Errors Thrown Inside Guards
-
-An `Error` thrown by a guard cancels the navigation (`CANCELLED`) and triggers `onError` / `afterEach(failure)`.
-
-## Summary of Trigger Timing
-
-- Guard **aborts/cancels**: `afterEach(to, from, failure)` and each `onError` callback are invoked.
-- Native API **call fails**: `currentRoute` rolls back to the source route, and error handling is triggered.
-- **Duplicate navigation**: only throws `DUPLICATED`, without extra logic outside `onError` (can be ignored as needed). It is only triggered when `path+query+params+hash` are all identical.
-
-## Practical Handling Strategy
-
-Navigation failures fall into roughly three categories with different goals:
-
-| Scenario | Code | How to handle |
+| Error code | Value | Trigger scenario |
 | --- | --- | --- |
-| Duplicate navigation | `DUPLICATED` | Ignore (already on the target page) |
-| Guard aborted | `ABORTED` / `CANCELLED` | Stay silent or prompt "action cancelled"; the guard already handled the redirect, don't navigate again |
-| Real error | `ROUTE_NOT_FOUND` / `NAVIGATION_API_ERROR` etc. | Report + prompt the user |
+| `ABORTED` | `4` | A guard returned `false`, aborting the navigation (including a non-positive-integer `delta` for `back()`) |
+| `CANCELLED` | `8` | A guard threw an `Error`, guard timeout (default 10s), redirect exceeded the depth limit (10), or `back()` with an insufficient page stack |
+| `DUPLICATED` | `16` | Repeatedly `push` to the current address (`path`+`query`+`params`+`hash` all identical to current; checked by `push` only) |
+| `ROUTE_NOT_FOUND` | `32` | No route matched (a `name` not registered in strict mode) or an invalid location |
+| `NAVIGATION_API_ERROR` | `64` | A `uni.*` navigation API call failed, or the page-stack-top confirmation failed after navigation completed (500ms polling) |
+| `SETUP_ERROR` | `128` | Router installation environment error |
+| `PLUGIN_REQUIRED` | `256` | Using plugin capabilities such as `params` / `events` without registering the corresponding plugin (`ParamsPlugin` / `EventsPlugin`) |
 
-**Recommended** — wrap `push` in try/catch, branch by code, and let the rest reach `onError`:
+## Promise Rejection Handling Patterns
+
+Navigation failures **never throw synchronously**; they are all delivered via `Promise` rejection (aligned with vue-router). Two handling patterns:
 
 ```ts
-async function safePush(location: RouteLocationRaw) {
+import { isNavigationFailure, RouterErrorCode, NavigationFailure } from '@meng-xi/unix-router'
+
+// Pattern 1: try/catch + await
+async function goDetail() {
 	try {
-		await router.push(location)
-		return true
+		await router.push({ name: 'detail' })
 	} catch (e) {
 		const failure = e as NavigationFailure
 		if (isNavigationFailure(failure, RouterErrorCode.DUPLICATED)) {
-			return false          // already on the target page, not a failure
-		}
-		if (isNavigationFailure(failure, RouterErrorCode.ABORTED)) {
-			return false          // guard proactively aborted; expected
+			return // already on the target page, ignore
 		}
 		console.error('navigation failed', (e as Error).message)
-		return false
 	}
 }
+
+// Pattern 2: .catch
+router.push({ name: 'detail' }).catch((e: any) => {
+	const failure = e as NavigationFailure
+	console.warn('navigation failed', failure.message)
+})
 ```
 
-**Universal fallback**: register all unexpected failures centrally in `onError` (analytics / logging) to avoid repeating it at every call site.
+::: tip Navigation failures don't throw
+Even when a guard returns `false` or a native API fails, the synchronous code after `router.push(...)` still executes normally; use `await` / `.catch` when you need to know the outcome.
 
-> Tip: in `try/catch`, `catch (e)` is `unknown`/`Error` in UTS; read it via `(e as Error).message` or narrow with `(e as NavigationFailure)`.
+```ts
+router.push({ name: 'profile' })
+console.log('navigation initiated') // runs immediately, not skipped by a guard abort
+```
+:::
+
+## Global Capture with onError
+
+`router.onError` registers a global error handler and **returns a cancel function**:
+
+```ts
+const offError = router.onError((error, to, from) => {
+	// error: Error (a NavigationFailure when navigation failed; narrow it with isNavigationFailure)
+	console.warn(`navigation failed ${from.fullPath} -> ${to.fullPath}: ${error.message}`)
+})
+
+// Cancel the listener
+offError()
+```
+
+Trigger timing summary:
+
+- **Guard abort / cancellation**: `afterEach(to, from, failure)` receives the failure and each `onError` callback is invoked;
+- **Native API failure**: `currentRoute` falls back to the source route and error handling is triggered;
+- **Duplicate navigation**: only rejects with `DUPLICATED`; ignore it as needed.
+
+## Troubleshooting Table for Common Failures
+
+| Symptom | Error code | Likely cause | Fix |
+| --- | --- | --- | --- |
+| Navigation mysteriously blocked | `ABORTED` (4) | Some guard returned `false` | Check whether the guard branches match expectations |
+| Navigation cancelled | `CANCELLED` (8) | A guard threw / guard timeout (default 10s) / redirect loop over 10 levels / insufficient stack for `back` | Check warning logs to locate the guard; review redirect conditions and stack depth |
+| Error on rapid button taps | `DUPLICATED` (16) | Repeated `push` to the current address | Catch and ignore, or switch to `replace` |
+| Got 32 | `ROUTE_NOT_FOUND` | `name` not registered in `routes` / invalid location (strict mode) | Verify the route config against `pages.json` |
+| Got 64 | `NAVIGATION_API_ERROR` | Page not registered in `pages.json` / native API `fail` / stack-top confirmation failed | Verify page registration and path consistency in `pages.json` |
+| Got 256 | `PLUGIN_REQUIRED` | Using `params` / `events` without the corresponding plugin | Register `ParamsPlugin` / `EventsPlugin` |
+
+> Tip: in UTS, narrow the `e` caught by `catch (e)` with `(e as NavigationFailure)` or `(e as Error)` before reading fields.
+
+## Next Steps
+
+- [Plugin System](./plugins) — how to register the plugins behind `PLUGIN_REQUIRED`
+- [RouterErrorCode](../api/type-router-error-code) — error code enum type reference

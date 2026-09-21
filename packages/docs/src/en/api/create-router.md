@@ -1,6 +1,6 @@
 # createRouter()
 
-`createRouter()` creates and returns a [Router](./router-instance) instance (adapted for uni-app x).
+`createRouter(options: RouterOptions): Router` creates and returns a [Router instance](./router-instance) (adapted for uni-app x).
 
 ```ts
 import { createRouter } from '@meng-xi/unix-router'
@@ -18,16 +18,26 @@ const router = createRouter({
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `routes` | `RouteConfig[]` | — | **Required**. The route configuration list; paths must match the registration in `pages.json` |
-| `strict` | `boolean` | `true` | Strict mode; when enabled, unmatched named routes throw a `ROUTE_NOT_FOUND` error |
-| `guardTimeout` | `number` | `10000` | Guard timeout (ms); set to `0` to disable |
+| `strict` | `boolean` | `true` | Strict mode. When `true`, an unmatched named route throws `RouterError ROUTE_NOT_FOUND`; when `false`, only a warning is emitted and the route is handled by path |
+| `guardTimeout` | `number` | `10000` | Guard timeout (ms); set to `0` to disable. On timeout a warning is printed and the navigation is aborted |
 | `readyTimeout` | `number` | `0` | Router ready timeout (ms); `0` means never time out |
-| `plugins` | `RouterPlugin[]` | — | Plugin list; register extension capabilities on demand, e.g. `[ParamsPlugin]`, `[InterceptorPlugin]` |
-| `interceptUniApi` | `boolean` | `false` | **Opt-in**. When enabled, intercepts the `uni.*` native navigation APIs (`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`); guards are sunk down to the uni API layer. Requires `plugins: [InterceptorPlugin]` |
-| `paramsPersistent` | `boolean` | `false` | Whether to persist params to storage by default (requires `plugins: [ParamsPlugin]`) |
+| `interceptUniApi` | `boolean` | `false` | **Opt-in**. When enabled, intercepts the `uni.*` native navigation APIs (`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`); external direct calls are also handed over to the router and run the full guard chain. **Requires `InterceptorPlugin`**, see [uni API Interception](../guide/interceptor) |
+| `plugins` | `RouterPlugin[]` | — | Plugin list; register extended capabilities on demand. **Pass instances**: `[new ParamsPlugin(), new InterceptorPlugin()]`, see [Plugin System](../guide/plugins) |
+| `paramsPersistent` | `boolean` | `false` | Whether to persist params to storage by default (automatically falls back to memory if a write fails). **Requires `ParamsPlugin`** |
+| `animation` | `NavigationAnimation` | — | Global default navigation animation `{ type: AnimationType, duration?: number }` (`duration` defaults to 300ms). On App / Mini Program the native `animationType` is passed through; on H5 the plugin implements it with the Web Animations API. **Requires `AnimationPlugin`**, see [Navigation Animation](../guide/animation) |
+
+::: warning Plugin-related options require their companion plugins
+`interceptUniApi` / `paramsPersistent` / `animation` depend on `InterceptorPlugin` / `ParamsPlugin` / `AnimationPlugin` respectively. If an option is set but the corresponding plugin is not registered, the option is ignored with a warning.
+:::
 
 ## Return Value
 
-Returns a [Router](./router-instance). It does not start navigating immediately; it only provides services after being installed into the Vue app via `app.use(router)`.
+Returns a [Router instance](./router-instance). It does not navigate immediately; it only provides services after being installed into the Vue app via `app.use(router)`.
+
+## Errors
+
+- With `strict: true` (the default), resolving an unmatched **named route** throws `RouterError` (`ROUTE_NOT_FOUND`); in controlled navigation the error surfaces via Promise reject + `router.onError`.
+- With `strict: false`, it degrades to a warning and the route is handled by path.
 
 ## Example
 
@@ -39,8 +49,9 @@ import { routes } from './routes'
 export const router = createRouter({
 	routes,
 	strict: true,
-	plugins: [ParamsPlugin, InterceptorPlugin], // page params + uni navigation interception
-	interceptUniApi: true, // external uni.navigateTo also runs guards
+	plugins: [new ParamsPlugin(), new InterceptorPlugin()], // page params + uni navigation interception
+	interceptUniApi: true, // external uni.navigateTo calls also run guards
+	paramsPersistent: true, // persist params to storage
 	guardTimeout: 15000 // increase the timeout when guards perform network requests
 })
 ```
@@ -51,11 +62,11 @@ export const router = createRouter({
 | --- | --- | --- | --- |
 | `DEFAULT_GUARD_TIMEOUT` | `number` | `10000` | Default guard timeout (ms); the `guardTimeout` default |
 | `DEFAULT_READY_TIMEOUT` | `number` | `0` | Default router-ready timeout; the `readyTimeout` default |
-| `MAX_REDIRECT_DEPTH` | `number` | `10` | Max redirect depth from guards; cancellation (`CANCELLED`) beyond it prevents infinite loops |
-| `ROUTER_SYMBOL` | `string` | `'__unix_router__'` | `provide` / `inject` pairing key (a string, more stable across platforms) |
+| `MAX_REDIRECT_DEPTH` | `number` | `10` | Maximum redirect depth from guards; beyond it the navigation is cancelled (`CANCELLED`) to prevent infinite loops |
+| `ROUTER_SYMBOL` | `string` | `'__unix_router__'` | The `provide` / `inject` pairing key (a string key, more stable across platforms) |
 
 ## Related APIs
 
-- [Router](./router-instance)
+- [Router Instance](./router-instance)
 - [RouterOptions](./type-router-options)
 - [RouteConfig](./type-route-config)
