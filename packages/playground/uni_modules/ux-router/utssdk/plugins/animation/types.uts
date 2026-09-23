@@ -18,12 +18,14 @@ export function pickAnimation(location: RouteLocationRaw | null): NavigationAnim
 		return null
 	}
 	const raw = location as RawLocation
-	if (raw.animationType === null || raw.animationType.length === 0) {
+	// H5 端可选字段缺省为 undefined（非 null），统一归一化后判断
+	const animType: string | null = raw.animationType ?? null
+	if (animType === null || animType.length === 0) {
 		return null
 	}
 	return {
-		type: raw.animationType as AnimationType,
-		duration: raw.animationDuration
+		type: animType as AnimationType,
+		duration: raw.animationDuration ?? null
 	}
 }
 

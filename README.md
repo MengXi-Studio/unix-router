@@ -22,6 +22,7 @@
 - **路由守卫** - `beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / `onBeforeRouteLeave` / `onBeforeRouteEnter` / `onBeforeRouteUpdate`，支持可控重定向、守卫超时保护（`guardTimeout`）与重定向深度上限
 - **冷启动守卫** - `guardRoute()` 对 H5 直达 / 场景值 / deeplink 等场景补执行守卫链，支持重定向与中止回调（`onAbort`）
 - **命名路由 & 路由元信息** - 通过 `name` 导航，`meta` 携带自定义数据（含 `isTab`），严格模式（`strict`）下未匹配命名路由抛出 `RouterError`
+- **基于文件的路由生成（构建期 dev 工具，opt-in）** - 从 `@meng-xi/unix-router/vite-plugin` 引入 vite 插件，在页面旁声明 `defineUniPage` 宏或 `<route-config>` 块，构建期自动生成 `pages.json` 与路由表（`routes.gen.uts`），消除 path / title / isTab 的双份手工维护
 - **页面参数传递** - `params`（`Map<string,string>`）经 **ParamsPlugin**（`__params__` 关联存储）跨页传递，目标页 `route.params` 读回，不暴露明文键名；需注册 `plugins: [ParamsPlugin]`
 - **查询参数增强** - `route.query` 为 `Map`，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析（由库内置工具函数提供）
 - **声明式导航** - `useLink()` 组合式 API，返回响应式目标路由、激活态（`isActive` / `isExactActive`）与导航函数，便于自定义链接 / 菜单组件；配套 **`RouterLink`** 组件直接使用
@@ -165,7 +166,7 @@ const router2 = createRouter({
 
 **[https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs](https://github.com/MengXi-Studio/unix-router/tree/master/packages/docs)**
 
-阅读建议：先看[介绍与学习路径](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/introduction.md)，再按[快速开始](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/getting-started.md) → [路由配置](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/route-config.md) → [路由导航](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/navigation.md) 的顺序上手，进阶看[守卫](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/guards.md)，最后用[完整实战](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/recipes.md)收尾。
+阅读建议：先看[介绍与学习路径](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/introduction.md)，再按[快速开始](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/getting-started.md) → [路由配置](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/route-config.md) → [基于文件的路由生成](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/file-based-routing.md) → [路由导航](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/navigation.md) 的顺序上手，进阶看[守卫](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/guards.md)，最后用[完整实战](https://github.com/MengXi-Studio/unix-router/blob/master/packages/docs/src/guide/recipes.md)收尾。
 
 ## 更新日志
 

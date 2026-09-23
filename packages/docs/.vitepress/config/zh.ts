@@ -57,6 +57,7 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					text: '核心功能',
 					items: [
 						{ text: '路由配置', link: '/guide/route-config' },
+						{ text: '基于文件的路由生成', link: '/guide/file-based-routing' },
 						{ text: '路由导航', link: '/guide/navigation' },
 						{ text: '组合式 API', link: '/guide/composables' }
 					]

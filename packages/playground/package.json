@@ -1,0 +1,8 @@
+{
+	"name": "@meng-xi/unix-router-playground",
+	"version": "0.0.0",
+	"private": true,
+	"dependencies": {
+		"@meng-xi/unix-router": "workspace:*"
+	}
+}

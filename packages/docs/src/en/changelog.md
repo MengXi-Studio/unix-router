@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.0] - 2026-09-22
+
+### Added
+
+- **File-based routing plugin** (build-time dev tool, shipped inside the router package):
+  - Declare `defineUniPage` macros near your pages (or `<route-config lang="jsonc|uts">` custom blocks); the plugin generates `pages.json` (including tabBar / subPackages) and the `routes.gen.uts` route table at build time, eliminating duplicated manual maintenance of path / title / tabBar / isTab
+  - Priority chain: macro > block > plugin inference (`titleFallback` / `tabBar` config as fallback), with field-level merging
+  - Automatic name normalization: last-segment camelCase → full-path camelCase fallback on collision → terminal conflicts handled by `errorStrategy` (strict abort / warn skip)
+  - `beforeEnter` and extended meta declared via the macro (UTS expressions injected verbatim into the generated file, must be self-contained)
+  - `preserveRouteChanges` (default on): your modifications and custom routes in the route file survive regeneration
+  - Hand-written non-page fields in pages.json (globalStyle, uniIdRouter, etc.) are merged and preserved
+  - watch: adding / removing / editing pages triggers a debounced (200 ms), serialized two-phase pipeline rerun
+  - Generates `route-name.gen.d.ts` (WEB-side `RouteNameMap` literal types) and `define-uni-page.d.ts` (macro typing), both optional
+- **New subpath export `@meng-xi/unix-router/vite-plugin`**: vite / webpack adapters (unplugin bundled in, zero runtime dependencies); the `node/` source directory sits outside UTS compile scanning, leaving the main entry unaffected
+- Docs add a "File-Based Routing" chapter (zh/en), including how HBuilderX projects must import `uni()` themselves in `vite.config.ts`
+
+### Fixed
+
+- **`router.push` crash on H5**: `pickAnimation` / `toUniAnimation` / `pickEvents` checked optional fields against `=== null` then read `.length` / `.size`; on H5 (JS runtime) the absent value is `undefined`, throwing a `TypeError` that aborted navigation; normalized with `?? null` before checking
+
 ## [0.7.0] - 2026-09-20
 
 ### Breaking

@@ -12,12 +12,14 @@ import { uniNavigateTo, uniSwitchTab, uniRedirectTo, uniReLaunch, uniNavigateBac
 
 /** 从 UniNavigationOptions 提取动画裁剪视图（无动画时返回 null） */
 function toUniAnimation(options: UniNavigationOptions): UniAnimation | null {
-	if (options.animationType === null || options.animationType.length === 0) {
+	// H5 端可选字段缺省为 undefined（非 null），统一归一化后判断
+	const animType: string | null = options.animationType ?? null
+	if (animType === null || animType.length === 0) {
 		return null
 	}
 	return {
-		type: options.animationType,
-		duration: options.animationDuration
+		type: animType,
+		duration: options.animationDuration ?? null
 	}
 }
 

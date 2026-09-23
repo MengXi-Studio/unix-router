@@ -56,6 +56,7 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					text: 'Core Features',
 					items: [
 						{ text: 'Route Configuration', link: '/en/guide/route-config' },
+						{ text: 'File-Based Routing', link: '/en/guide/file-based-routing' },
 						{ text: 'Navigation', link: '/en/guide/navigation' },
 						{ text: 'Composables', link: '/en/guide/composables' }
 					]

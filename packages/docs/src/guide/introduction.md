@@ -26,7 +26,7 @@ unix-router 用一套与 vue-router 一致的 API 抹平这些差异。
 | 阶段 | 主题 | 你将掌握 |
 | --- | --- | --- |
 | 🟢 **入门** | [介绍](./introduction) → [安装](./installation) → [快速开始](./getting-started) | 从零跑通第一个跳转：安装依赖、实例化注册插件、创建路由器、发起导航 |
-| 🟢 **核心功能** | [路由配置](./route-config) → [路由导航](./navigation) → [组合式 API](./composables) | 路由表与命名路由、四种导航与 TabBar 识别、useRouter / useRoute / useLink |
+| 🟢 **核心功能** | [路由配置](./route-config) → [基于文件的路由生成](./file-based-routing) → [路由导航](./navigation) → [组合式 API](./composables) | 路由表与命名路由、页面就近声明自动生成双份配置、四种导航与 TabBar 识别、useRouter / useRoute / useLink |
 | 🟡 **进阶** | [路由元信息](./meta) → [路由守卫](./guards) → [错误处理](./error-handling) | meta 驱动页面行为、完整守卫链与登录鉴权、失败判定与全局捕获 |
 | 🟠 **插件体系** | [插件系统（总览）](./plugins) → [参数传递](./params) → [页面间通信](./events) → [导航动画](./animation) → [uni API 拦截](./interceptor) | 4 个内置插件（Params / Events / Animation / Interceptor）逐一精讲 + PluginContext 8 个 hook，编写自定义插件 |
 | 🔴 **精通** | [导航流程原理](./navigation-flow) → [完整实战](./recipes) → [平台兼容性](./compatibility) → [与 vue-router 的差异](./differences) → [常见问题](./faq) | 理解一次导航的内部机制、搭出登录+TabBar+详情完整应用、平台差异与高频坑排查 |

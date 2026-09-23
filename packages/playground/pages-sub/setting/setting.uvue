@@ -1,0 +1,41 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<view class="card">
+				<text class="title">设置</text>
+				<text class="desc">本页位于分包 pages-sub，由路由生成插件扫描自动注册到 pages.json 与路由表。</text>
+				<text class="desc">页面宏声明了 beforeEnter 独享守卫：未登录访问会被重定向到登录页，登录后可正常进入。</text>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+// beforeEnter 须自包含（生成文件内不引用页面作用域），与守卫返回约定一致
+defineUniPage({
+	title: '设置',
+	name: 'setting',
+	beforeEnter: (to: any, from: any): any => {
+		const logged = uni.getStorageSync('route-gen-logged')
+		if (logged != '1') {
+			console.log('[route-gen] beforeEnter setting -> 未登录，重定向 login')
+			return { name: 'login' } as any
+		}
+		console.log('[route-gen] beforeEnter setting -> 已登录，放行')
+		return true
+	}
+})
+</script>
+
+<style>
+.container { flex: 1; }
+.page { flex-direction: column; padding: 24rpx; }
+.card { background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; padding: 32rpx; }
+.title { font-size: 32rpx; font-weight: bold; color: #333; margin-bottom: 16rpx; }
+.desc { font-size: 26rpx; color: #666; margin-top: 8rpx; }
+</style>

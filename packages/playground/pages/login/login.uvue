@@ -34,6 +34,8 @@ const password = ref('')
 
 function doLogin(): void {
 	setLoggedIn(true)
+	// 同步持久登录标记：供 setting 页 beforeEnter 独享守卫读取
+	uni.setStorageSync('route-gen-logged', '1')
 	uni.showToast({ title: '登录成功', icon: 'success' })
 	// 读取守卫写入的 redirect 查询参数，回跳原目标页
 	const redirect = route.query.get('redirect')

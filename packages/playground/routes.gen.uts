@@ -1,0 +1,67 @@
+/**
+ * 本文件由 @meng-xi/unix-router/vite-plugin 自动生成，请勿整体手改。
+ * preserveRouteChanges 已开启：重新生成时保留你追加的自定义字段与整条自定义路由；
+ * 页面级声明请使用页面内的 defineUniPage 宏或 <route-config> 块。
+ */
+import type { RouteConfig, RouteMeta } from '@/uni_modules/ux-router/utssdk/index.uts'
+
+export const routes: RouteConfig[] = [
+	{
+		path: 'pages-sub/setting/setting',
+		name: 'setting',
+		meta: { title: '设置' },
+		beforeEnter: (to: any, from: any): any => {
+				const logged = uni.getStorageSync('route-gen-logged')
+				if (logged != '1') {
+					console.log('[route-gen] beforeEnter setting -> 未登录，重定向 login')
+					return { name: 'login' } as any
+				}
+				console.log('[route-gen] beforeEnter setting -> 已登录，放行')
+				return true
+			},
+	},
+	{
+		path: 'pages/index/index',
+		name: 'home',
+		meta: { title: '梦曦商城', isTab: true },
+	},
+	{
+		path: 'pages/cart/cart',
+		name: 'cart',
+		meta: { title: '购物车' },
+	},
+	{
+		path: 'pages/category/category',
+		name: 'category',
+		meta: { title: '分类', isTab: true },
+	},
+	{
+		path: 'pages/checkout/checkout',
+		name: 'checkout',
+		meta: { title: '确认订单', requireAuth: true },
+	},
+	{
+		path: 'pages/goods/detail',
+		name: 'goods-detail',
+		meta: { title: '商品详情' },
+	},
+	{
+		path: 'pages/goods/list',
+		name: 'goods-list',
+		meta: { title: '商品列表' },
+	},
+	{
+		path: 'pages/login/login',
+		name: 'login',
+	},
+	{
+		path: 'pages/mine/mine',
+		name: 'mine',
+		meta: { title: '我的', isTab: true },
+	},
+	{
+		path: 'pages/orders/orders',
+		name: 'orders',
+		meta: { title: '我的订单', requireAuth: true },
+	},
+]

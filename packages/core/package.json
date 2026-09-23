@@ -16,13 +16,22 @@
 	"types": "src/index.uts",
 	"exports": {
 		".": "./src/index.uts",
-		"./types": "./src/types/index.uts"
+		"./types": "./src/types/index.uts",
+		"./vite-plugin": {
+			"types": "./dist/plugin/index.d.ts",
+			"import": "./dist/plugin/index.mjs",
+			"require": "./dist/plugin/index.cjs"
+		}
 	},
 	"files": [
 		"src",
+		"dist",
 		"README.md",
 		"README-en.md"
 	],
+	"scripts": {
+		"build": "tsup"
+	},
 	"peerDependencies": {
 		"vue": ">=3.0.0"
 	},
@@ -30,6 +39,12 @@
 		"vue": {
 			"optional": true
 		}
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3",
+		"unplugin": "^3.4.0"
 	},
 	"author": {
 		"name": "PedroQue99",

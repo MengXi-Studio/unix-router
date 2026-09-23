@@ -1,5 +1,25 @@
 # 更新日志
 
+## [0.8.0] - 2026-09-22
+
+### 新增
+
+- **基于文件的路由生成插件**（构建期 dev 工具，随路由库同包分发）：
+  - 页面就近声明 `defineUniPage` 宏（或 `<route-config lang="jsonc|uts">` 自定义块），构建期自动生成 `pages.json`（含 tabBar / subPackages）与 `routes.gen.uts` 路由表，消除 path / title / tabBar / isTab 双份手工维护
+  - 优先级链：宏 > 块 > 插件推导（`titleFallback` / `tabBar` 配置兜底），字段级合并
+  - name 自动规范化：末段 camelCase → 冲突回退全路径 camelCase → 终极冲突按 `errorStrategy`（strict 抛错 / warn 告警）
+  - `beforeEnter` / meta 扩展经宏声明（UTS 表达式原样注入生成文件，须自包含）
+  - `preserveRouteChanges`（默认开启）：重生成时保留你对路由文件的既有修改与自定义路由
+  - pages.json 手写的非页面字段（globalStyle、uniIdRouter 等）重生成时合并保留
+  - watch：页面新增/删除/修改 200ms 去抖串行重跑两阶段流水线
+  - 生成 `route-name.gen.d.ts`（WEB 端 `RouteNameMap` 字面量类型）与 `define-uni-page.d.ts`（宏类型声明），均可关闭
+- **新增子路径导出 `@meng-xi/unix-router/vite-plugin`**：vite / webpack 适配器（unplugin 打包内置，运行时零额外依赖），`node/` 源码目录在 UTS 编译扫描范围外，主入口 UTS 编译不受影响
+- 文档新增「基于文件的路由生成」章节（zh/en），含 HBuilderX 项目 `vite.config.ts` 需自行引入 `uni()` 的接入说明
+
+### 修复
+
+- **H5 端 `router.push` 崩溃**：`pickAnimation` / `toUniAnimation` / `pickEvents` 对可选字段 `=== null` 判断后直接取 `.length` / `.size`，H5（JS 运行时）缺省值是 `undefined` 导致 `TypeError`、导航中断；统一 `?? null` 归一化后判断
+
 ## [0.7.0] - 2026-09-20
 
 ### 变更（破坏性）

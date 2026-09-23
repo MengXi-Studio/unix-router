@@ -31,6 +31,10 @@
 					<text class="menu-label">我的订单</text>
 					<text class="menu-arrow">›</text>
 				</view>
+				<view class="menu-item" @click="goSetting">
+					<text class="menu-label">设置（分包 · beforeEnter）</text>
+					<text class="menu-arrow">›</text>
+				</view>
 				<view class="menu-item" @click="goHome">
 					<text class="menu-label">回到首页</text>
 					<text class="menu-arrow">›</text>
@@ -49,6 +53,13 @@
 </template>
 
 <script setup lang="uts">
+// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+defineUniPage({
+	title: '我的',
+	name: 'mine',
+	isTab: true,
+	tab: { order: 2, text: '我的', iconPath: 'static/tabbar/mine.png', selectedIconPath: 'static/tabbar/mine-active.png' }
+})
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 import { isLoggedIn as isLoggedIn$1, setLoggedIn, orders, cartTotalCount as calCount } from '../../router.uts'
 
@@ -80,6 +91,11 @@ function goOrders(): void {
 	router.push({ name: 'orders' })
 }
 
+/** 设置页（分包页面，验证 beforeEnter 独享守卫） */
+function goSetting(): void {
+	router.push({ name: 'setting' })
+}
+
 function goHome(): void {
 	router.push({ name: 'home' })
 }
@@ -87,6 +103,7 @@ function goHome(): void {
 function toggleLogin(): void {
 	if (isLoggedIn()) {
 		setLoggedIn(false)
+		uni.removeStorageSync('route-gen-logged')
 		uni.showToast({ title: '已退出登录', icon: 'none' })
 	} else {
 		setLoggedIn(true)
