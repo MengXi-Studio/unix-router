@@ -10,7 +10,7 @@
 			</view>
 
 			<!-- 分类快捷入口 -->
-			<view class="section-title">商品分类</view>
+			<text class="section-title">商品分类</text>
 			<scroll-view class="cat-scroll" scroll-x="true" show-scrollbar="false">
 				<view class="cat-row">
 					<view class="cat-chip" v-for="(c, i) in categories" :key="i" @click="goCategory(c.key)">
@@ -20,7 +20,7 @@
 			</scroll-view>
 
 			<!-- RouterLink 声明式导航（组件演示，无需点击处理） -->
-			<view class="section-title">推荐商品</view>
+			<text class="section-title">推荐商品</text>
 			<view class="goods-grid">
 				<view class="goods-card" v-for="(g, i) in recommend" :key="i" @click="goDetail(g.id)">
 					<view class="goods-thumb">
@@ -53,7 +53,7 @@ defineUniPage({
 	tab: { order: 0, text: '首页', iconPath: 'static/tabbar/home.png', selectedIconPath: 'static/tabbar/home-active.png' }
 })
 import { useRouter, useRoute, RouterLink } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { categories, goodsList, formatPrice as fmtPrice, type Goods } from '../../router.uts'
+import { categories, goodsList, formatPrice as fmtPrice, type Goods } from '../../data/goods.uts'
 
 const router = useRouter()
 const route = useRoute()
@@ -68,7 +68,7 @@ const recommend: Goods[] = goodsList.slice(0, 4)
 const evtMsg = ref('')
 
 function goCategory(key: string): void {
-	router.push({ path: 'pages/goods/list', query: new Map([['category', key]]) })
+	router.push({ path: 'pages-sub/goods/list', query: new Map([['category', key]]) })
 }
 
 function goDetail(id: number): void {
@@ -80,29 +80,29 @@ function goDetail(id: number): void {
 		evtMsg.value = '详情页回传: ' + (d['id'] as number).toString() + ' - ' + (d['name'] as string)
 		return '' as any
 	})
-	router.push({ path: 'pages/goods/detail', query: new Map([['id', id.toString()]]), events })
+	router.push({ path: 'pages-sub/goods/detail', query: new Map([['id', id.toString()]]), events })
 }
 </script>
 
 <style>
-.container { flex: 1; }
+.container { flex: 1; background-color: #f5f6f8; }
 .page { flex-direction: column; padding: 24rpx; }
-.banner { flex-direction: column; align-items: center; background-color: #007aff; border-radius: 16rpx; padding: 40rpx 0; margin-bottom: 32rpx; }
-.banner-title { font-size: 40rpx; font-weight: bold; color: #ffffff; }
-.banner-sub { font-size: 24rpx; color: rgba(255, 255, 255, 0.85); margin-top: 8rpx; }
-.section-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; }
-.cat-scroll { width: 100%; }
+.banner { flex-direction: column; align-items: center; background-color: #ff6034; border-radius: 20rpx; padding: 56rpx 0; margin-bottom: 32rpx; }
+.banner-title { font-size: 44rpx; font-weight: bold; color: #ffffff; }
+.banner-sub { font-size: 24rpx; color: #ffe3d9; margin-top: 12rpx; }
+.section-title { font-size: 32rpx; font-weight: bold; color: #1a1a1a; margin-bottom: 20rpx; }
+.cat-scroll { width: 100%; margin-bottom: 32rpx; }
 .cat-row { flex-direction: row; }
-.cat-chip { background-color: #f2f3f5; border-radius: 32rpx; padding: 14rpx 32rpx; margin-right: 20rpx; }
-.cat-name { font-size: 26rpx; color: #333; }
+.cat-chip { background-color: #ffffff; border-radius: 32rpx; padding: 14rpx 32rpx; margin-right: 20rpx; }
+.cat-name { font-size: 26rpx; color: #666666; }
 .goods-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
-.goods-card { width: 48%; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; margin-bottom: 20rpx; padding: 20rpx; }
-.goods-thumb { height: 200rpx; border-radius: 8rpx; align-items: center; justify-content: center; background-color: #e8f1ff; margin-bottom: 16rpx; }
-.thumb-tag { font-size: 24rpx; color: #007aff; }
-.goods-name { font-size: 26rpx; color: #333; margin-bottom: 8rpx; }
-.goods-price { font-size: 30rpx; font-weight: bold; color: #dd524d; }
-.cart-link { margin-top: 12rpx; padding: 24rpx; align-items: center; background-color: #f6f8fa; border-radius: 12rpx; }
-.cart-link-text { font-size: 28rpx; color: #007aff; }
-.evt-box { margin-top: 20rpx; padding: 24rpx; align-items: center; background-color: #e8f8ec; border-radius: 12rpx; }
-.evt-text { font-size: 26rpx; color: #2ea44f; }
+.goods-card { width: 48%; background-color: #ffffff; border-radius: 20rpx; margin-bottom: 20rpx; padding: 20rpx; }
+.goods-thumb { height: 200rpx; border-radius: 16rpx; align-items: center; justify-content: center; background-color: #fff1ec; margin-bottom: 16rpx; }
+.thumb-tag { font-size: 24rpx; color: #ff6034; }
+.goods-name { font-size: 26rpx; color: #1a1a1a; margin-bottom: 8rpx; }
+.goods-price { font-size: 30rpx; font-weight: bold; color: #f2270c; }
+.cart-link { margin-top: 12rpx; padding: 24rpx; align-items: center; background-color: #ffffff; border-radius: 44rpx; }
+.cart-link-text { font-size: 28rpx; color: #ff6034; }
+.evt-box { margin-top: 20rpx; padding: 24rpx; align-items: center; background-color: #e8f8ec; border-radius: 20rpx; }
+.evt-text { font-size: 26rpx; color: #07c160; }
 </style>

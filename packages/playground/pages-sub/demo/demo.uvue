@@ -1,0 +1,130 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<view class="card">
+				<text class="card-title">当前路由（useRoute）</text>
+				<text class="route-line">fullPath：{{ route.fullPath }}</text>
+				<view class="route-line">
+					<text class="route-label">query.num（queryNumber 解析）：</text>
+					<text class="route-value">{{ numText }}</text>
+				</view>
+			</view>
+
+			<view class="card">
+				<text class="card-title">动画覆盖（AnimationPlugin）</text>
+				<text class="card-desc">单次导航可覆盖全局默认动画：push 时携带 animationType + animationDuration（App 透传原生动画，H5 以 WAAPI 实现）。</text>
+				<button class="primary-btn" @click="openWithZoom">缩放动画打开商品列表</button>
+			</view>
+
+			<view class="card">
+				<text class="card-title">导航失败捕获（isNavigationFailure）</text>
+				<text class="card-desc">push 返回的 Promise 失败时可用 isNavigationFailure + RouterErrorCode 收窄判断错误类型。</text>
+				<view class="btn-row">
+					<button class="plain-btn" @click="tryDuplicated">重复导航</button>
+					<button class="plain-btn" @click="tryNotFound">路由不存在</button>
+				</view>
+				<text class="result-text" v-if="failText !== ''">{{ failText }}</text>
+			</view>
+
+			<view class="card">
+				<text class="card-title">全局事件（eventBus）</text>
+				<text class="card-desc">监听 demo:ping（本页自发自收）与 user:updated（个人资料页保存资料时广播）。</text>
+				<button class="plain-btn" @click="ping">发送 demo:ping</button>
+				<text class="result-text" v-if="busText !== ''">{{ busText }}</text>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+defineUniPage({
+	title: '路由能力演示',
+	name: 'demo'
+})
+import { useRouter, useRoute, queryNumber, isNavigationFailure, RouterErrorCode, eventBus, type NavigationFailure } from '@/uni_modules/ux-router/utssdk/index.uts'
+
+const router = useRouter()
+const route = useRoute()
+
+const numText = ref('0')
+const failText = ref('')
+const busText = ref('')
+
+/** eventBus 监听句柄（onUnload 时注销） */
+let pingTarget = 0
+let userTarget = 0
+
+onLoad((options: UTSJSONObject) => {
+	pingTarget = eventBus.on('demo:ping', (data: any): any => {
+		busText.value = '收到 demo:ping：' + (data as string)
+		return '' as any
+	})
+	userTarget = eventBus.on('user:updated', (data: any): any => {
+		const obj = data as UTSJSONObject
+		const nick = obj['nickname'] as string | null
+		busText.value = '收到 user:updated：' + (nick !== null ? nick : '')
+		return '' as any
+	})
+})
+
+onUnload(() => {
+	eventBus.off('demo:ping', pingTarget)
+	eventBus.off('user:updated', userTarget)
+})
+
+onShow(() => {
+	// 演示 queryNumber：从 route.query 原子读值（onShow 时路由状态已同步）
+	numText.value = queryNumber(route.query, 'num', 0).toString()
+})
+
+/** 演示动画覆盖：单次导航使用 zoom-in / 400ms */
+function openWithZoom(): void {
+	router.push({ path: 'pages-sub/goods/list', animationType: 'zoom-in', animationDuration: 400 })
+}
+
+/** 演示重复导航失败捕获（DUPLICATED） */
+function tryDuplicated(): void {
+	router.push({ name: 'demo' }).catch((e: any) => {
+		if (isNavigationFailure(e, RouterErrorCode.DUPLICATED)) {
+			failText.value = '捕获 DUPLICATED：' + (e as NavigationFailure).message
+		} else {
+			failText.value = '捕获未知错误'
+		}
+	})
+}
+
+/** 演示路由不存在失败捕获（ROUTE_NOT_FOUND） */
+function tryNotFound(): void {
+	router.push({ name: 'no-such-page' }).catch((e: any) => {
+		if (isNavigationFailure(e, RouterErrorCode.ROUTE_NOT_FOUND)) {
+			failText.value = '捕获 ROUTE_NOT_FOUND：' + (e as NavigationFailure).message
+		} else {
+			failText.value = '捕获未知错误'
+		}
+	})
+}
+
+function ping(): void {
+	eventBus.emit('demo:ping', '本地回环 ' + Date.now().toString())
+}
+</script>
+
+<style>
+.container { flex: 1; background-color: #f5f6f8; }
+.page { flex-direction: column; padding: 24rpx; }
+.card { background-color: #ffffff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
+.card-title { font-size: 30rpx; font-weight: bold; color: #1a1a1a; }
+.card-desc { font-size: 24rpx; color: #9a9a9a; margin-top: 12rpx; line-height: 1.6; }
+.route-line { flex-direction: row; margin-top: 16rpx; }
+.route-label { font-size: 24rpx; color: #666666; }
+.route-value { font-size: 24rpx; color: #ff6034; }
+.primary-btn { margin-top: 24rpx; background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 22rpx 0; font-size: 28rpx; }
+.plain-btn { background-color: #fff1ec; color: #ff6034; border-radius: 44rpx; padding: 18rpx 40rpx; font-size: 26rpx; }
+.btn-row { flex-direction: row; margin-top: 24rpx; }
+.result-text { font-size: 24rpx; color: #07c160; margin-top: 20rpx; }
+</style>

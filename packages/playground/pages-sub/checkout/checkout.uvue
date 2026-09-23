@@ -1,0 +1,124 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<view class="empty" v-if="cartItems.length === 0">
+				<text class="empty-text">没有待结算的商品</text>
+				<button class="go-btn" @click="goHome">去逛逛</button>
+			</view>
+
+			<view v-if="cartItems.length > 0">
+				<view class="address-card">
+					<text class="address-title">收货地址</text>
+					<text class="address-detail">张同学 138****8888 · 北京市朝阳区梦曦街 1 号</text>
+				</view>
+
+				<view class="goods-card">
+					<view class="item-row" v-for="(item, i) in cartItems" :key="i">
+						<text class="item-name">{{ item.goods.name }} ×{{ item.count }}</text>
+						<text class="item-price">{{ formatPrice(item.goods.price * item.count) }}</text>
+					</view>
+				</view>
+
+				<view class="total-card">
+					<text class="total-label">应付合计</text>
+					<text class="total-price">{{ formatPrice(cartTotalPrice()) }}</text>
+				</view>
+
+				<button class="submit-btn" @click="submit">提交订单</button>
+
+				<view class="demo-note">
+					<text class="demo-title">组件内离开守卫演示</text>
+					<text class="demo-desc">本页通过 onBeforeRouteLeave 注册离开守卫：未提交订单时返回会被弹窗拦截确认，提交后放行（守卫支持 Promise 异步结果）。</text>
+				</view>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+defineUniPage({
+	title: '确认订单',
+	name: 'checkout',
+	meta: { requireAuth: true }
+})
+import { useRouter, onBeforeRouteLeave } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { cartItems, cartTotalPrice as calTotal, clearCart, orders, type Order } from '../../store/index.uts'
+import { formatPrice as fmtPrice } from '../../data/goods.uts'
+
+const router = useRouter()
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function cartTotalPrice(): number { return calTotal() }
+function formatPrice(p: number): string { return fmtPrice(p) }
+
+/** 提交订单后置为 true，离开守卫直接放行 */
+const allowLeave = ref(false)
+
+// 演示组件内离开守卫：未提交订单时弹窗确认（返回 Promise，异步决定放行与否）
+onBeforeRouteLeave((to, from): Promise<boolean> | boolean => {
+	if (allowLeave.value || cartItems.length === 0) {
+		return true
+	}
+	return new Promise<boolean>((resolve) => {
+		uni.showModal({
+			title: '提示',
+			content: '还有商品未结算，确认离开吗？',
+			success: (res) => {
+				resolve(res.confirm)
+			}
+		})
+	})
+})
+
+/** 订单创建时间（先于 submit 声明，Kotlin 本地函数须先声明后使用） */
+function currentTime(): string {
+	const now = new Date()
+	return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate()
+}
+
+function submit(): void {
+	if (cartItems.length === 0) return
+	const order: Order = {
+		id: 'NO' + Date.now().toString(),
+		items: cartItems.slice(0),
+		total: cartTotalPrice(),
+		createdAt: currentTime()
+	}
+	orders.push(order)
+	clearCart()
+	allowLeave.value = true
+	uni.showToast({ title: '下单成功', icon: 'success' })
+	router.replace({ name: 'orders' })
+}
+
+function goHome(): void {
+	router.push({ name: 'home' })
+}
+</script>
+
+<style>
+.container { flex: 1; background-color: #f5f6f8; }
+.page { flex-direction: column; padding: 24rpx; }
+.empty { flex-direction: column; align-items: center; padding: 120rpx 0; }
+.empty-text { font-size: 28rpx; color: #9a9a9a; }
+.go-btn { margin-top: 24rpx; background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 16rpx 48rpx; font-size: 28rpx; }
+.address-card { background-color: #ffffff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
+.address-title { font-size: 30rpx; font-weight: bold; color: #1a1a1a; }
+.address-detail { font-size: 24rpx; color: #666666; margin-top: 12rpx; }
+.goods-card { background-color: #ffffff; border-radius: 20rpx; padding: 8rpx 28rpx; }
+.item-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 24rpx 0; border-bottom-width: 1rpx; border-bottom-color: #f5f5f5; }
+.item-name { font-size: 26rpx; color: #1a1a1a; flex: 1; }
+.item-price { font-size: 26rpx; color: #f2270c; }
+.total-card { flex-direction: row; align-items: center; justify-content: flex-end; margin-top: 24rpx; }
+.total-label { font-size: 26rpx; color: #666666; margin-right: 16rpx; }
+.total-price { font-size: 40rpx; font-weight: bold; color: #f2270c; }
+.submit-btn { margin-top: 32rpx; background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 24rpx 0; font-size: 30rpx; }
+.demo-note { background-color: #ffffff; border-radius: 20rpx; padding: 24rpx 28rpx; margin-top: 40rpx; }
+.demo-title { font-size: 26rpx; font-weight: bold; color: #1a1a1a; }
+.demo-desc { font-size: 22rpx; color: #9a9a9a; margin-top: 12rpx; line-height: 1.6; }
+</style>

@@ -32,6 +32,9 @@
 ### 7. CDP 运行时验证 headless Chrome 的沙箱限制
 - Chrome headless 需写 `C:\Windows\SystemTemp\scoped_dir*`，默认沙箱会拦截（`hit restricted`），需放行后运行；用 `Runtime.consoleAPICalled` / `exceptionThrown` / `Network.responseReceived` 捕获运行时证据，shadow DOM 需穿透查询。
 
+### 8. 生成器输出对象属性名必须做标识符安全检查
+- route-name.gen.d.ts 曾直接拼接 `d.name` 作属性名：显式声明含连字符的 name（如 'goods-detail'）生成非法 TS（连字符属性名须加引号）。渲染层对非 `/^[A-Za-z_$][\w$]*$/` 的 key 复用 `quote()` 加引号；值链路（routes.gen.uts 的 name、pages.json 的 JSON.stringify）天然为字符串值/带引号 key，不受影响。
+
 ## 2026-09-23 三插件拆分（route-gen / pages-gen / routes-gen）
 
 ### 1. Shell 工具 cwd 不持久，脚本依赖 process.cwd() 会静默写错目录
@@ -49,3 +52,20 @@
 
 ### 5. 多插件产物顺序对齐：排序 + 首页移位
 - pages.json 顺序（主包在前、分包在后、页内保持声明序）与 routeGen 扫描序（path `localeCompare` 排序）不同；routesGen 从 pages.json 推导后需显式 `sort` 并把 entryPage 移至主包首位，两插件产物才能逐字节一致（含 name dts）。
+
+## 2026-09-24 playground 重构（分包化 + 守卫/动画演示，H5 运行验证）
+
+### 1. dev server 会漏掉外部进程的文件编辑，transform 用旧源码反复报错
+- HBuilderX 启动的 vite dev server 对外部工具（如编辑器/脚本）写入的 `.uvue` 改动可能不触发模块失效：每次请求都重新执行 uts transform，但读到的仍是**旧源码**（错误体 pluginCode 中 import 还是改前路径）。诊断特征：curl script 子模块 500 且错误体内源码与磁盘文件不一致。对策：重启 dev server。
+
+### 2. H5 冷启动（直连 URL）不执行路由守卫（core 设计行为）
+- 冷启动走 `initRoute() → syncRoute()`（router/index.uts）仅同步路由状态；守卫链只在 `performNavigation`（router.push/replace、interceptUniApi 拦截的 uni.navigateTo）中执行。运行时验证守卫必须「先加载非守卫页 → 应用内触发导航」，直连守卫页 URL 断言重定向必假失败；对当前页重复 navigateTo 会命中 DUPLICATED（也是判别信号）。
+
+### 3. onLoad options 缺 key 归一化是页面层必修项（非仅插件数据）
+- H5 端 `options['k'] as string | null` 编译期断言不改运行时：缺 key 得 `undefined`，`undefined !== null` 判空穿透，随后 `.length` 抛 TypeError。必须 `(options['k'] ?? null) as string | null` 归一化——是 09-22 #2（跨端空值先归一化）在页面 onLoad 参数上的具体化。CDP 验证须覆盖「无 query 直连」形态才能暴露。
+
+### 4. UTS 编译器对 H5 相对导入的两种输出形态可当解析成败信号
+- 可解析的相对导入输出根绝对路径（`from "/data/goods.uts?import"`）；解析失败的保持相对形态仅去扩展名（`from "../store/index"`）交由 vite import-analysis 报错。看编译产物 import 形态即可判断解析成败，无需猜测。
+
+### 5. CDP harness：资源错误走 Network 通道才能按 URL 过滤
+- `Log.entryAdded` 的 "Failed to load resource" 文本不含 URL（favicon.ico 404 无法按 URL 过滤、会误报 FAIL）；资源错误改由 `Network.responseReceived` 承载（可按 URL 排除 favicon 噪声，favicon 404 属浏览器自动请求，非业务错误）。

@@ -4901,7 +4901,8 @@ function renderRouteNameDts(drafts, options) {
   for (const d of drafts) {
     const title = d.title !== null ? d.title : d.path;
     lines.push(`		/** ${title} */`);
-    lines.push(`		${d.name}: ${quote(d.path)}`);
+    const key = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(d.name) ? d.name : quote(d.name);
+    lines.push(`		${key}: ${quote(d.path)}`);
   }
   lines.push("	}", "}", "");
   return lines.join("\n");

@@ -16,9 +16,9 @@
 					<text class="item-name">{{ item.goods.name }}</text>
 					<text class="item-price">{{ formatPrice(item.goods.price) }}</text>
 					<view class="stepper">
-						<text class="step-btn" @click="minus(item.goods.id)">−</text>
+						<view class="step-btn" @click="minus(item.goods.id)"><text class="step-btn-text">−</text></view>
 						<text class="step-num">{{ item.count }}</text>
-						<text class="step-btn" @click="plus(item.goods.id)">＋</text>
+						<view class="step-btn" @click="plus(item.goods.id)"><text class="step-btn-text">＋</text></view>
 					</view>
 				</view>
 			</view>
@@ -43,7 +43,8 @@ defineUniPage({
 	name: 'cart'
 })
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { cartItems, changeCartCount, cartTotalPrice as calTotal, formatPrice as fmtPrice } from '../../router.uts'
+import { cartItems, changeCartCount, cartTotalPrice as calTotal } from '../../store/index.uts'
+import { formatPrice as fmtPrice } from '../../data/goods.uts'
 
 const router = useRouter()
 
@@ -69,23 +70,24 @@ function goHome(): void {
 </script>
 
 <style>
-.container { flex: 1; }
+.container { flex: 1; background-color: #f5f6f8; }
 .page { flex-direction: column; padding: 24rpx; }
 .empty { flex-direction: column; align-items: center; padding: 120rpx 0; }
-.empty-text { font-size: 28rpx; color: #999; }
-.go-btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 16rpx 48rpx; font-size: 26rpx; }
-.cart-item { flex-direction: row; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; padding: 20rpx; margin-bottom: 20rpx; }
-.item-thumb { width: 140rpx; height: 140rpx; border-radius: 8rpx; align-items: center; justify-content: center; background-color: #e8f1ff; margin-right: 20rpx; }
-.thumb-tag { font-size: 22rpx; color: #007aff; }
+.empty-text { font-size: 28rpx; color: #9a9a9a; }
+.go-btn { margin-top: 24rpx; background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 16rpx 48rpx; font-size: 28rpx; }
+.cart-item { flex-direction: row; background-color: #ffffff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 20rpx; }
+.item-thumb { width: 150rpx; height: 150rpx; border-radius: 16rpx; align-items: center; justify-content: center; background-color: #fff1ec; margin-right: 24rpx; }
+.thumb-tag { font-size: 22rpx; color: #ff6034; }
 .item-info { flex: 1; flex-direction: column; }
-.item-name { font-size: 26rpx; color: #333; }
-.item-price { font-size: 28rpx; font-weight: bold; color: #dd524d; margin-top: 8rpx; }
+.item-name { font-size: 28rpx; color: #1a1a1a; }
+.item-price { font-size: 30rpx; font-weight: bold; color: #f2270c; margin-top: 8rpx; }
 .stepper { flex-direction: row; align-items: center; align-self: flex-end; margin-top: 12rpx; }
-.step-btn { width: 52rpx; height: 52rpx; align-items: center; justify-content: center; background-color: #f2f3f5; border-radius: 8rpx; font-size: 32rpx; color: #333; }
-.step-num { padding: 0 24rpx; font-size: 28rpx; color: #333; }
+.step-btn { width: 52rpx; height: 52rpx; align-items: center; justify-content: center; background-color: #fff1ec; border-radius: 26rpx; }
+.step-btn-text { font-size: 30rpx; color: #ff6034; }
+.step-num { padding: 0 28rpx; font-size: 28rpx; color: #1a1a1a; }
 .bottom-bar { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 12rpx; }
 .total-box { flex-direction: row; align-items: flex-start; }
-.total-label { font-size: 26rpx; color: #333; }
-.total-price { font-size: 36rpx; font-weight: bold; color: #dd524d; }
-.checkout-btn { background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 20rpx 56rpx; font-size: 28rpx; }
+.total-label { font-size: 26rpx; color: #666666; }
+.total-price { font-size: 36rpx; font-weight: bold; color: #f2270c; }
+.checkout-btn { background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 20rpx 56rpx; font-size: 28rpx; }
 </style>

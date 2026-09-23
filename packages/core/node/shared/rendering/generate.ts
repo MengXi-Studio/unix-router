@@ -470,7 +470,9 @@ export function renderRouteNameDts(drafts: Draft[], options: { router: ResolvedR
 	for (const d of drafts) {
 		const title = d.title !== null ? d.title : d.path
 		lines.push(`\t\t/** ${title} */`)
-		lines.push(`\t\t${d.name}: ${quote(d.path)}`)
+		// 显式声明的 name 可能含连字符等非标识符字符，按 TS 语法须加引号
+		const key = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(d.name) ? d.name : quote(d.name)
+		lines.push(`\t\t${key}: ${quote(d.path)}`)
 	}
 
 	lines.push('\t}', '}', '')

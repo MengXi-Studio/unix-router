@@ -1,0 +1,81 @@
+// 全局状态（跨页共享，reactive）：登录态、购物车、订单
+import { reactive } from 'vue'
+import { Goods } from '../data/goods.uts'
+
+/** 购物车条目 */
+export type CartItem = {
+	goods: Goods
+	count: number
+}
+
+/** 订单 */
+export type Order = {
+	id: string
+	items: CartItem[]
+	total: number
+	createdAt: string
+}
+
+/** 登录态（配合守卫；登录页 setLoggedIn(true)） */
+let loggedIn: boolean = false
+
+export function setLoggedIn(value: boolean): void {
+	loggedIn = value
+}
+
+export function isLoggedIn(): boolean {
+	return loggedIn
+}
+
+/** 购物车（响应式全局状态，跨页共享） */
+export const cartItems = reactive<CartItem[]>([])
+
+/** 购物车数量合计 */
+export function cartTotalCount(): number {
+	let total = 0
+	for (let i = 0; i < cartItems.length; i++) {
+		total += cartItems[i].count
+	}
+	return total
+}
+
+/** 购物车金额合计 */
+export function cartTotalPrice(): number {
+	let total = 0
+	for (let i = 0; i < cartItems.length; i++) {
+		total += cartItems[i].goods.price * cartItems[i].count
+	}
+	return total
+}
+
+/** 加入购物车（已存在则计数 +1） */
+export function addToCart(goods: Goods): void {
+	for (let i = 0; i < cartItems.length; i++) {
+		if (cartItems[i].goods.id == goods.id) {
+			cartItems[i].count += 1
+			return
+		}
+	}
+	cartItems.push({ goods, count: 1 } as CartItem)
+}
+
+/** 购物车计数增减（count 为 0 时移除） */
+export function changeCartCount(goodsId: number, delta: number): void {
+	for (let i = 0; i < cartItems.length; i++) {
+		if (cartItems[i].goods.id == goodsId) {
+			cartItems[i].count += delta
+			if (cartItems[i].count <= 0) {
+				cartItems.splice(i, 1)
+			}
+			return
+		}
+	}
+}
+
+/** 清空购物车 */
+export function clearCart(): void {
+	cartItems.splice(0, cartItems.length)
+}
+
+/** 已下单记录（结算成功后追加） */
+export const orders = reactive<Order[]>([])

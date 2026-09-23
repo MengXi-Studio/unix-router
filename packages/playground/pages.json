@@ -19,36 +19,12 @@
 			}
 		},
 		{
-			"path": "pages/checkout/checkout",
-			"style": {
-				"navigationBarTitleText": "确认订单"
-			}
-		},
-		{
-			"path": "pages/goods/detail",
-			"style": {
-				"navigationBarTitleText": "商品详情"
-			}
-		},
-		{
-			"path": "pages/goods/list",
-			"style": {
-				"navigationBarTitleText": "商品列表"
-			}
-		},
-		{
 			"path": "pages/login/login"
 		},
 		{
 			"path": "pages/mine/mine",
 			"style": {
 				"navigationBarTitleText": "我的"
-			}
-		},
-		{
-			"path": "pages/orders/orders",
-			"style": {
-				"navigationBarTitleText": "我的订单"
 			}
 		}
 	],
@@ -57,9 +33,45 @@
 			"root": "pages-sub",
 			"pages": [
 				{
+					"path": "checkout/checkout",
+					"style": {
+						"navigationBarTitleText": "确认订单"
+					}
+				},
+				{
+					"path": "demo/demo",
+					"style": {
+						"navigationBarTitleText": "路由能力演示"
+					}
+				},
+				{
+					"path": "goods/detail",
+					"style": {
+						"navigationBarTitleText": "商品详情"
+					}
+				},
+				{
+					"path": "goods/list",
+					"style": {
+						"navigationBarTitleText": "商品列表"
+					}
+				},
+				{
+					"path": "orders/orders",
+					"style": {
+						"navigationBarTitleText": "我的订单"
+					}
+				},
+				{
 					"path": "setting/setting",
 					"style": {
 						"navigationBarTitleText": "设置"
+					}
+				},
+				{
+					"path": "user/profile",
+					"style": {
+						"navigationBarTitleText": "个人资料"
 					}
 				}
 			]

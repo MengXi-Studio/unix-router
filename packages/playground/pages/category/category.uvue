@@ -3,7 +3,7 @@
 	<scroll-view class="container">
 	<!-- #endif -->
 		<view class="page">
-			<view class="section-title">全部分类</view>
+			<text class="section-title">全部分类</text>
 			<view class="cat-grid">
 				<view class="cat-card" v-for="(c, i) in categories" :key="i" @click="goList(c.key)">
 					<view class="cat-icon">
@@ -14,7 +14,7 @@
 				</view>
 			</view>
 
-			<view class="section-title">全部商品</view>
+			<text class="section-title">全部商品</text>
 			<view class="goods-grid">
 				<view class="goods-card" v-for="(g, i) in allGoods" :key="i" @click="goDetail(g.id)">
 					<view class="goods-thumb">
@@ -39,7 +39,7 @@ defineUniPage({
 	tab: { order: 1, text: '分类', iconPath: 'static/tabbar/category.jpg', selectedIconPath: 'static/tabbar/category-active.jpg' }
 })
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { categories, goodsList, goodsByCategory, formatPrice as fmtPrice, type Goods } from '../../router.uts'
+import { categories, goodsList, goodsByCategory, formatPrice as fmtPrice, type Goods } from '../../data/goods.uts'
 
 const router = useRouter()
 const allGoods: Goods[] = goodsList
@@ -53,28 +53,28 @@ function countByKey(key: string): number {
 }
 
 function goList(key: string): void {
-	router.push({ path: 'pages/goods/list', query: new Map([['category', key]]) })
+	router.push({ path: 'pages-sub/goods/list', query: new Map([['category', key]]) })
 }
 
 function goDetail(id: number): void {
-	router.push({ path: 'pages/goods/detail', query: new Map([['id', id.toString()]]) })
+	router.push({ path: 'pages-sub/goods/detail', query: new Map([['id', id.toString()]]) })
 }
 </script>
 
 <style>
-.container { flex: 1; }
+.container { flex: 1; background-color: #f5f6f8; }
 .page { flex-direction: column; padding: 24rpx; }
-.section-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; }
-.cat-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
-.cat-card { width: 31%; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; align-items: center; padding: 24rpx 0; margin-bottom: 20rpx; }
-.cat-icon { width: 88rpx; height: 88rpx; border-radius: 44rpx; align-items: center; justify-content: center; background-color: #e8f1ff; margin-bottom: 12rpx; }
-.cat-icon-text { font-size: 36rpx; color: #007aff; font-weight: bold; }
-.cat-name { font-size: 26rpx; color: #333; }
-.cat-count { font-size: 22rpx; color: #999; margin-top: 6rpx; }
+.section-title { font-size: 32rpx; font-weight: bold; color: #1a1a1a; margin-bottom: 20rpx; }
+.cat-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; margin-bottom: 32rpx; }
+.cat-card { width: 31%; background-color: #ffffff; border-radius: 20rpx; align-items: center; padding: 24rpx 0; margin-bottom: 20rpx; }
+.cat-icon { width: 88rpx; height: 88rpx; border-radius: 44rpx; align-items: center; justify-content: center; background-color: #fff1ec; margin-bottom: 12rpx; }
+.cat-icon-text { font-size: 36rpx; color: #ff6034; font-weight: bold; }
+.cat-name { font-size: 26rpx; color: #1a1a1a; }
+.cat-count { font-size: 22rpx; color: #9a9a9a; margin-top: 6rpx; }
 .goods-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
-.goods-card { width: 48%; background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; margin-bottom: 20rpx; padding: 20rpx; }
-.goods-thumb { height: 200rpx; border-radius: 8rpx; align-items: center; justify-content: center; background-color: #e8f1ff; margin-bottom: 16rpx; }
-.thumb-tag { font-size: 24rpx; color: #007aff; }
-.goods-name { font-size: 26rpx; color: #333; margin-bottom: 8rpx; }
-.goods-price { font-size: 30rpx; font-weight: bold; color: #dd524d; }
+.goods-card { width: 48%; background-color: #ffffff; border-radius: 20rpx; margin-bottom: 20rpx; padding: 20rpx; }
+.goods-thumb { height: 200rpx; border-radius: 16rpx; align-items: center; justify-content: center; background-color: #fff1ec; margin-bottom: 16rpx; }
+.thumb-tag { font-size: 24rpx; color: #ff6034; }
+.goods-name { font-size: 26rpx; color: #1a1a1a; margin-bottom: 8rpx; }
+.goods-price { font-size: 30rpx; font-weight: bold; color: #f2270c; }
 </style>

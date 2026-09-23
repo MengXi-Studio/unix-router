@@ -11,12 +11,12 @@
 			<view class="order-card" v-for="(o, i) in orders" :key="i">
 				<view class="order-head">
 					<text class="order-no">{{ o.id }}</text>
-					<text class="order-date">{{ o.createdAt }}</text>
+					<text class="order-status">已完成</text>
 				</view>
 				<text class="order-items">{{ itemSummary(o) }}</text>
 				<view class="order-foot">
+					<text class="order-date">{{ o.createdAt }}</text>
 					<text class="order-total">{{ formatPrice(o.total) }}</text>
-					<text class="order-status">已完成</text>
 				</view>
 			</view>
 		</view>
@@ -33,7 +33,8 @@ defineUniPage({
 	meta: { requireAuth: true }
 })
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
-import { orders, formatPrice as fmtPrice, type CartItem, type Order } from '../../router.uts'
+import { orders, type Order } from '../../store/index.uts'
+import { formatPrice as fmtPrice } from '../../data/goods.uts'
 
 const router = useRouter()
 
@@ -43,7 +44,7 @@ function formatPrice(p: number): string { return fmtPrice(p) }
 /** 汇总订单内商品摘要（模板中调用；uvue 模板不支持复杂表达式） */
 function itemSummary(o: Order): string {
 	let buf = ''
-	for (var i = 0; i < o.items.length; i++) {
+	for (let i = 0; i < o.items.length; i++) {
 		if (i > 0) {
 			buf += '、'
 		}
@@ -58,17 +59,17 @@ function goHome(): void {
 </script>
 
 <style>
-.container { flex: 1; }
+.container { flex: 1; background-color: #f5f6f8; }
 .page { flex-direction: column; padding: 24rpx; }
 .empty { flex-direction: column; align-items: center; padding: 120rpx 0; }
-.empty-text { font-size: 28rpx; color: #999; }
-.go-btn { margin-top: 24rpx; background-color: #007aff; color: #ffffff; border-radius: 40rpx; padding: 16rpx 48rpx; font-size: 26rpx; }
-.order-card { background-color: #ffffff; border-radius: 12rpx; border-width: 1rpx; border-color: #eee; padding: 24rpx; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: #9a9a9a; }
+.go-btn { margin-top: 24rpx; background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 16rpx 48rpx; font-size: 28rpx; }
+.order-card { background-color: #ffffff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
 .order-head { flex-direction: row; align-items: center; justify-content: space-between; }
-.order-no { font-size: 26rpx; font-weight: bold; color: #333; }
-.order-date { font-size: 22rpx; color: #999; }
-.order-items { font-size: 24rpx; color: #666; margin-top: 16rpx; }
+.order-no { font-size: 28rpx; font-weight: bold; color: #1a1a1a; }
+.order-status { font-size: 24rpx; color: #07c160; }
+.order-items { font-size: 24rpx; color: #666666; margin-top: 16rpx; }
 .order-foot { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 16rpx; }
-.order-total { font-size: 30rpx; font-weight: bold; color: #dd524d; }
-.order-status { font-size: 24rpx; color: #4cd964; }
+.order-date { font-size: 22rpx; color: #9a9a9a; }
+.order-total { font-size: 32rpx; font-weight: bold; color: #f2270c; }
 </style>
