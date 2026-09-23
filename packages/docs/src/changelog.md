@@ -14,7 +14,12 @@
   - watch：页面新增/删除/修改 200ms 去抖串行重跑两阶段流水线
   - 生成 `route-name.gen.d.ts`（WEB 端 `RouteNameMap` 字面量类型）与 `define-uni-page.d.ts`（宏类型声明），均可关闭
 - **新增子路径导出 `@meng-xi/unix-router/vite-plugin`**：vite / webpack 适配器（unplugin 打包内置，运行时零额外依赖），`node/` 源码目录在 UTS 编译扫描范围外，主入口 UTS 编译不受影响
-- 文档新增「基于文件的路由生成」章节（zh/en），含 HBuilderX 项目 `vite.config.ts` 需自行引入 `uni()` 的接入说明
+- **插件拆分为三个独立实现**（`node/` 重组为 `route-gen` / `pages-gen` / `routes-gen` + `shared` 目录），可独立或组合注册、互不影响：
+  - `routeGen`：页面文件 → `pages.json` + `routes.gen.uts` 全量流水线（行为与此前一致）
+  - `pagesGen`：页面文件 → 仅 `pages.json`（含宏 dts），不触碰路由文件
+  - `routesGen`：`pages.json` → 仅路由表，不触碰 `pages.json`；支持扩展声明文件 `routes.ext.uts`（path / name ↔ 显式 name / meta 扩展 / beforeEnter，函数原文注入；`router.extensions` 可改路径或 `false` 关闭）
+  - 选项随插件拆分：公共选项（`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`）+ `pages` 段 / `router` 段
+- 文档新增「基于文件的路由生成」章节（zh/en），含 HBuilderX 项目 `vite.config.ts` 需自行引入 `uni()` 的接入说明、三插件选型与 `routes.ext.uts` 扩展声明用法
 
 ### 修复
 

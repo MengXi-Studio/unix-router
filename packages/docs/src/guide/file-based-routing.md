@@ -15,6 +15,21 @@ export default {
 
 > 这是**构建期 dev 工具**（vite / webpack 插件），不参与运行时，不增加任何包体积；宏在编译期被剥离。
 
+## 三个插件怎么选
+
+`@meng-xi/unix-router/vite-plugin` 导出三个独立插件，对应流水线的不同切面，可单独或组合注册：
+
+| 插件 | 数据流 | 适用场景 |
+| --- | --- | --- |
+| `routeGen` | 页面文件 → `pages.json` + 路由表 | **默认推荐**。页面就近声明，全链路自动同步 |
+| `pagesGen` | 页面文件 → 仅 `pages.json` | 只要页面注册自动化，路由表自己手写 |
+| `routesGen` | `pages.json` → 仅路由表 | `pages.json` 是手写的（或由其他工具维护）；name / meta / beforeEnter 经扩展声明文件注入 |
+
+- 三个插件互不依赖：`pagesGen` 不触碰路由文件，`routesGen` 不触碰 `pages.json`
+- `pagesGen` + `routesGen` 组合可替代 `routeGen`，两阶段解耦——此时页面级声明的 name / meta / beforeEnter 改走 `routes.ext.uts`（见[扩展声明文件](#扩展声明文件routesextuts)）
+
+用法一致（都是 unplugin 工厂 + vite 适配器），只是选项拆分不同：`pagesGen` 接收顶层公共选项 + `pages`，`routesGen` 接收顶层公共选项 + `router`（见[选项参考](#选项参考)）。
+
 ## defineUniPage 宏
 
 在每个页面的 `<script setup>` 顶部声明（无需 import，编译期剥离、等行数注释占位不影响行号）：
@@ -139,6 +154,38 @@ export const routes: RouteConfig[] = [
 
 重新生成时自动 diff 现有 `routes.gen.uts`：你对既有条目追加的字段、手工添加的整条自定义路由（如虚拟占位路由）**全部保留**，仅刷新由页面声明推导的字段。单文件即可安全重生成。
 
+## 扩展声明文件（routes.ext.uts）
+
+`routes.gen.uts` 由构建期生成、不宜手改，而 `name` / `meta` 扩展 / `beforeEnter` 在 `pages.json` 里又表达不了。`routesGen` 为此提供扩展声明文件（默认 `routes.ext.uts`），构建期解析后合并进生成的路由表：
+
+```ts
+// routes.ext.uts —— 须导出一个数组字面量
+export const routeExtensions = [
+	{
+		path: 'pages/goods/detail', // 匹配键：path 或 name 二选一
+		meta: { requireAuth: true }, // 追加 meta 扩展字段
+		beforeEnter: (to, from) => {
+			// 函数原文注入生成文件，须自包含（与宏注入机制同构）
+			return uni.getStorageSync('logged') === '1' ? true : { name: 'login' }
+		}
+	},
+	{ name: 'home', meta: { keepAlive: true } }
+]
+```
+
+**合并规则**：
+
+| 场景 | 行为 |
+| --- | --- |
+| 按 `path`（优先）或 `name` 匹配路由 | 未匹配的条目告警忽略 |
+| 声明显式 `name` | 覆盖自动推导名；与其他路由 name 冲突时告警跳过 |
+| `meta.title` / `meta.isTab` | 已由 `pages.json`（style / tabBar）推导时告警忽略，仅缺失时补位 |
+| `meta` 其余字段 | 同 key 去重后追加（声明值覆盖） |
+| `beforeEnter` | 后声明覆盖先前值（覆盖时告警） |
+| 声明了 `path` / `name` 之外的字段 | 该条目告警丢弃（可用字段：path / name / meta / beforeEnter） |
+
+`routeGen` / `pagesGen` 不读取扩展声明文件——它们的 name / meta / beforeEnter 由页面内宏 / 块就近声明。
+
 ## 接入配置
 
 ### uni-app x CLI 项目
@@ -220,6 +267,14 @@ export default {
 | `dts` | `string \| false?` | — | `RouteNameMap` 声明文件路径，`false` 关闭 |
 | `preserveRouteChanges` | `boolean?` | `true` | 重生成时保留你对路由文件的修改 |
 
+**`router`（`routesGen` 专属追加）**：
+
+| 选项 | 类型 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `extensions` | `string \| false?` | `'routes.ext.uts'` | 扩展声明文件路径（相对项目根），`false` 关闭扩展合并 |
+
+> 三个插件的选项拆分：**公共选项**（`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`）三者皆有；`pages` 段归 `routeGen` / `pagesGen`，`router` 段归 `routeGen` / `routesGen`（`extensions` 仅 `routesGen`）。
+
 ## 与 @meng-xi/vite-plugin（generateUni）的关系
 
 `defineUniPage` 宏 / `<route-config>` 块语法与 MengXi Studio 的 `generateUni` 保持一致，两插件可平滑互迁。差异点：
@@ -232,7 +287,8 @@ export default {
 - **HBuilderX 忘记引入 `uni()`**：dev server 启动后页面空白 / `/main` 404。项目根的 `vite.config.ts` 会整体替换内置配置，`uni()` 必须自行引入（见上）。
 - **`beforeEnter` 引用页面内变量**：宏函数被原样注入 `routes.gen.uts`，与页面是两个作用域，引用页面变量会编译失败。守卫逻辑须自包含（storage / 全局状态）。
 - **宏写了两次**：每页至多一次，`strict` 下直接终止构建。
-- **改了页面没生效**：确认插件 `watch` 开启（默认开启）；若通过 HBuilderX 直接改 `pages.json`，下次构建会被重新生成覆盖——页面级声明请回页面文件里改。
+- **改了页面没生效**：确认插件 `watch` 开启（默认开启）；若通过 HBuilderX 直接改 `pages.json`，下次构建会被重新生成覆盖——页面级声明请回页面文件里改（该坑仅适用于 `routeGen` / `pagesGen`）。
+- **`routesGen` 模式下改页面文件没生效**：`routesGen` 以 `pages.json` 为事实源，不扫描页面目录——新增页面先注册进 `pages.json`，路由表随之重生成；name / meta / beforeEnter 走扩展声明文件。
 
 ## 下一步
 

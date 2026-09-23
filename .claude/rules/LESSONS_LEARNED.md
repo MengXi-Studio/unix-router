@@ -25,3 +25,21 @@
 
 ### 6. CDP 运行时验证 headless Chrome 的沙箱限制
 - Chrome headless 需写 `C:\Windows\SystemTemp\scoped_dir*`，默认沙箱会拦截（`hit restricted`），需放行后运行；用 `Runtime.consoleAPICalled` / `exceptionThrown` / `Network.responseReceived` 捕获运行时证据，shadow DOM 需穿透查询。
+
+## 2026-09-23 三插件拆分（route-gen / pages-gen / routes-gen）
+
+### 1. Shell 工具 cwd 不持久，脚本依赖 process.cwd() 会静默写错目录
+- Shell 调用间 cwd 会重置（如回到仓库根），插件以 `process.cwd()` 解析相对路径时，扫描 0 页面也会**静默生成空产物**（pages.json / routes.gen.uts / dts）——曾在仓库根生成过 4 个垃圾文件。
+- 对策：运行脚本必须显式传 cwd 参数；冒烟前后用 `git status` 兜底确认无误写。
+
+### 2. 生成文件 hash 比对前先归一化「设计内差异」
+- `routes.gen.uts` 文件头的 declareHint 提示行随插件而异（routeGen 提示宏/块，routesGen 提示 routes.ext.uts），属设计内差异；hash 比对前用正则归一化为统一占位，其余内容才要求逐字节一致。
+
+### 3. preserveRouteChanges 的 beforeEnter 缩进往返恒等
+- 解析既有生成文件时 `dedentField` 去缩进、写回时 `reindent` 补缩进，往返恒等必须由 **dedent 单侧**保证（无条件剥前缀）；reindent 若加 `startsWith(indent)` 守卫，dedent 后仍带旧前缀的行不会再补齐，每次重生成缩进翻倍。
+
+### 4. unplugin 工厂默认 root 取 cwd，vite 环境须在 configResolved 修正
+- HBuilderX 的 cwd ≠ 项目根，相对路径会解析错位；`.vite()` 适配器必须在 `configResolved(config)` 中用 `config.root` 重解析所有 FileRef，再执行生成。
+
+### 5. 多插件产物顺序对齐：排序 + 首页移位
+- pages.json 顺序（主包在前、分包在后、页内保持声明序）与 routeGen 扫描序（path `localeCompare` 排序）不同；routesGen 从 pages.json 推导后需显式 `sort` 并把 entryPage 移至主包首位，两插件产物才能逐字节一致（含 name dts）。

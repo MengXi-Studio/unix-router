@@ -15,6 +15,21 @@ export default {
 
 > This is a **build-time dev tool** (vite / webpack plugin). It plays no role at runtime and adds zero bundle size; the macro is stripped during compilation.
 
+## Which Plugin to Choose
+
+`@meng-xi/unix-router/vite-plugin` exports three independent plugins, each covering a different slice of the pipeline. They can be registered alone or in combination:
+
+| Plugin | Data flow | Use case |
+| --- | --- | --- |
+| `routeGen` | Page files → `pages.json` + route table | **Default recommendation**. Declare near your pages, everything stays in sync |
+| `pagesGen` | Page files → `pages.json` only | You only want automatic page registration; hand-write the route table |
+| `routesGen` | `pages.json` → route table only | `pages.json` is hand-written (or maintained by another tool); name / meta / beforeEnter are injected via an extension declaration file |
+
+- The three plugins are independent: `pagesGen` never touches route files, `routesGen` never touches `pages.json`
+- `pagesGen` + `routesGen` combined can replace `routeGen` with the two phases decoupled — in that mode the page-level name / meta / beforeEnter declarations move to `routes.ext.uts` (see [The Extension Declaration File](#the-extension-declaration-file-routesextuts))
+
+Usage is identical (unplugin factory + vite adapter); only the option split differs: `pagesGen` takes the common options + `pages`, `routesGen` takes the common options + `router` (see [Options Reference](#options-reference)).
+
 ## The defineUniPage Macro
 
 Declare it at the top of each page's `<script setup>` (no import needed; stripped at compile time with same-line-count comment placeholders that keep line numbers stable):
@@ -140,6 +155,39 @@ export const routes: RouteConfig[] = [
 
 On regeneration the plugin diffs the existing `routes.gen.uts`: fields you added to existing entries and entire hand-written custom routes (e.g. virtual placeholder routes) are **all preserved**; only fields derived from page declarations are refreshed. A single file can be regenerated safely.
 
+## The Extension Declaration File (routes.ext.uts)
+
+`routes.gen.uts` is generated at build time and should not be hand-edited, yet `name` / extended `meta` / `beforeEnter` cannot be expressed in `pages.json`. `routesGen` provides an extension declaration file for this (default `routes.ext.uts`), parsed at build time and merged into the generated route table:
+
+```ts
+// routes.ext.uts —— must export an array literal
+export const routeExtensions = [
+	{
+		path: 'pages/goods/detail', // match key: path or name (either one)
+		meta: { requireAuth: true }, // appended meta extension fields
+		beforeEnter: (to, from) => {
+			// injected verbatim into the generated file, must be self-contained
+			// (same mechanism as macro injection)
+			return uni.getStorageSync('logged') === '1' ? true : { name: 'login' }
+		}
+	},
+	{ name: 'home', meta: { keepAlive: true } }
+]
+```
+
+**Merge rules**:
+
+| Scenario | Behavior |
+| --- | --- |
+| Match a route by `path` (takes priority) or `name` | Unmatched entries are logged and ignored |
+| Explicit `name` declared | Overrides the auto-generated name; skipped with a warning if it conflicts with another route's name |
+| `meta.title` / `meta.isTab` | Ignored with a warning when already derived from `pages.json` (style / tabBar); only fills in when missing |
+| Other `meta` fields | Deduplicated by key then appended (declaration value wins) |
+| `beforeEnter` | A later declaration overrides the earlier one (warn on override) |
+| Fields other than `path` / `name` / `meta` / `beforeEnter` | The entry is dropped with a warning |
+
+`routeGen` / `pagesGen` do not read the extension declaration file — their name / meta / beforeEnter come from in-page macros / blocks.
+
 ## Configuration
 
 ### uni-app x CLI Projects
@@ -221,6 +269,14 @@ export default {
 | `dts` | `string \| false?` | — | `RouteNameMap` declaration file path, `false` to disable |
 | `preserveRouteChanges` | `boolean?` | `true` | Preserve your modifications to the route file on regeneration |
 
+**`router` (`routesGen` extras)**:
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `extensions` | `string \| false?` | `'routes.ext.uts'` | Extension declaration file path (relative to project root), `false` to disable extension merging |
+
+> Option split across the three plugins: the **common options** (`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`) exist on all three; the `pages` section belongs to `routeGen` / `pagesGen`, and the `router` section to `routeGen` / `routesGen` (`extensions` is `routesGen`-only).
+
 ## Relationship with @meng-xi/vite-plugin (generateUni)
 
 The `defineUniPage` macro / `<route-config>` block syntax stays consistent with MengXi Studio's `generateUni`, so the two plugins are interchangeable. Differences:
@@ -233,7 +289,8 @@ The `defineUniPage` macro / `<route-config>` block syntax stays consistent with 
 - **Forgetting `uni()` in HBuilderX**: the dev server starts but pages are blank / `/main` returns 404. A project-level `vite.config.ts` replaces the built-in config entirely — import `uni()` yourself (see above).
 - **`beforeEnter` referencing page variables**: the macro function is injected verbatim into `routes.gen.uts`, a separate scope from the page; referencing page variables breaks compilation. Guard logic must be self-contained (storage / global state).
 - **Macro declared twice**: at most once per page; `strict` aborts the build.
-- **Edits not taking effect**: make sure `watch` is on (default); if you edit `pages.json` directly through HBuilderX, it will be overwritten by the next regeneration — declare pages in the page files instead.
+- **Edits not taking effect**: make sure `watch` is on (default); if you edit `pages.json` directly through HBuilderX, it will be overwritten by the next regeneration — declare pages in the page files instead (applies to `routeGen` / `pagesGen` only).
+- **Page edits not taking effect under `routesGen`**: `routesGen` treats `pages.json` as the source of truth and does not scan page directories — register new pages in `pages.json` first and the route table regenerates; name / meta / beforeEnter go through the extension declaration file.
 
 ## Next Steps
 

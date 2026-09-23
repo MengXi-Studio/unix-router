@@ -14,7 +14,12 @@
   - watch: adding / removing / editing pages triggers a debounced (200 ms), serialized two-phase pipeline rerun
   - Generates `route-name.gen.d.ts` (WEB-side `RouteNameMap` literal types) and `define-uni-page.d.ts` (macro typing), both optional
 - **New subpath export `@meng-xi/unix-router/vite-plugin`**: vite / webpack adapters (unplugin bundled in, zero runtime dependencies); the `node/` source directory sits outside UTS compile scanning, leaving the main entry unaffected
-- Docs add a "File-Based Routing" chapter (zh/en), including how HBuilderX projects must import `uni()` themselves in `vite.config.ts`
+- **Plugins split into three independent implementations** (`node/` reorganized into `route-gen` / `pages-gen` / `routes-gen` + `shared` directories), registrable independently or in combination without affecting each other:
+  - `routeGen`: page files → `pages.json` + `routes.gen.uts` full pipeline (behavior unchanged)
+  - `pagesGen`: page files → `pages.json` only (including the macro dts), never touches route files
+  - `routesGen`: `pages.json` → route table only, never touches `pages.json`; supports the `routes.ext.uts` extension declaration file (path / name ↔ explicit name / extended meta / beforeEnter, functions injected verbatim; `router.extensions` changes the path or `false` disables it)
+  - Options split along with the plugins: common options (`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`) + the `pages` / `router` sections
+- Docs add a "File-Based Routing" chapter (zh/en), including how HBuilderX projects must import `uni()` themselves in `vite.config.ts`, how to choose among the three plugins, and the `routes.ext.uts` extension declaration usage
 
 ### Fixed
 
