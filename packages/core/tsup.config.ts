@@ -32,7 +32,9 @@ export default defineConfig({
 					js: 'var __uniRouterImportMetaUrl = require("node:url").pathToFileURL(__filename).href;var __uniRouterImportMetaDirname = __dirname;'
 				}
 			: { js: '' },
-	// 生成 index.d.ts：exports './vite-plugin' 的 types 条件指向 dist/plugin/index.d.ts
+	// 生成 index.d.ts / index.d.cts：exports './vite-plugin' 的 types 条件指向 index.d.ts；
+	// index.d.mts 由 build script 在 tsup 结束后复制生成（TS 解析显式 `import './x.mjs'` 时按 .d.mts 配对
+	// 查找声明，如 playground 从 uni_modules 内以 index.mjs 引入；tsup onSuccess 时机早于 dts 写出，不可用）
 	dts: true,
 	bundle: true,
 	platform: 'node',

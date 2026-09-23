@@ -30,7 +30,7 @@
 		"README-en.md"
 	],
 	"scripts": {
-		"build": "tsup"
+		"build": "tsup && node -e \"require('fs').copyFileSync('dist/plugin/index.d.ts','dist/plugin/index.d.mts')\""
 	},
 	"peerDependencies": {
 		"vue": ">=3.0.0"
