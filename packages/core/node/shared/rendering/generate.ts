@@ -165,16 +165,22 @@ function renderLiteral(v: LiteralValue): string {
 	switch (v.kind) {
 		case 'string':
 			return quote(v.value)
+
 		case 'number':
 			return String(v.value)
+
 		case 'boolean':
 			return v.value ? 'true' : 'false'
+
 		case 'null':
 			return 'null'
+
 		case 'raw':
 			return v.value
+
 		case 'array':
 			return '[ ' + v.items.map(renderLiteral).join(', ') + ' ]'
+
 		case 'object':
 			return '{ ' + v.entries.map(e => `${e.key}: ${renderLiteral(e.value)}`).join(', ') + ' }'
 	}

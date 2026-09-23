@@ -15,6 +15,8 @@
 		"dev:playground:mp-weixin": "pnpm --filter @meng-xi/unix-router-playground dev:mp-weixin",
 		"build:playground:h5": "pnpm --filter @meng-xi/unix-router-playground build:h5",
 		"build:playground:mp-weixin": "pnpm --filter @meng-xi/unix-router-playground build:mp-weixin",
+		"sync:uni-modules": "node scripts/sync-uni-modules.mjs",
+		"sync:uni-modules:check": "node scripts/sync-uni-modules.mjs --check",
 		"release": "bumpp",
 		"typecheck": "tsc -p tsconfig.json --noEmit",
 		"lint": "eslint .",
