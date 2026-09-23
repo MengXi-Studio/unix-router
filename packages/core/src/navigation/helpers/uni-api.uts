@@ -37,6 +37,23 @@ export function promisifyUniApi(api: string, executor: (resolve: () => void, rej
 	})
 }
 
+// #ifdef WEB
+/**
+ * WEB 端为导航 options 注入 success/fail 回调与按需携带的动画字段
+ * 动画字段缺省不带（避免 H5 端 null/undefined 行为差异）；
+ * 返回 any 桥接：下标动态字段无法静态满足 uni.* 具名 Options 类型（url required），消除 H5 编译警告
+ */
+function applyWebNavOptions(options: UTSJSONObject, resolve: () => void, reject: (err: any) => void, anim: UniAnimation | null): any {
+	options['success'] = () => resolve()
+	options['fail'] = (err: any) => reject(err)
+	if (anim != null && anim.type != null && anim.type.length > 0) {
+		options['animationType'] = anim.type
+		options['animationDuration'] = anim.duration === null ? 300 : anim.duration
+	}
+	return options as any
+}
+// #endif
+
 /**
  * 调用 uni.navigateTo 跳转到普通页面
  * @param anim - 窗口过渡动画（AnimationPlugin 注入；null 时不携带动画参数）
@@ -49,13 +66,7 @@ export function uniNavigateTo(path: string, query: Map<string, string>, anim: Un
 		// #else
 		const options = new UTSJSONObject()
 		options['url'] = url
-		options['success'] = () => resolve()
-		options['fail'] = (err: any) => reject(err)
-		if (anim != null && anim.type != null && anim.type.length > 0) {
-			options['animationType'] = anim.type
-			options['animationDuration'] = anim.duration === null ? 300 : anim.duration
-		}
-		uni.navigateTo(options)
+		uni.navigateTo(applyWebNavOptions(options, resolve, reject, anim))
 		// #endif
 	})
 }
@@ -70,9 +81,7 @@ export function uniSwitchTab(path: string): Promise<void> {
 		// #else
 		const options = new UTSJSONObject()
 		options['url'] = path
-		options['success'] = () => resolve()
-		options['fail'] = (err: any) => reject(err)
-		uni.switchTab(options)
+		uni.switchTab(applyWebNavOptions(options, resolve, reject, null))
 		// #endif
 	})
 }
@@ -88,13 +97,7 @@ export function uniRedirectTo(path: string, query: Map<string, string>, anim: Un
 		// #else
 		const options = new UTSJSONObject()
 		options['url'] = url
-		options['success'] = () => resolve()
-		options['fail'] = (err: any) => reject(err)
-		if (anim != null && anim.type != null && anim.type.length > 0) {
-			options['animationType'] = anim.type
-			options['animationDuration'] = anim.duration === null ? 300 : anim.duration
-		}
-		uni.redirectTo(options)
+		uni.redirectTo(applyWebNavOptions(options, resolve, reject, anim))
 		// #endif
 	})
 }
@@ -110,13 +113,7 @@ export function uniReLaunch(path: string, query: Map<string, string>, anim: UniA
 		// #else
 		const options = new UTSJSONObject()
 		options['url'] = url
-		options['success'] = () => resolve()
-		options['fail'] = (err: any) => reject(err)
-		if (anim != null && anim.type != null && anim.type.length > 0) {
-			options['animationType'] = anim.type
-			options['animationDuration'] = anim.duration === null ? 300 : anim.duration
-		}
-		uni.reLaunch(options)
+		uni.reLaunch(applyWebNavOptions(options, resolve, reject, anim))
 		// #endif
 	})
 }
@@ -133,13 +130,7 @@ export function uniNavigateBack(delta: number, anim: UniAnimation | null = null)
 		// #else
 		const options = new UTSJSONObject()
 		options['delta'] = delta
-		options['success'] = () => resolve()
-		options['fail'] = (err: any) => reject(err)
-		if (anim != null && anim.type != null && anim.type.length > 0) {
-			options['animationType'] = anim.type
-			options['animationDuration'] = anim.duration === null ? 300 : anim.duration
-		}
-		uni.navigateBack(options)
+		uni.navigateBack(applyWebNavOptions(options, resolve, reject, anim))
 		// #endif
 	})
 }

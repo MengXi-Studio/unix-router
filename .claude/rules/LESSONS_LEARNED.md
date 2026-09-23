@@ -69,3 +69,6 @@
 
 ### 5. CDP harness：资源错误走 Network 通道才能按 URL 过滤
 - `Log.entryAdded` 的 "Failed to load resource" 文本不含 URL（favicon.ico 404 无法按 URL 过滤、会误报 FAIL）；资源错误改由 `Network.responseReceived` 承载（可按 URL 排除 favicon 噪声，favicon 404 属浏览器自动请求，非业务错误）。
+
+### 6. WEB 分支动态构造 uni.* options 须集中 as any 桥接
+- H5 端 `uni.navigateTo/switchTab/redirectTo/reLaunch` 的 options 含 required 字段 `url`，UTSJSONObject 下标动态赋值无法静态满足 → 每次编译刷 4 条类型警告（navigateBack 无 required 字段故不报）。收敛到单个 `#ifdef WEB` 桥接函数（注入回调 + 按需动画字段 + `return options as any`），差异字段（url/delta）留在调用处；运行时 JS 输出不变。验证断言点：动画字段桥接后 H5 进入动画仍播放（`H5 进入动画播放 -> slide-in-right 300ms` 日志）。
