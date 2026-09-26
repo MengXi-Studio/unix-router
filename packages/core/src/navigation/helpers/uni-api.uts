@@ -3,8 +3,10 @@
  *
  * 跨端差异处理：
  * - Web（H5）：options 用 UTSJSONObject 构造，携带 animationType（H5 动画演示）；
- * - App / 小程序：uni.* 的 options 参数类型为具名 Options（NavigateToOptions 等），
- *   对象字面量构造即可（动画字段在原生端识别有差异，native 端不携带动画字段）。
+ * - App：uni.* 的 options 参数类型为具名 Options（NavigateToOptions 等），
+ *   navigateTo / navigateBack 的 animationType / animationDuration 仅 App 支持（原生窗口打开 / 关闭动画），
+ *   动画注入时透传；redirectTo / reLaunch 官方 Options 无动画字段；
+ * - 小程序：动画字段官方不支持，不携带。
  */
 import { buildFullPath } from '../../utils'
 import type { UniAnimation } from '../type'
@@ -61,9 +63,35 @@ function applyWebNavOptions(options: UTSJSONObject, resolve: () => void, reject:
 export function uniNavigateTo(path: string, query: Map<string, string>, anim: UniAnimation | null = null): Promise<void> {
 	const url = buildFullPath(path, query)
 	return promisifyUniApi('navigateTo', (resolve, reject) => {
-		// #ifndef WEB
+		// #ifdef APP
+		// App：动画注入时透传原生窗口打开动画（animationType / animationDuration 官方仅 App 支持）
+		if (anim != null) {
+			const animType = anim.type
+			const duration = anim.duration
+			if (animType != null && animType.length > 0) {
+				let animDuration = 300
+				if (duration != null) {
+					animDuration = duration
+				}
+				uni.navigateTo({
+					url: url,
+					animationType: animType,
+					animationDuration: animDuration,
+					success: () => resolve(),
+					fail: (err: any) => reject(err)
+				})
+			} else {
+				uni.navigateTo({ url: url, success: () => resolve(), fail: (err: any) => reject(err) })
+			}
+		} else {
+			uni.navigateTo({ url: url, success: () => resolve(), fail: (err: any) => reject(err) })
+		}
+		// #endif
+		// #ifndef APP || WEB
+		// 小程序端：动画字段官方仅 App 支持，不携带
 		uni.navigateTo({ url: url, success: () => resolve(), fail: (err: any) => reject(err) })
-		// #else
+		// #endif
+		// #ifdef WEB
 		const options = new UTSJSONObject()
 		options['url'] = url
 		uni.navigateTo(applyWebNavOptions(options, resolve, reject, anim))
@@ -88,6 +116,7 @@ export function uniSwitchTab(path: string): Promise<void> {
 
 /**
  * 调用 uni.redirectTo 替换当前页面
+ * @param anim - 仅 H5 端生效（redirectTo 官方 Options 无动画字段，App / 小程序端不携带）
  */
 export function uniRedirectTo(path: string, query: Map<string, string>, anim: UniAnimation | null = null): Promise<void> {
 	const url = buildFullPath(path, query)
@@ -104,6 +133,7 @@ export function uniRedirectTo(path: string, query: Map<string, string>, anim: Un
 
 /**
  * 调用 uni.reLaunch 关闭所有页面并打开目标页面
+ * @param anim - 仅 H5 端生效（reLaunch 官方 Options 无动画字段，App / 小程序端不携带）
  */
 export function uniReLaunch(path: string, query: Map<string, string>, anim: UniAnimation | null = null): Promise<void> {
 	const url = buildFullPath(path, query)
@@ -125,9 +155,35 @@ export function uniReLaunch(path: string, query: Map<string, string>, anim: UniA
  */
 export function uniNavigateBack(delta: number, anim: UniAnimation | null = null): Promise<void> {
 	return promisifyUniApi('navigateBack', (resolve, reject) => {
-		// #ifndef WEB
+		// #ifdef APP
+		// App：动画注入时透传原生窗口关闭动画（animationType / animationDuration 官方仅 App 支持）
+		if (anim != null) {
+			const animType = anim.type
+			const duration = anim.duration
+			if (animType != null && animType.length > 0) {
+				let animDuration = 300
+				if (duration != null) {
+					animDuration = duration
+				}
+				uni.navigateBack({
+					delta: delta,
+					animationType: animType,
+					animationDuration: animDuration,
+					success: () => resolve(),
+					fail: (err: any) => reject(err)
+				})
+			} else {
+				uni.navigateBack({ delta: delta, success: () => resolve(), fail: (err: any) => reject(err) })
+			}
+		} else {
+			uni.navigateBack({ delta: delta, success: () => resolve(), fail: (err: any) => reject(err) })
+		}
+		// #endif
+		// #ifndef APP || WEB
+		// 小程序端：动画字段官方仅 App 支持，不携带
 		uni.navigateBack({ delta: delta, success: () => resolve(), fail: (err: any) => reject(err) })
-		// #else
+		// #endif
+		// #ifdef WEB
 		const options = new UTSJSONObject()
 		options['delta'] = delta
 		uni.navigateBack(applyWebNavOptions(options, resolve, reject, anim))

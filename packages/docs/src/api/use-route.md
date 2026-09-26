@@ -58,11 +58,11 @@ uni-app x 中 query 以字符串在 URL 传递，`route.query` / `route.params` 
 ## 更新时机
 
 - **导航完成时**：uni API 调用成功且目标页经页面栈顶确认后自动更新（剥离插件内部 key 后写入）。
-- **`syncRoute()` 时**：物理返回、tab 切换等不经过路由器的行为，由 `syncRoute()` 从页面栈重建状态并更新（H5 端 `app.use(router)` 注册的 `onShow` mixin 自动触发；原生端建议页面 `onShow` 手动调用）。
+- **仅前进导航写入本对象**：`back()` 与 `syncRoute()` 只更新路由器内部状态（`router.currentRoute`），**不回写本对象**。物理返回、tab 切换等不经过路由器的行为，请通过页面 `onLoad(options)` / `onShow` 直接读取最新状态（H5 端 `app.use(router)` 注册的 `onShow` mixin 会自动调 `syncRoute()`，但同步的是 `router.currentRoute`）。
 
 ## onShow 时机提示
 
-页面 `onShow` 可能**早于路由状态同步**执行。若需要在 `onShow` 里确定性地读取本次页面参数，优先在页面 `onLoad(options)` 中读取原生 `options`（即 URL query），或先手动调用一次 `router.syncRoute()` 再读 `route`。
+页面 `onShow` 可能**早于路由状态同步**执行。若需要在 `onShow` 里确定性地读取本次页面参数，在页面 `onLoad(options)` 中读取原生 `options`（即 URL query）；注意 `router.syncRoute()` 不会更新 `useRoute()` 返回的对象，不要依赖它刷新 `route`。
 
 ## 相关 API
 

@@ -5,7 +5,7 @@ unix-router 采用**核心 + 插件**架构（对齐 uni-router / Swiper.js 风�
 - **核心**只做四件事：路由匹配、导航执行、守卫链、状态同步；
 - **其余扩展能力**（页面参数、页面间通信、导航动画、uni API 拦截等）全部插件化，**opt-in** 按需注册。
 
-不注册插件时，对应能力完全不存在：核心包保持精简稳定；未注册却使用会直接抛 `PLUGIN_REQUIRED` 错误，明确引导而非静默失败。
+不注册插件时，对应能力完全不存在：核心包保持精简稳定；未注册却使用参数 / 通信类能力（`params` / `events`）会直接抛 `PLUGIN_REQUIRED` 错误，明确引导而非静默失败。
 
 ## 内置插件速览
 
@@ -13,7 +13,7 @@ unix-router 采用**核心 + 插件**架构（对齐 uni-router / Swiper.js 风�
 | --- | --- | --- | --- | --- |
 | `ParamsPlugin` | `params` | 页面参数传递（内存 / 持久化） | `paramsPersistent` | [参数传递](./params) |
 | `EventsPlugin` | `events` | 页面间通信（`events` 监听表 + EventChannel 回传） | — | [页面间通信](./events) |
-| `AnimationPlugin` | `animation` | 导航窗口动画（原生透传 / H5 WAAPI） | `animation` | [导航动画](./animation) |
+| `AnimationPlugin` | `animation` | 导航窗口动画（App 原生透传 / H5 WAAPI） | `animation` | [导航动画](./animation) |
 | `InterceptorPlugin` | `interceptor` | 拦截 uni 原生导航 API，守卫下沉到 uni API 层 | `interceptUniApi` | [uni API 拦截](./interceptor) |
 
 ## 注册插件

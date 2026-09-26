@@ -72,7 +72,7 @@ onShow(() => {
 
 ## isTab：TabBar 页判定
 
-目标路由 `meta.isTab === true` 时，路由器自动改用 `uni.switchTab` 导航（`push` / `replace` / `relaunch` 均适用）。注意 `switchTab` **不携带 query**，Tab 页参数请走全局状态或[页面间通信](./events)。
+目标路由 `meta.isTab === true` 时，路由器自动改用 `uni.switchTab` 导航（`push` / `replace` / `relaunch` 均适用）。注意 `switchTab` **不携带 query**（query 与依赖 query 桥接的 params / events 均不可达），Tab 页参数请走全局状态或 storage。
 
 ::: warning 别忘了标记 TabBar 页
 凡出现在 `pages.json` tabBar 列表中的页面，路由配置都要加 `isTab: true`，否则会被 `navigateTo` 打开而失败。
@@ -126,7 +126,7 @@ vue-router 通过 `declare module 'vue-router' { interface RouteMeta { … } }` 
 
 - **忘记设 `meta.isTab`**：TabBar 页被 `navigateTo` 打开会失败。给 TabBar 页统一加 `isTab: true`。
 - **可选字段直接 truthy 判断**：UTS 强类型下请用 `=== true` / `!= null` 显式判断，例如 `if (to.meta.requireAuth === true)`。
-- **在错误时机读 meta**：路由状态在页面 `onShow` 时由路由器同步（`app.use(router)` 已自动接管），请勿在更早的时机读取目标页 meta。
+- **在错误时机读 meta**：路由状态在页面 `onShow` 时由 `syncRoute()` 对齐（H5 端 `app.use(router)` 已自动接管；原生端需在 `onShow` 自行调用），请勿在更早的时机读取目标页 meta。
 
 ## 下一步
 

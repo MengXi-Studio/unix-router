@@ -40,11 +40,11 @@ The docs are organized progressively. We recommend reading them in order:
 | Route matching | `path` / `name` dual index; string / object / named resolution; with `strict` mode on, unmatched named routes throw `ROUTE_NOT_FOUND` |
 | Navigation | push / replace / relaunch / back; `meta.isTab` automatically uses `switchTab`; concurrent navigations are queued and executed serially; only push detects duplicates (`DUPLICATED`) |
 | Guards | beforeEach / beforeEnter (route-local) / beforeResolve / afterEach + in-component onBeforeRouteLeave / Update / Enter; return-value-style redirects with a depth limit of 10; `guardTimeout` timeout protection |
-| Cold-start guards | `guardRoute(location?, { onAbort? })` re-runs the guard chain for deep-linked entry pages (no actual navigation; a redirect defaults to `relaunch` to perform the real jump) |
+| Cold-start guards | `guardRoute(location?, { onAbort? })` re-runs the global `beforeEach` only for deep-linked entry pages (no actual navigation; a redirect defaults to `relaunch` to perform the real jump) |
 | Params & query | query goes straight into the URL; params travel via ParamsPlugin (the `__params__` internal key channel, with optional `paramsPersistent` persistence); `queryInt` / `queryNumber` / `queryBool` for typed reads |
 | Composition API | useRouter / useRoute / useLink / useOpenerEventChannel, plus the three in-component guards (onBeforeRouteLeave / Update / Enter) |
 | Page event communication | EventsPlugin — pass an events listener map in push to create the channel; the opened page uses `useOpenerEventChannel` to emit back / receive; also exports a global `eventBus` |
-| Navigation animations | AnimationPlugin — passes through native `animationType` / `animationDuration` on App / Mini Program, implements H5 with the Web Animations API, and back automatically maps to exit-style animations |
+| Navigation animations | AnimationPlugin — passes through native `animationType` / `animationDuration` on App (officially App-only), implements H5 with the Web Animations API, and back automatically maps to exit-style animations |
 | uni API interception | InterceptorPlugin + `interceptUniApi` — external direct calls like `uni.navigateTo` also go through the guard chain (based on `uni.addInterceptor`, with automatic degradation when it is missing at runtime) |
 | State sync | `syncRoute()` syncs `currentRoute` from the page stack; on H5, `install` automatically registers the onShow global mixin; `onRouteChange` listens for route changes |
 | Error system | RouterError / NavigationFailure with 7 error codes (ABORTED / CANCELLED / DUPLICATED / ROUTE_NOT_FOUND / NAVIGATION_API_ERROR / SETUP_ERROR / PLUGIN_REQUIRED); navigation failures always reject; onError + isNavigationFailure |

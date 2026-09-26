@@ -47,8 +47,8 @@ onLoad((options: UTSJSONObject) => {
 
 需要向 tab 页传递数据时，改用：
 
-- **params**（ParamsPlugin，内部 key 通道不依赖 URL）
-- **EventsPlugin / eventBus** 事件通信
+- **全局状态 / storage**（query、params、events 通道均经 URL query 桥接，switchTab 下均不可达）
+- **eventBus** 广播（全局总线不经导航 URL，目标页注册监听后可收到）
 
 ## 守卫不生效
 
@@ -120,7 +120,7 @@ const router = createRouter({
 
 ## 重复导航报错（DUPLICATED）
 
-`push` 到相同位置（path + query 一致）会 reject `DUPLICATED`（仅 push 检测；与 vue-router 的 `resolve(false)` 不同，这里是真正的 reject）。
+`push` 到相同位置（path + query + params + hash 完全一致）会 reject `DUPLICATED`（仅 push 检测；与 vue-router 的 `resolve(false)` 不同，这里是真正的 reject）。
 
 ```ts
 import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
@@ -153,13 +153,13 @@ router.beforeEach((to, from) => {
 
 ## 返回无法拦截
 
-不同平台对返回的拦截能力不同：
+物理返回（按键 / 侧滑 / 导航栏返回）与浏览器后退**均不经过路由器**，任何平台的守卫链（含 `onBeforeRouteLeave`）都只对受控导航（`router.back()` / `push` 等）生效：
 
-- **App 端**：物理返回键 / 导航栏返回经返回守卫链，`onBeforeRouteLeave` 生效
-- **H5 端**：浏览器后退经返回守卫链，`onBeforeRouteLeave` 生效
-- **小程序端**：顶部返回箭头 / 滑动由宿主控制，**无法同步拦截**，用 `onRouteChange` 事后处理
+- **App 端**：物理返回键 / 导航栏返回 / 侧滑由系统直接出栈，不经守卫链；需要拦截时用页面 `onBackPress`
+- **H5 端**：浏览器后退由 uni 框架直接出栈，不经守卫链
+- **小程序端**：顶部返回箭头 / 滑动由宿主控制，无法同步拦截
 
-详见[平台兼容性](./compatibility#返回拦截)。
+以上场景用 `onRouteChange` + `syncRoute` 事后感知。详见[平台兼容性](./compatibility#h5-与原生差异)。
 
 ## H5 冷启动直达页守卫不执行
 
@@ -167,7 +167,7 @@ router.beforeEach((to, from) => {
 
 **原因**：守卫链挂在导航调用上，冷启动直达页没有发起 `router.push`，守卫自然不会跑。
 
-**方案**：在 `App.uvue` 的 `onLaunch` 中，等路由器 ready 后用 `guardRoute` 对真实入口页**补执行守卫链**（不实际导航；守卫返回 abort 时触发 `onAbort` 并 reject，返回 redirect 时默认以 `relaunch` 执行真实跳转）：
+**方案**：在 `App.uvue` 的 `onLaunch` 中，等路由器 ready 后用 `guardRoute` 对真实入口页**补执行 `beforeEach` 守卫链**（不实际导航；守卫返回 abort 时触发 `onAbort` 并 reject，返回 redirect 时默认以 `relaunch` 执行真实跳转）：
 
 ```uts
 import { onLaunch } from '@dcloudio/uni-app'

@@ -158,7 +158,7 @@ plugins: [new InterceptorPlugin()] // 通常配合 interceptUniApi: true
 | --- | --- | --- |
 | `installInterceptors` | `(router: Router): void` | 手动安装：对 5 个导航 API 各注册一个 `uni.addInterceptor`；`uni.addInterceptor` 不可用时输出警告并禁用；已有实例注册时先卸载并警告（同一时刻仅支持一个） |
 | `removeInterceptors` | `(): void` | 逐个 `uni.removeInterceptor` 移除，重置并释放路由器引用 |
-| `markRouterCall` | `(): void` | 标记下一次 uni API 调用由路由器内部发起（导航模块内部使用，拦截器检测到标记即放行；外部一般无需调用） |
+| `markRouterCall` | `(): void` | 标记下一次 uni API 调用由路由器内部发起（导航模块内部使用，拦截器检测到标记即放行；仅插件模块内部导出，**包入口未导出**，外部一般无需调用） |
 
 被拦截的 API 列表（内部常量 `INTERCEPTED_APIS`）：`navigateTo`、`redirectTo`、`switchTab`、`reLaunch`、`navigateBack`。
 

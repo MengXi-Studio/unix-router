@@ -1,6 +1,6 @@
 # File-Based Routing
 
-The page model of unix-router is static: one route = one page registered in `pages.json`. Traditionally you write path / title / tabBar / isTab **twice** — once in `pages.json` and once in the route table — which easily drifts out of sync.
+The page model of unix-router is static: one route = one page registered in `pages.json`. Traditionally you write path / title / tabBar / isTab **twice** — once in `pages.json` and once in the route table — and the duplicated maintenance easily drifts out of sync.
 
 **File-based routing** moves the source of truth into each page file: declare a small config near your page code, and a build-time plugin generates `pages.json` (including tabBar) and the `routes.gen.uts` route table automatically — **add / remove / rename a page, and both configs stay in sync from a single declaration**.
 
@@ -21,174 +21,16 @@ export default {
 
 | Plugin | Data flow | Use case |
 | --- | --- | --- |
-| `routeGen` | Page files → `pages.json` + route table | **Default recommendation**. Declare near your pages, everything stays in sync |
+| `routeGen` | Page files → `pages.json` + route table | **Default recommendation**. Declare near your pages, the whole chain stays in sync automatically |
 | `pagesGen` | Page files → `pages.json` only | You only want automatic page registration; hand-write the route table |
 | `routesGen` | `pages.json` → route table only | `pages.json` is hand-written (or maintained by another tool); name / meta / beforeEnter are injected via an extension declaration file |
 
 - The three plugins are independent: `pagesGen` never touches route files, `routesGen` never touches `pages.json`
-- `pagesGen` + `routesGen` combined can replace `routeGen` with the two phases decoupled — in that mode the page-level name / meta / beforeEnter declarations move to `routes.ext.uts` (see [The Extension Declaration File](#the-extension-declaration-file-routesextuts))
+- `pagesGen` + `routesGen` combined can replace `routeGen` with the two phases decoupled — in that mode the page-level name / meta / beforeEnter declarations move to `routes.ext.uts` (see [Extending Routes](./extending-routes))
 
-Usage is identical (unplugin factory + vite adapter); only the option split differs: `pagesGen` takes the common options + `pages`, `routesGen` takes the common options + `router` (see [Options Reference](#options-reference)).
+Usage is identical (an unplugin factory + vite adapter); only the option split differs: `pagesGen` takes the common options + `pages`, `routesGen` takes the common options + `router` (see [Options Reference](#options-reference)).
 
-## The defineUniPage Macro
-
-Declare it at the top of each page's `<script setup>` (no import needed; stripped at compile time with same-line-count comment placeholders that keep line numbers stable):
-
-```ts
-<!-- pages/mine/mine.uvue -->
-<script setup>
-	// Page declaration macro: stripped at compile time by @meng-xi/unix-router/vite-plugin
-	defineUniPage({
-		title: 'Mine',
-		name: 'mine',
-		isTab: true,
-		tab: { order: 2, text: 'Mine', iconPath: 'static/tabbar/mine.png', selectedIconPath: 'static/tabbar/mine-active.png' }
-	})
-	// ...page logic
-</script>
-```
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `title` | `string?` | Page title → `navigationBarTitleText` in `pages.json` and route `meta.title` |
-| `name` | `string?` | Named route; auto-generated via camelCase normalization when omitted |
-| `isTab` | `boolean?` | Whether it is a tabBar page → `meta.isTab` + `pages.json` `tabBar.list` |
-| `tab` | `{ order?, text?, iconPath?, selectedIconPath? }` | tabBar details; `order` determines tab position |
-| `meta` | `Record<string, any>?` | Extended route meta fields (e.g. `requireAuth`), must match the `RouteMeta` definition |
-| `redirect` | `string?` | Route redirect target (page path) |
-| `beforeEnter` | `(to, from) => any?` | Per-route before guard, **must be self-contained** (the generated file cannot reference page scope) |
-
-**Rules**: at most once per page, at the top level of the script. Function fields such as `beforeEnter` are injected into the generated file verbatim (JSON cannot express functions; UTS expressions can), and type safety is enforced by the UTS compile chain:
-
-```ts
-<!-- pages-sub/setting/setting.uvue —— subpackage page + per-route guard -->
-<script setup>
-	defineUniPage({
-		title: 'Settings',
-		name: 'setting',
-		beforeEnter: (to: any, from: any): any => {
-			// Note: must be self-contained — cannot reference variables inside the page
-			// (the generated file and the page file are two separate scopes)
-			return uni.getStorageSync('logged') === '1' ? true : { name: 'login' }
-		}
-	})
-</script>
-```
-
-## The &lt;route-config&gt; Custom Block
-
-If you prefer not to use the macro, or the declaration is long, use an SFC custom block (same effect, lower priority than the macro):
-
-```vue
-<route-config lang="jsonc">
-{
-	// jsonc: comments supported
-	"title": "Goods Detail",
-	"name": "goods-detail",
-	"meta": { "requireAuth": true }
-}
-</route-config>
-
-<route-config lang="uts">
-{
-	title: 'Checkout',
-	meta: { requireAuth: true },
-	// lang="uts" supports function fields
-	beforeEnter: (to, from) => true
-}
-</route-config>
-```
-
-The block content is intercepted as a virtual module at compile time and never enters the page JS — transparent to the compiler.
-
-## Priority
-
-When the same field is declared in multiple places, it is resolved along the priority chain:
-
-```
-defineUniPage macro  >  <route-config> block  >  plugin inference (titleFallback / tabBar config as fallback)
-```
-
-Merging is field-level: if the macro declares `title` and the block declares `meta`, both take effect.
-
-## Automatic Name Normalization
-
-| Scenario | Result |
-| --- | --- |
-| `name` declared via macro/block | The declared value is used |
-| Omitted, last segment `mine` is unique | Last-segment camelCase: `pages/mine/mine` → `mine` |
-| Last-segment collision (e.g. `pages/a/index` and `pages/b/index`) | Full-path camelCase fallback: `aIndex` / `bIndex` |
-| Still conflicting in extreme cases | Handled by `errorStrategy`: `strict` (default) aborts the build with a listing / `warn` logs and skips |
-
-Generates `route-name.gen.d.ts` (a WEB-side `RouteNameMap` module augmentation), giving literal autocomplete for name-based navigation (see [The Named Route Type RouteName](./route-config#the-named-route-type-routename)).
-
-## Generated Artifacts
-
-| File | Description |
-| --- | --- |
-| `pages.json` | Auto-generated page entries + tabBar + subPackages; **hand-written non-page fields (globalStyle, uniIdRouter, etc.) are merged and preserved** |
-| `routes.gen.uts` | The route table `RouteConfig[]`; in `router.uts`: `import { routes } from './routes.gen.uts'` |
-| `route-name.gen.d.ts` | Literal types for `RouteNameMap` (WEB-side editor hints, optional) |
-| `define-uni-page.d.ts` | Macro type declaration (editor hints, optional) |
-
-Commit the generated files **to git**: the HBuilderX CLI compile chain does not guarantee the plugin runs first; watch/HMR are development-time conveniences only.
-
-### routes.gen.uts Example
-
-```ts
-/** Generated by @meng-xi/unix-router/vite-plugin */
-import type { RouteConfig } from '@meng-xi/unix-router'
-
-export const routes: RouteConfig[] = [
-	{
-		path: 'pages-sub/setting/setting',
-		name: 'setting',
-		meta: { title: 'Settings' },
-		beforeEnter: (to, from) => { /* macro function injected verbatim */ }
-	},
-	{ path: 'pages/mine/mine', name: 'mine', meta: { title: 'Mine', isTab: true } },
-	// ...
-]
-```
-
-### preserveRouteChanges
-
-On regeneration the plugin diffs the existing `routes.gen.uts`: fields you added to existing entries and entire hand-written custom routes (e.g. virtual placeholder routes) are **all preserved**; only fields derived from page declarations are refreshed. A single file can be regenerated safely.
-
-## The Extension Declaration File (routes.ext.uts)
-
-`routes.gen.uts` is generated at build time and should not be hand-edited, yet `name` / extended `meta` / `beforeEnter` cannot be expressed in `pages.json`. `routesGen` provides an extension declaration file for this (default `routes.ext.uts`), parsed at build time and merged into the generated route table:
-
-```ts
-// routes.ext.uts —— must export an array literal
-export const routeExtensions = [
-	{
-		path: 'pages/goods/detail', // match key: path or name (either one)
-		meta: { requireAuth: true }, // appended meta extension fields
-		beforeEnter: (to, from) => {
-			// injected verbatim into the generated file, must be self-contained
-			// (same mechanism as macro injection)
-			return uni.getStorageSync('logged') === '1' ? true : { name: 'login' }
-		}
-	},
-	{ name: 'home', meta: { keepAlive: true } }
-]
-```
-
-**Merge rules**:
-
-| Scenario | Behavior |
-| --- | --- |
-| Match a route by `path` (takes priority) or `name` | Unmatched entries are logged and ignored |
-| Explicit `name` declared | Overrides the auto-generated name; skipped with a warning if it conflicts with another route's name |
-| `meta.title` / `meta.isTab` | Ignored with a warning when already derived from `pages.json` (style / tabBar); only fills in when missing |
-| Other `meta` fields | Deduplicated by key then appended (declaration value wins) |
-| `beforeEnter` | A later declaration overrides the earlier one (warn on override) |
-| Fields other than `path` / `name` / `meta` / `beforeEnter` | The entry is dropped with a warning |
-
-`routeGen` / `pagesGen` do not read the extension declaration file — their name / meta / beforeEnter come from in-page macros / blocks.
-
-## Configuration
+## Setup
 
 ### uni-app x CLI Projects
 
@@ -217,7 +59,7 @@ export default defineConfig({
 
 ### HBuilderX Projects
 
-**In HBuilderX, a project-level `vite.config.ts` entirely replaces the built-in config** (the built-in `uni()` no longer applies), so you must import `uni()` yourself; `@dcloudio/vite-plugin-uni` is not in the project dependencies, so resolve it from the HBuilderX install:
+**In HBuilderX, a project-level `vite.config.ts` entirely replaces the built-in config** (the built-in `uni()` no longer applies), so you must import `uni()` yourself; `@dcloudio/vite-plugin-uni` is not in the project dependencies, so resolve it from the HBuilderX install directory:
 
 ```ts
 // vite.config.ts (HBuilderX)
@@ -232,7 +74,140 @@ export default {
 }
 ```
 
-### Options Reference
+::: tip Forgetting uni()
+In HBuilderX, if pages are blank after the dev server starts / `/main` returns 404, chances are the project-level `vite.config.ts` replaced the built-in config without importing `uni()` itself.
+:::
+
+Once registered, **start the dev server**: the plugin scans the page directories and produces the `pages.json` entries and the route table. For the in-page declaration syntax, see [File Conventions](./file-conventions).
+
+## Migrating an existing project
+
+Already have a hand-written `pages.json` and route table in the project? Pick one of the two paths below depending on your situation; both migrate incrementally.
+
+### Path A: routeGen fully automatic — unify the duplicated configs (recommended)
+
+Current state (path / title written once in `pages.json` and once in the route table):
+
+```ts
+// router/routes.ts —— hand-written route table
+export const routes: RouteConfig[] = [
+	{ path: 'pages/index/index', name: 'home', meta: { title: '首页', isTab: true } },
+	{ path: 'pages/about/about', name: 'about', meta: { title: '关于' } }
+]
+```
+
+```jsonc
+// pages.json —— hand-written page entries (title duplicates meta.title above)
+{
+	"pages": [
+		{ "path": "pages/index/index", "style": { "navigationBarTitleText": "首页" } },
+		{ "path": "pages/about/about", "style": { "navigationBarTitleText": "关于" } }
+	]
+}
+```
+
+Migration steps:
+
+1. Register `routeGen` as in [Setup](#setup);
+2. Move each page's title / name / isTab / meta into the page macro:
+
+```vue
+<!-- pages/index/index.uvue -->
+<script setup>
+	defineUniPage({ title: '首页', name: 'home', isTab: true })
+</script>
+```
+
+3. Replace the hand-written route table with the generated artifact:
+
+```ts
+// router/index.ts
+import { createRouter } from '@meng-xi/unix-router'
+import { routes } from './routes.gen.uts' // generated automatically at build time
+
+export const router = createRouter({ routes })
+```
+
+4. Delete the hand-written page entries from `pages.json` (non-page fields such as `globalStyle` are **kept** — the plugin merges them instead of dropping them when generating), then restart the dev server.
+
+- Delete the hand-written array in `router/routes.ts` and switch to `import { routes } from './routes.gen.uts'`
+- Move each page's `title / name / isTab / meta` into the `defineUniPage` at the top of the page (field mapping in [File Conventions](./file-conventions))
+
+### Path B: routesGen incremental — keep pages.json hand-written
+
+When `pages.json` is maintained by another tool, or you don't want to touch page files yet, hand only the **route table** to the plugin:
+
+1. Replace `routeGen` with `routesGen` as in [Setup](#setup);
+2. Keep `pages.json` as is; the route table is generated from it at build time;
+3. Put `name` / extended `meta` / `beforeEnter` in the extension declaration file `routes.ext.uts` (see [Extending Routes](./extending-routes)).
+
+To switch to Path A later, the `pagesGen` + `routesGen` combo transitions smoothly (the two phases are decoupled).
+
+## Starting from scratch
+
+The minimal flow for wiring up a new project from zero:
+
+**1. Install**
+
+```bash
+npm install @meng-xi/unix-router
+```
+
+**2. Register the plugin** (see [Setup](#setup); a CLI project is shown)
+
+**3. Declare near the page**
+
+```vue
+<!-- pages/index/index.uvue -->
+<script setup lang="uts">
+	// Entry page: entryPage is declared as pages/index/index in the plugin options
+	defineUniPage({ title: '首页', name: 'home', isTab: true })
+</script>
+
+<template>
+	<view class="page">
+		<text class="title">首页</text>
+	</view>
+</template>
+```
+
+**4. Create the router**: the route table is no longer hand-written; import the generated artifact
+
+```ts
+// router/index.ts
+import { createRouter } from '@meng-xi/unix-router'
+import { routes } from './routes.gen.uts' // generated automatically at build time
+
+export const router = createRouter({ routes })
+```
+
+**5. Install into the app**
+
+```ts
+// main.ts
+import { createSSRApp } from 'vue'
+import App from './App.uvue'
+import { router } from './router'
+
+export function createApp() {
+	const app = createSSRApp(App)
+	app.use(router)
+	return { app }
+}
+```
+
+**6. Start the dev server**: the plugin scans the `pages` directory and produces the `pages.json` page entries, the `routes.gen.uts` route table, and the type declarations ([Generated Files](./file-conventions#generated-files)). Commit the generated files **to git** — the HBuilderX CLI compile chain does not guarantee the plugin runs first.
+
+## Modifying routes
+
+When you need to make manual adjustments to the generated result:
+
+- `routeGen` / `pagesGen` mode: edit the `defineUniPage` declaration in the page directly; fields appended to existing entries and entire hand-added custom routes are automatically preserved on regeneration thanks to `preserveRouteChanges` (on by default);
+- `routesGen` mode: inject name / meta / beforeEnter through the `routes.ext.uts` extension declaration file.
+
+Both are detailed in [Extending Routes](./extending-routes). Note: **hand-editing fields in the generated files that are "derived from page declarations" is pointless** — the next regeneration refreshes them; change the declaration source instead.
+
+## Options Reference
 
 **Top level**:
 
@@ -284,16 +259,8 @@ The `defineUniPage` macro / `<route-config>` block syntax stays consistent with 
 - `generateUni` targets projects not using unix-router; this plugin serves unix-router users with the same workflow and ships inside the router package (no extra install)
 - This plugin extends unix-router-specific fields: `name`, extended `meta`, `beforeEnter`
 
-## Common Pitfalls
-
-- **Forgetting `uni()` in HBuilderX**: the dev server starts but pages are blank / `/main` returns 404. A project-level `vite.config.ts` replaces the built-in config entirely — import `uni()` yourself (see above).
-- **`beforeEnter` referencing page variables**: the macro function is injected verbatim into `routes.gen.uts`, a separate scope from the page; referencing page variables breaks compilation. Guard logic must be self-contained (storage / global state).
-- **Macro declared twice**: at most once per page; `strict` aborts the build.
-- **Edits not taking effect**: make sure `watch` is on (default); if you edit `pages.json` directly through HBuilderX, it will be overwritten by the next regeneration — declare pages in the page files instead (applies to `routeGen` / `pagesGen` only).
-- **Page edits not taking effect under `routesGen`**: `routesGen` treats `pages.json` as the source of truth and does not scan page directories — register new pages in `pages.json` first and the route table regenerates; name / meta / beforeEnter go through the extension declaration file.
-
 ## Next Steps
 
+- [File Conventions](./file-conventions) — the defineUniPage macro / &lt;route-config&gt; block / name normalization
+- [Extending Routes](./extending-routes) — preserveRouteChanges / routes.ext.uts extension declarations
 - [Route Configuration](./route-config) — fields and conventions of a hand-written route table (the generation target of this plugin)
-- [Route Meta](./meta) — applications of extended fields like `meta.requireAuth`
-- [Route Guards](./guards) — where `beforeEnter` sits in the guard chain

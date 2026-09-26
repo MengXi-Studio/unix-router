@@ -51,7 +51,7 @@ await router.push({ name: 'mine' }) // automatically uses switchTab
 ```
 
 ::: warning switchTab carries no query
-uni's `switchTab` does not support query parameters, and the router will not append a URL query string for it. To pass data to a tabBar page, use `params` (ParamsPlugin) or global state (see [Recipes](./recipes#tabbar-application)).
+uni's `switchTab` discards the entire query string, so **neither `query` nor `params` reaches the target tab page** (plugin params travel via an internal query key, which is dropped as well). To pass data to a tabBar page, use global state or storage instead (see [Recipes](./recipes#tabbar-apps)).
 :::
 
 ## Going Back

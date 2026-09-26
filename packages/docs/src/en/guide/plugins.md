@@ -5,7 +5,7 @@ unix-router adopts a **core + plugins** architecture (in the style of uni-router
 - The **core** does only four things: route matching, navigation execution, the guard chain, and state sync;
 - **All other extended capabilities** (page params, page-to-page communication, navigation animations, uni API interception, etc.) are fully pluginized and registered on demand (**opt-in**).
 
-Without a plugin registered, the corresponding capability simply does not exist: the core package stays lean and stable; using an unregistered capability throws a `PLUGIN_REQUIRED` error that explicitly guides you instead of failing silently.
+Without a plugin registered, the corresponding capability simply does not exist: the core package stays lean and stable. The `PLUGIN_REQUIRED` pre-check covers the `params` / `events` capabilities only — using them without `ParamsPlugin` / `EventsPlugin` throws a `PLUGIN_REQUIRED` error that explicitly guides you instead of failing silently (the companion options of other plugins are silently ignored when the plugin is absent).
 
 ## Built-in Plugins at a Glance
 
@@ -13,7 +13,7 @@ Without a plugin registered, the corresponding capability simply does not exist:
 | --- | --- | --- | --- | --- |
 | `ParamsPlugin` | `params` | Page parameter passing (in-memory / persisted) | `paramsPersistent` | [Parameter Passing](./params) |
 | `EventsPlugin` | `events` | Page-to-page communication (`events` listener map + EventChannel callbacks) | — | [Page-to-Page Communication](./events) |
-| `AnimationPlugin` | `animation` | Navigation window animation (native pass-through / H5 WAAPI) | `animation` | [Navigation Animation](./animation) |
+| `AnimationPlugin` | `animation` | Navigation window animation (App native pass-through / H5 WAAPI) | `animation` | [Navigation Animation](./animation) |
 | `InterceptorPlugin` | `interceptor` | Intercepts the uni native navigation APIs, sinking guards down to the uni API layer | `interceptUniApi` | [uni API Interception](./interceptor) |
 
 ## Registering Plugins

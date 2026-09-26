@@ -41,10 +41,10 @@ route.name                     // 命名路由名；未命名时为 null
 
 **它何时更新？**
 
-- 一次导航成功记账完成后（`afterEach` 之前的状态写入）
-- 页面 `onShow` 触发 `syncRoute()`，从页面栈重建成当前路由（**响应非路由器导航：物理返回键、TabBar 切换**）
+- 路由器发起的前进导航（push / replace / relaunch）成功后写入（`afterEach` 之前）
+- back 与页面 `onShow` 触发的 `syncRoute()`（物理返回键、TabBar 切换等非路由器导航）**仅更新路由器内部的 `currentRoute`**（`router.currentRoute` 与 `onRouteChange` 监听可感知），当前版本不回写本对象
 
-> 因此**在非导航、非 onShow 的时机读到旧值很正常**；页面级数据请以本页 `onLoad` / `onShow` 为准。
+> 因此**页面级数据请以本页 `onLoad` / `onShow` 为准**；需要响应非路由器导航时，可改用 `router.onRouteChange` 监听。
 
 ```vue
 <template>
@@ -106,7 +106,7 @@ stop()
 
 ## 路由状态同步
 
-`route` 对象与真实页面栈之间靠 `syncRoute()` 对齐：
+`router.currentRoute` 与真实页面栈之间靠 `syncRoute()` 对齐（注意：当前版本 `useRoute()` 返回的全局对象不随 `syncRoute()` 回写，见上文「它何时更新」）：
 
 - **H5 端**：`app.use(router)` 注册全局 mixin，在每个页面 `onShow` 自动调用 `syncRoute()`，无需手动处理。
 - **原生端**（App / 小程序）：建议在页面 `onShow` 中自行调用 `router.syncRoute()`，覆盖物理返回、TabBar 切换等非路由器导航。

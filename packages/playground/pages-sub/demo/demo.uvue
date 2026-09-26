@@ -89,7 +89,7 @@ function openWithZoom(): void {
 
 /** 演示重复导航失败捕获（DUPLICATED） */
 function tryDuplicated(): void {
-	router.push({ name: 'demo' }).catch((e: any) => {
+	router.push({ name: 'demo' }).catch((e: any | null) => {
 		if (isNavigationFailure(e, RouterErrorCode.DUPLICATED)) {
 			failText.value = '捕获 DUPLICATED：' + (e as NavigationFailure).message
 		} else {
@@ -100,7 +100,7 @@ function tryDuplicated(): void {
 
 /** 演示路由不存在失败捕获（ROUTE_NOT_FOUND） */
 function tryNotFound(): void {
-	router.push({ name: 'no-such-page' }).catch((e: any) => {
+	router.push({ name: 'no-such-page' }).catch((e: any | null) => {
 		if (isNavigationFailure(e, RouterErrorCode.ROUTE_NOT_FOUND)) {
 			failText.value = '捕获 ROUTE_NOT_FOUND：' + (e as NavigationFailure).message
 		} else {

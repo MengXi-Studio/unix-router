@@ -60,7 +60,7 @@ const routes: RouteConfig[] = [
 ]
 ```
 
-> When reading optional fields, use explicit checks like `=== true` / `=== undefined` (UTS is strictly typed, with no implicit truthy conversion). For more, see the [Route Meta guide](../guide/meta).
+> When reading optional fields, use explicit checks like `=== true` / `!= null` (UTS is strictly typed, has no `undefined`, and no implicit truthy conversion). For more, see the [Route Meta guide](../guide/meta).
 
 ## Related APIs
 

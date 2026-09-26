@@ -26,7 +26,7 @@ unix-router 用一套与 vue-router 一致的 API 抹平这些差异。
 | 阶段 | 主题 | 你将掌握 |
 | --- | --- | --- |
 | 🟢 **入门** | [介绍](./introduction) → [安装](./installation) → [快速开始](./getting-started) | 从零跑通第一个跳转：安装依赖、实例化注册插件、创建路由器、发起导航 |
-| 🟢 **核心功能** | [路由配置](./route-config) → [基于文件的路由生成](./file-based-routing) → [路由导航](./navigation) → [组合式 API](./composables) | 路由表与命名路由、页面就近声明自动生成双份配置、四种导航与 TabBar 识别、useRouter / useRoute / useLink |
+| 🟢 **核心功能** | [路由配置](./route-config) → [基于文件的路由生成](./file-based-routing)（[文件约定](./file-conventions) / [扩展路由](./extending-routes)） → [路由导航](./navigation) → [组合式 API](./composables) | 路由表与命名路由、页面就近声明自动生成双份配置、四种导航与 TabBar 识别、useRouter / useRoute / useLink |
 | 🟡 **进阶** | [路由元信息](./meta) → [路由守卫](./guards) → [错误处理](./error-handling) | meta 驱动页面行为、完整守卫链与登录鉴权、失败判定与全局捕获 |
 | 🟠 **插件体系** | [插件系统（总览）](./plugins) → [参数传递](./params) → [页面间通信](./events) → [导航动画](./animation) → [uni API 拦截](./interceptor) | 4 个内置插件（Params / Events / Animation / Interceptor）逐一精讲 + PluginContext 8 个 hook，编写自定义插件 |
 | 🔴 **精通** | [导航流程原理](./navigation-flow) → [完整实战](./recipes) → [平台兼容性](./compatibility) → [与 vue-router 的差异](./differences) → [常见问题](./faq) | 理解一次导航的内部机制、搭出登录+TabBar+详情完整应用、平台差异与高频坑排查 |
@@ -40,11 +40,11 @@ unix-router 用一套与 vue-router 一致的 API 抹平这些差异。
 | 路由匹配 | path / name 双索引，字符串 / 对象 / 命名三种解析方式；`strict` 严格模式下未匹配命名路由抛 `ROUTE_NOT_FOUND` |
 | 导航 | push / replace / relaunch / back，`meta.isTab` 自动 `switchTab`；并发导航自动排队串行执行，仅 push 检测重复导航（`DUPLICATED`） |
 | 守卫 | beforeEach / beforeEnter（路由独享）/ beforeResolve / afterEach + 组件内 onBeforeRouteLeave / Update / Enter；返回值风格重定向，深度上限 10，`guardTimeout` 超时保护 |
-| 冷启动守卫 | `guardRoute(location?, { onAbort? })` 对直达页补执行守卫链（不实际导航，redirect 默认 `relaunch` 执行真实跳转） |
+| 冷启动守卫 | `guardRoute(location?, { onAbort? })` 对直达页补执行 `beforeEach` 守卫链（不实际导航，redirect 默认 `relaunch` 执行真实跳转） |
 | 参数与查询 | query 直接进 URL；params 经 ParamsPlugin（`__params__` 内部 key 通道，可 `paramsPersistent` 持久化）；`queryInt` / `queryNumber` / `queryBool` 类型化读取 |
 | 组合式 API | useRouter / useRoute / useLink / useOpenerEventChannel，以及组件内守卫三件套（onBeforeRouteLeave / Update / Enter） |
 | 页面事件通信 | EventsPlugin：push 携带 events 监听表创建通道，被打开页 `useOpenerEventChannel` 回传/接收，另导出全局 `eventBus` |
-| 导航动画 | AnimationPlugin：App / 小程序透传原生 `animationType` / `animationDuration`，H5 用 Web Animations API 实现，back 自动映射退出型动画 |
+| 导航动画 | AnimationPlugin：App 端透传原生 `animationType` / `animationDuration`（官方仅 App 支持），H5 用 Web Animations API 实现，back 自动映射退出型动画 |
 | uni API 拦截 | InterceptorPlugin + `interceptUniApi`：外部直接调用 `uni.navigateTo` 等也走守卫链（基于 `uni.addInterceptor`，运行时缺失自动降级） |
 | 状态同步 | `syncRoute()` 按页面栈同步 `currentRoute`；H5 端 `install` 自动注册 onShow 全局 mixin；`onRouteChange` 监听路由变化 |
 | 错误体系 | RouterError / NavigationFailure，7 类错误码（ABORTED / CANCELLED / DUPLICATED / ROUTE_NOT_FOUND / NAVIGATION_API_ERROR / SETUP_ERROR / PLUGIN_REQUIRED），导航失败一律 reject；onError + isNavigationFailure |

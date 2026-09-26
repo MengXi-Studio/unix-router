@@ -54,13 +54,13 @@ uni-app x 的物理返回键、侧滑、tab 切换等**不经过路由器**，�
 
 1. 解析页面栈顶页（`history.resolveCurrent()`），得到 path / query / params / meta 等。
 2. 执行 **routeSync hooks**：插件从 URL query 提取插件数据（如按 `__params__` key 重建 params）并剥离内部 key。
-3. 重算 `fullPath`，构造新的 `RouteLocation`，`setCurrentRoute` 更新全局 reactive。
+3. 重算 `fullPath`，构造新的 `RouteLocation`，经 `setCurrentRoute` 更新路由器内部 `currentRoute` 并触发 `onRouteChange` 监听（当前版本不回写 `useRoute()` 返回的全局对象，见[组合式 API](./composables#useroute)）。
 
 同步触发时机：`createRouter` 初始化时（页面栈非空）、`router.install()` 注册的 `onShow` mixin（仅 H5）、以及手动调用（原生端建议在页面 `onShow` 自行调用）。
 
 ## 冷启动 guardRoute
 
-用户直接进入某页面（H5 直达 URL、deeplink、扫码）时页面已加载，但守卫链从未执行。`guardRoute(location?, { onAbort? })` **只补跑守卫链，不执行实际导航**：
+用户直接进入某页面（H5 直达 URL、deeplink、扫码）时页面已加载，但守卫链从未执行。`guardRoute(location?, { onAbort? })` **只补跑 `beforeEach` 守卫链，不执行实际导航**：
 
 1. 解析目标：传入 `location` 则解析之，否则取当前 `currentRoute`。
 2. 执行 `beforeEach`：
@@ -86,7 +86,7 @@ router.isReady().then(() => {
 ## 设计说明：页面栈是唯一真实来源
 
 - **uni API 的 success 回调不作为成功依据**：uni 导航 API 受理成功不代表目标页已入栈。路由器在调用 uni API 后**轮询页面栈**，确认目标页真实成为栈顶才记为成功，否则按 `NAVIGATION_API_ERROR` 失败处理。
-- **`currentRoute` 始终从页面栈派生**：导航成功后写入的是栈顶确认过的目标；物理返回、tab 切换等系统行为由 `syncRoute()` 在 `onShow` 重新对齐。这保证 `useRoute()` 不会出现与实际页面不一致的状态漂移。
+- **`currentRoute` 始终从页面栈派生**：导航成功后写入的是栈顶确认过的目标；物理返回、tab 切换等系统行为由 `syncRoute()` 在 `onShow` 重新对齐。这保证 `router.currentRoute` 与 `onRouteChange` 监听不会与实际页面出现状态漂移（当前版本 `useRoute()` 返回的全局对象仅在路由器导航成功时回写，物理返回等场景需借助 `onRouteChange` 感知）。
 
 ## 你的代码分别在哪一步执行
 

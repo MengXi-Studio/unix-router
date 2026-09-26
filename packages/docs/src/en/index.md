@@ -37,7 +37,7 @@ features:
     details: EventsPlugin fills in the events capability missing from uni-app x — pass a listener map in push, the opened page uses useOpenerEventChannel to emit back / receive, plus a global eventBus
   - icon: 🎬
     title: Cross-Platform Navigation Animations
-    details: AnimationPlugin passes through native animationType / animationDuration on App / Mini Program, implements H5 with the Web Animations API, and back automatically maps to exit-style animations
+    details: AnimationPlugin passes through native animationType / animationDuration on App (officially App-only), implements H5 with the Web Animations API, and back automatically maps to exit-style animations
   - icon: 🔄
     title: Automatic Route State Sync
     details: install registers a global mixin on H5 (onShow auto-syncs via syncRoute); on native platforms pages are advised to call it themselves in onShow; onRouteChange listens for route changes, keeping the page stack and non-router navigations always aligned

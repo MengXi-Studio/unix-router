@@ -78,18 +78,12 @@ const routes: RouteConfig[] = [
 await router.push({ name: 'home' }) // 自动 switchTab
 ```
 
-需要向 tabBar 页传数据时，用 `params`（[ParamsPlugin](./params)）替代 query：
+需要向 tabBar 页传数据时，**不能用 query，也不能用 params**（params 依赖的 `__params__` 内部 key 同样经 query 桥接，会被 switchTab 丢弃）。请使用全局状态或 storage：
 
 ```ts
-// 跳转方：params 经内部 key 通道传递，不受 switchTab 限制
-await router.push({
-	name: 'mine',
-	params: new Map<string, string>([['entry', 'settings']])
-})
-
-// tabBar 页（我的）读取
-const route = useRoute()
-const entry = route.params.get('entry')
+// 使用全局状态（如模块级响应式变量 / 状态管理）
+sharedState.mineEntry = 'settings'
+await router.push({ name: 'mine' })
 ```
 
 或使用 storage（适合大块数据 / 跨会话）：
@@ -237,7 +231,7 @@ router.isReady().then(() => {
 
 ## 冷启动守卫
 
-H5 直达 URL、App deeplink / scheme 唤起时，页面已加载但**守卫链从未执行**。`guardRoute()` 只补跑守卫链、不执行实际导航：
+H5 直达 URL、App deeplink / scheme 唤起时，页面已加载但**守卫链从未执行**。`guardRoute()` 只补跑 `beforeEach` 守卫链、不执行实际导航：
 
 ```ts
 router.isReady().then(() => {

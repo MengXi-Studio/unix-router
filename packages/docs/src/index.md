@@ -37,7 +37,7 @@ features:
     details: EventsPlugin 补齐 uni-app x 缺失的 events 能力：push 携带监听表、被打开页 useOpenerEventChannel 回传/接收，另附全局 eventBus
   - icon: 🎬
     title: 跨端导航动画
-    details: AnimationPlugin 在 App / 小程序透传原生 animationType / animationDuration，H5 用 Web Animations API 实现，back 自动映射退出型动画
+    details: AnimationPlugin 在 App 端透传原生 animationType / animationDuration（官方仅 App 支持），H5 用 Web Animations API 实现，back 自动映射退出型动画
   - icon: 🔄
     title: 路由状态自动同步
     details: install 在 H5 注册全局 mixin（onShow 自动 syncRoute），原生端建议页面 onShow 自行调用，onRouteChange 监听路由变化，页面栈与非路由器导航始终对齐

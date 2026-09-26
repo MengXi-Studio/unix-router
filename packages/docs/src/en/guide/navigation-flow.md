@@ -21,9 +21,9 @@ Using `router.push(location)` as an example; `replace` / `relaunch` only swap in
 13. **Invoke the uni API**: dispatched by `meta.isTab` and the navigation mode — `push` → `navigateTo` / `switchTab`; `replace` → `redirectTo` / `switchTab`; `relaunch` → `reLaunch` / `switchTab` (tabBar pages carry no query).
 14. **Poll the page stack top for confirmation**: the page stack (`getCurrentPages`) is the single source of truth; the router polls until the target page becomes the stack top. If it is not confirmed within the timeout (500ms) → `NAVIGATION_API_ERROR`.
 15. **Strip internal keys**: removes `__params__` / `__evt__` and other plugin-internal keys from `to.query` and recomputes `fullPath`, never exposing them to users.
-16. **Update state**: `setCurrentRoute` + `setGlobalCurrentRoute`; `useRoute()` / `currentRoute` update reactively.
+16. **Update state**: `setCurrentRoute` + `setGlobalCurrentRoute`; `useRoute()` / `currentRoute` update reactively (`onRouteChange` listeners are notified here).
 17. **completeNavigation hooks**: plugins extend the navigation result (`ctx.result` is mutable).
-18. **`afterEach(to, from, null)`**: the after guard runs; `onRouteChange` listeners are notified synchronously.
+18. **`afterEach(to, from, null)`**: the after guard runs.
 19. **Return the target**: the Promise resolves with the target `RouteLocation` (`NavigationResult`, i.e. `to` after internal keys were stripped).
 
 ### Failure Path
@@ -46,7 +46,7 @@ onNavigationAbort (plugin cleanup, exceptions swallowed)
 3. Compute the target page from the page stack and resolve it into `to`.
 4. `beforeEach` → `beforeResolve` (guards may redirect; a redirect is handled as a real navigation).
 5. `prepareNavigation` → `beforeNavigation` hooks (`mode: 'back'`, e.g. after playing the exit animation).
-6. `uni.navigateBack(delta)` → `setCurrentRoute(to)` → `afterEach(to, from, null)` → resolve `to`.
+6. `uni.navigateBack(delta)` → `setCurrentRoute(to)` (router-internal state only — the `useRoute()` reactive object is not written) → `afterEach(to, from, null)` → resolve `to`.
 
 ## State Sync syncRoute
 
@@ -54,7 +54,7 @@ uni-app x's physical back button, edge swipe, tab switching, and similar behavio
 
 1. Resolve the page stack's top page (`history.resolveCurrent()`), producing path / query / params / meta, etc.
 2. Run the **routeSync hooks**: plugins extract their data from the URL query (e.g. rebuilding params from the `__params__` key) and strip internal keys.
-3. Recompute `fullPath`, construct a new `RouteLocation`, and update the global reactive via `setCurrentRoute`.
+3. Recompute `fullPath`, construct a new `RouteLocation`, and update the **router-internal** `currentRoute` via `setCurrentRoute` — the `useRoute()` reactive object is not written (only forward navigations write it).
 
 Sync is triggered when: `createRouter` initializes (page stack non-empty), the `onShow` mixin registered by `router.install()` (H5 only), and manual invocation (on native platforms it is recommended to call it yourself in each page's `onShow`).
 
@@ -86,7 +86,7 @@ router.isReady().then(() => {
 ## Design Note: The Page Stack Is the Single Source of Truth
 
 - **The uni API's success callback is not treated as proof of success**: a uni navigation API being accepted does not mean the target page has been pushed onto the stack. After invoking the uni API, the router **polls the page stack** and only records success once the target page is confirmed as the stack top; otherwise it fails with `NAVIGATION_API_ERROR`.
-- **`currentRoute` is always derived from the page stack**: what gets written after a successful navigation is the stack-top-confirmed target; system behaviors like physical back and tab switching are re-aligned by `syncRoute()` in `onShow`. This guarantees `useRoute()` never drifts out of sync with the actual page.
+- **The router-internal `currentRoute` is always derived from the page stack**: what gets written after a successful forward navigation is the stack-top-confirmed target (both the internal state and the `useRoute()` reactive object); system behaviors like physical back and tab switching are re-aligned by `syncRoute()` in `onShow`. Note the two states are maintained independently — `useRoute()` is written by forward navigations alone, and `back()` / `syncRoute()` update the router-internal `currentRoute` only.
 
 ## Where Your Code Executes
 

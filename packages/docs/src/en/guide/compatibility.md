@@ -12,7 +12,7 @@ unix-router is written in **UTS** (`.uts`) and compiled per platform by the uni-
 | `<RouterLink>` component | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ParamsPlugin (parameter passing) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | EventsPlugin (page-to-page communication) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AnimationPlugin (navigation animation) | ✅ (Web Animations API) | ✅ (native pass-through) | ✅ (native pass-through) | ✅ (native pass-through) | ✅ (native pass-through) |
+| AnimationPlugin (navigation animation) | ✅ (Web Animations API) | ⚠️ (animation fields not supported officially, no animation) | ✅ (native pass-through) | ✅ (native pass-through) | ✅ (native pass-through) |
 | InterceptorPlugin (uni API interception) | ✅ (≥ 4.0) | ✅ (≥ 4.41) | ✅ (≥ 3.97) | ✅ (≥ 4.11) | ✅ (≥ 4.61) |
 
 > The underlying dependencies are only `uni.navigateTo / redirectTo / reLaunch / navigateBack / switchTab` and `getCurrentPages`, smoothed over per platform by uni-app x's native adaptation layer.
@@ -78,7 +78,7 @@ The interceptor only applies to **external direct calls**; the uni calls issued 
 | Difference | H5 (Web) | Native (App / Mini Program) |
 | --- | --- | --- |
 | `router.install()` (`app.use(router)`) | Registers `provide` (for `useRouter` setup injection), mounts `$router` / `$route` global properties, registers the `onShow` global mixin (automatic `syncRoute()`) | Only registers the global active router (usable by `useRouter`'s non-setup fallback); recommended to call `router.syncRoute()` manually in each page's `onShow` |
-| Navigation animation | AnimationPlugin plays enter / exit animations on the page container with the **Web Animations API** (`element.animate`) | Passes native `animationType` / `animationDuration` through to the `uni.*` navigation APIs |
+| Navigation animation | AnimationPlugin plays enter / exit animations on the page container with the **Web Animations API** (`element.animate`) | App: passes native `animationType` / `animationDuration` through to the `uni.*` navigation APIs (officially App-only); Mini Programs: animation fields not supported officially, no animation |
 | `RouteName` route-name type augmentation | Augmented via the `RouteNameMap` module, inferring literal hints (`keyof RouteNameMap & string`) | UTS does not support keyof composite types; degrades to `string` (with `strict` validation as the backstop) |
 | `hash` | Always `''` (uni-app x does not support hash routing; field kept) | Always `''` |
 | Physical back / edge swipe | Does not pass through the router | Does not pass through the router; `syncRoute()` re-aligns the state in `onShow` |

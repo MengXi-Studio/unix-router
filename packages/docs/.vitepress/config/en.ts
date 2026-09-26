@@ -57,6 +57,8 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					items: [
 						{ text: 'Route Configuration', link: '/en/guide/route-config' },
 						{ text: 'File-Based Routing', link: '/en/guide/file-based-routing' },
+						{ text: 'File Conventions', link: '/en/guide/file-conventions' },
+						{ text: 'Extending Routes', link: '/en/guide/extending-routes' },
 						{ text: 'Navigation', link: '/en/guide/navigation' },
 						{ text: 'Composables', link: '/en/guide/composables' }
 					]
@@ -99,6 +101,8 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 						{ text: 'useRouter()', link: '/en/api/use-router' },
 						{ text: 'useRoute()', link: '/en/api/use-route' },
 						{ text: 'useLink()', link: '/en/api/use-link' },
+						{ text: 'useOpenerEventChannel()', link: '/en/api/use-opener-event-channel' },
+						{ text: 'Query Utilities', link: '/en/api/query-utils' },
 						{ text: 'RouterLink Component', link: '/en/api/router-link' }
 					]
 				},
@@ -110,6 +114,7 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 						{ text: 'RouteLocation', link: '/en/api/type-route-location' },
 						{ text: 'RouteMeta', link: '/en/api/type-route-meta' },
 						{ text: 'NavigationGuard', link: '/en/api/type-navigation-guard' },
+						{ text: 'RouterPlugin / PluginContext', link: '/en/api/type-plugin' },
 						{ text: 'RouterErrorCode', link: '/en/api/type-router-error-code' }
 					]
 				}

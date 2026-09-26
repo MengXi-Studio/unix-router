@@ -26,6 +26,7 @@ export const routes: RouteConfig[] = [
 | `path` | `string` | — | **Required**. Page path, must match `pages.json` (e.g. `pages/index/index`), without a leading slash; normalized to `/pages/index/index` after parsing |
 | `name` | `string` | — | Named route name, for navigation by name; a duplicate `name` logs a warning and the later one overrides the earlier one |
 | `meta` | `RouteMeta` | — | Route metadata (`title` / `isTab` / `requireAuth`) |
+| `redirect` | `RouteLocationRaw` | — | Reserved field (the redirect target). Not consumed by the current matcher / router; declared in the type for forward compatibility |
 | `beforeEnter` | `NavigationGuard \| NavigationGuard[]` | — | Route-exclusive before guard: a function or an array, runs only when entering this route (before the global `beforeResolve`) |
 
 ## Related APIs

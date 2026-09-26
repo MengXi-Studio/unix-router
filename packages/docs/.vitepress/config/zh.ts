@@ -58,6 +58,8 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					items: [
 						{ text: '路由配置', link: '/guide/route-config' },
 						{ text: '基于文件的路由生成', link: '/guide/file-based-routing' },
+						{ text: '文件约定', link: '/guide/file-conventions' },
+						{ text: '扩展路由', link: '/guide/extending-routes' },
 						{ text: '路由导航', link: '/guide/navigation' },
 						{ text: '组合式 API', link: '/guide/composables' }
 					]
@@ -100,6 +102,8 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 						{ text: 'useRouter()', link: '/api/use-router' },
 						{ text: 'useRoute()', link: '/api/use-route' },
 						{ text: 'useLink()', link: '/api/use-link' },
+						{ text: 'useOpenerEventChannel()', link: '/api/use-opener-event-channel' },
+						{ text: '查询参数工具', link: '/api/query-utils' },
 						{ text: 'RouterLink 组件', link: '/api/router-link' }
 					]
 				},
@@ -111,6 +115,7 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 						{ text: 'RouteLocation', link: '/api/type-route-location' },
 						{ text: 'RouteMeta', link: '/api/type-route-meta' },
 						{ text: 'NavigationGuard', link: '/api/type-navigation-guard' },
+						{ text: 'RouterPlugin / PluginContext', link: '/api/type-plugin' },
 						{ text: 'RouterErrorCode', link: '/api/type-router-error-code' }
 					]
 				}

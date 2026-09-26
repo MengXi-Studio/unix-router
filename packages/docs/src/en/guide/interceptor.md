@@ -158,7 +158,7 @@ plugins: [new InterceptorPlugin()] // usually paired with interceptUniApi: true
 | --- | --- | --- |
 | `installInterceptors` | `(router: Router): void` | Manual install: registers one `uni.addInterceptor` for each of the 5 navigation APIs; warns and disables when `uni.addInterceptor` is unavailable; uninstalls the existing registration first with a warning when one exists (only one at a time) |
 | `removeInterceptors` | `(): void` | Removes the interceptors one by one via `uni.removeInterceptor`, resets and releases the router reference |
-| `markRouterCall` | `(): void` | Marks the next uni API call as initiated internally by the router (used inside the navigation module; the interceptor lets marked calls through; external code rarely needs this) |
+| `markRouterCall` | `(): void` | Marks the next uni API call as initiated internally by the router (used inside the navigation module; the interceptor lets marked calls through). Exported only inside the plugin module — **not exported from the package entry**, so it is not part of the public API |
 
 Intercepted API list (internal constant `INTERCEPTED_APIS`): `navigateTo`, `redirectTo`, `switchTab`, `reLaunch`, `navigateBack`.
 

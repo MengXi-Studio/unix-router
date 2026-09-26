@@ -26,6 +26,7 @@ export const routes: RouteConfig[] = [
 | `path` | `string` | — | **必需**。页面路径，须与 `pages.json` 一致（如 `pages/index/index`），不带前导斜杠；解析后规范化为 `/pages/index/index` |
 | `name` | `string` | — | 命名路由名，用于按名导航；重复 `name` 警告且后者覆盖前者 |
 | `meta` | `RouteMeta` | — | 路由元信息（`title` / `isTab` / `requireAuth`） |
+| `redirect` | `RouteLocationRaw` | — | 重定向目标（0.7.0 仅声明类型，导航流程暂未消费，预留字段） |
 | `beforeEnter` | `NavigationGuard \| NavigationGuard[]` | — | 路由独享前置守卫：函数或数组，仅在进入本路由时执行（先于全局 `beforeResolve`） |
 
 ## 相关 API

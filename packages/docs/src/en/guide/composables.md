@@ -41,10 +41,10 @@ route.name                     // named route name; null when unnamed
 
 **When does it update?**
 
-- After a navigation completes and is recorded (the state write that happens before `afterEach`)
-- When a page's `onShow` triggers `syncRoute()`, rebuilding the current route from the page stack (**responds to non-router navigation: the physical back button, TabBar switching**)
+- After a **forward navigation** (`push` / `replace` / `relaunch`) completes and is recorded (the state write that happens before `afterEach`)
+- **Forward navigations are the only writes.** `back()` and `syncRoute()` update only the router's internal `currentRoute` (`router.currentRoute`); they never write back to the reactive object returned by `useRoute()` — the two states are maintained independently.
 
-> Therefore **reading a stale value outside of navigation or onShow is normal**; for page-level data, rely on the page's own `onLoad` / `onShow`.
+> Therefore **reading a stale value outside of a forward navigation is normal**; for page-level data, rely on the page's own `onLoad` / `onShow`.
 
 ```vue
 <template>
@@ -106,10 +106,12 @@ stop()
 
 ## Route State Sync
 
-The `route` object is aligned with the real page stack via `syncRoute()`:
+The router's internal `currentRoute` (what `router.currentRoute` reads and what `onRouteChange` reports) is aligned with the real page stack via `syncRoute()`:
 
 - **H5**: `app.use(router)` registers a global mixin that automatically calls `syncRoute()` on every page's `onShow` — no manual handling needed.
 - **Native platforms** (App / Mini Program): call `router.syncRoute()` yourself in the page's `onShow` to cover non-router navigation such as the physical back button and TabBar switching.
+
+> Note: `useRoute()` is a separately maintained reactive object — only forward navigations write it. `syncRoute()` / `back()` update the router's internal state only; to read the real page-stack state outside a forward navigation, use `router.currentRoute` or the page's own `onLoad(options)`.
 
 When `onShow` fires before the sync completes (e.g. you need launch parameters in the first frame), prefer reading the launch query directly in `onLoad(options)`:
 

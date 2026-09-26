@@ -57,12 +57,12 @@ In uni-app x, query travels in the URL as a string; both `route.query` / `route.
 
 ## Update Timing
 
-- **On navigation completion**: updated automatically after the uni API call succeeds and the target page is confirmed via the page stack top (written after stripping plugin-internal keys).
-- **On `syncRoute()`**: behaviors that bypass the router, such as physical back and tab switching, are rebuilt from the page stack by `syncRoute()` (triggered automatically by the `onShow` mixin registered by `app.use(router)` on H5; on native platforms it is recommended to call it manually in each page's `onShow`).
+- **Forward navigations only**: updated automatically after a `push` / `replace` / `relaunch` succeeds and the target page is confirmed via the page stack top (written after stripping plugin-internal keys).
+- **`back()` and `syncRoute()` do not write this object**: they update only the router-internal `currentRoute` ([`router.currentRoute`](./router-instance#currentroute)). `useRoute()` and the router's internal state are two independently maintained objects.
 
 ## onShow Timing Hint
 
-A page's `onShow` may run **before the route state syncs**. If you need to deterministically read this page's parameters inside `onShow`, prefer reading the native `options` in the page's `onLoad(options)` (i.e. the URL query), or manually call `router.syncRoute()` once before reading `route`.
+A page's `onShow` may run **before any state update**. If you need to deterministically read this page's parameters inside `onShow`, prefer reading the native `options` in the page's `onLoad(options)` (i.e. the URL query), or read `router.currentRoute` (the router-internal state aligned by `syncRoute()`).
 
 ## Related APIs
 
