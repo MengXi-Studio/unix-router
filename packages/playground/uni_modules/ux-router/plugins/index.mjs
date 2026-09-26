@@ -1800,7 +1800,7 @@ var require_picomatch2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/parse-B1HhnTCu.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/parse-B1HhnTCu.mjs
 var import_picomatch = __toESM(require_picomatch2(), 1);
 import { resolve } from "path";
 function toArray(array) {
@@ -1912,7 +1912,7 @@ function parse(code, opts = {}) {
   return parseImpl(code, opts);
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/webpack-like-BQ10QW9c.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/webpack-like-BQ10QW9c.mjs
 import { isAbsolute, normalize } from "path";
 function transformUse(data, plugin, transformLoader) {
   if (data.resource == null) return [];
@@ -1931,7 +1931,7 @@ function normalizeAbsolutePath(path4) {
   else return path4;
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/context-AOdkHe_5.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/context-AOdkHe_5.mjs
 import { resolve as resolve2 } from "path";
 import { Buffer as Buffer2 } from "buffer";
 function createBuildContext(compiler, compilation, loaderContext, inputSourceMap) {
@@ -1973,7 +1973,7 @@ function normalizeMessage(error) {
   return err;
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/utils-CfJoYofY.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/utils-CfJoYofY.mjs
 import { basename, dirname, resolve as resolve3 } from "path";
 import fs from "fs";
 function encodeVirtualModuleId(id, plugin) {
@@ -2025,7 +2025,7 @@ var FakeVirtualModulesPlugin = class FakeVirtualModulesPlugin2 {
   }
 };
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/context-CjyN3JjT.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/context-CjyN3JjT.mjs
 import { createRequire } from "module";
 import { resolve as resolve4 } from "path";
 import { Buffer as Buffer3 } from "buffer";
@@ -2080,7 +2080,7 @@ function normalizeMessage2(error) {
   return err;
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/index.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/index.mjs
 import { createRequire as createRequire2 } from "module";
 import path, { extname, isAbsolute as isAbsolute2, resolve as resolve6 } from "path";
 import fs2 from "fs";
@@ -2907,7 +2907,7 @@ function remapping(input, loader, options) {
   return new SourceMap(traceMappings(tree), opts);
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/index.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/index.mjs
 import * as querystring from "querystring";
 import process$1 from "process";
 var __require = /* @__PURE__ */ (() => createRequire2(import.meta.url))();

@@ -1820,7 +1820,7 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/parse-B1HhnTCu.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/parse-B1HhnTCu.mjs
 var import_node_path = require("path");
 var import_picomatch = __toESM(require_picomatch2(), 1);
 function toArray(array) {
@@ -1932,7 +1932,7 @@ function parse(code, opts = {}) {
   return parseImpl(code, opts);
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/webpack-like-BQ10QW9c.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/webpack-like-BQ10QW9c.mjs
 var import_node_path2 = require("path");
 function transformUse(data, plugin, transformLoader) {
   if (data.resource == null) return [];
@@ -1951,7 +1951,7 @@ function normalizeAbsolutePath(path4) {
   else return path4;
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/context-AOdkHe_5.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/context-AOdkHe_5.mjs
 var import_node_path3 = require("path");
 var import_node_buffer = require("buffer");
 function createBuildContext(compiler, compilation, loaderContext, inputSourceMap) {
@@ -1993,7 +1993,7 @@ function normalizeMessage(error) {
   return err;
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/utils-CfJoYofY.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/utils-CfJoYofY.mjs
 var import_node_path4 = require("path");
 var import_node_fs = __toESM(require("fs"), 1);
 function encodeVirtualModuleId(id, plugin) {
@@ -2045,7 +2045,7 @@ var FakeVirtualModulesPlugin = class FakeVirtualModulesPlugin2 {
   }
 };
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/context-CjyN3JjT.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/context-CjyN3JjT.mjs
 var import_node_module = require("module");
 var import_node_path5 = require("path");
 var import_node_buffer2 = require("buffer");
@@ -2100,7 +2100,7 @@ function normalizeMessage2(error) {
   return err;
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/index.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/index.mjs
 var import_node_module2 = require("module");
 var import_node_path6 = __toESM(require("path"), 1);
 var import_node_fs2 = __toESM(require("fs"), 1);
@@ -2927,7 +2927,7 @@ function remapping(input, loader, options) {
   return new SourceMap(traceMappings(tree), opts);
 }
 
-// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27_fb51f9a309f94b2f321cca6b2d177546/node_modules/unplugin/dist/index.mjs
+// ../../node_modules/.pnpm/unplugin@3.4.0_esbuild@0.27.7_rollup@4.63.4_vite@5.4.21_@types+node@20.19.43_terser@5.51.2_/node_modules/unplugin/dist/index.mjs
 var querystring = __toESM(require("querystring"), 1);
 var import_node_process2 = __toESM(require("process"), 1);
 var __require = /* @__PURE__ */ (() => (0, import_node_module2.createRequire)(__uniRouterImportMetaUrl))();

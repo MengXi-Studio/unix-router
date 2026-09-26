@@ -1,6 +1,6 @@
 # 更新日志
 
-## [0.8.0] - 2026-09-22
+## [0.8.0] - 2026-09-27
 
 ### 新增
 
@@ -19,11 +19,17 @@
   - `pagesGen`：页面文件 → 仅 `pages.json`（含宏 dts），不触碰路由文件
   - `routesGen`：`pages.json` → 仅路由表，不触碰 `pages.json`；支持扩展声明文件 `routes.ext.uts`（path / name ↔ 显式 name / meta 扩展 / beforeEnter，函数原文注入；`router.extensions` 可改路径或 `false` 关闭）
   - 选项随插件拆分：公共选项（`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`）+ `pages` 段 / `router` 段
-- 文档新增「基于文件的路由生成」章节（zh/en），含 HBuilderX 项目 `vite.config.ts` 需自行引入 `uni()` 的接入说明、三插件选型与 `routes.ext.uts` 扩展声明用法
 
 ### 修复
 
-- **H5 端 `router.push` 崩溃**：`pickAnimation` / `toUniAnimation` / `pickEvents` 对可选字段 `=== null` 判断后直接取 `.length` / `.size`，H5（JS 运行时）缺省值是 `undefined` 导致 `TypeError`、导航中断；统一 `?? null` 归一化后判断
+- **Android 云打包编译错误（UTS 强类型）**：
+  - `Promise.catch` 回调参数类型由 `any` 调整为 `any | null`：UTS 的 `any` 编译为 Kotlin 非空 `Any`，无法匹配 `UTSPromise.catch` 要求可空回调参数的重载
+  - `isNavigationFailure` 首参签名由 `Error | null` 放宽为 `any | null`（内部 `instanceof` 收窄），修复 `.catch((e) => isNavigationFailure(e))` 链式用法编译失败
+- **H5 端 `uni.*` 导航 API 编译类型警告**：WEB 端导航 options 收敛为统一桥接函数 `applyWebNavOptions`（动态字段经 `as any` 桥接），消除 `uni.navigateTo` 等的编译警告，运行时行为不变
+- **H5 端 `router.push` 崩溃**：`pickAnimation` / `toUniAnimation` / `pickEvents` 对可选字段 `=== null` 判断后直接取 `.length` / `.size`，H5（JS 运行时）缺省值是 `undefined` 导致 `TypeError`、导航中断；统一 `?? null`
+  归一化后判断
+- **App 端导航动画透传缺失**：`AnimationPlugin` 此前 App 端实际未透传动画参数，现 `uni.navigateTo` / `uni.navigateBack` 具名 Options 携带 `animationType` / `animationDuration`（官方类型声明标注**仅 App 支持**：Android
+  4.18+ / iOS 4.25+ / HarmonyOS 4.61+）；小程序端官方不支持动画字段，`redirectTo` / `reLaunch` / `switchTab` 官方 Options 无动画字段，均不携带
 
 ## [0.7.0] - 2026-09-20
 
