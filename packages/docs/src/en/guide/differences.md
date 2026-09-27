@@ -82,7 +82,7 @@ uni-app x creates a new page instance for every navigation and has **no keep-ali
 - `onBeforeRouteLeave` — the most reliable one; fires before the page leaves (including back).
 - `onBeforeRouteUpdate` — the same component is almost never reused, so this rarely fires.
 - `onBeforeRouteEnter` — the component instance does not exist yet, so you cannot access component state; its effect is limited.
-- All three are implemented as filters over beforeResolve, and registering them returns a cancel function.
+- All three are implemented as filters over beforeResolve; the registration functions return **nothing** and the guards **cannot be unregistered** (unlike vue-router, where the registration function returns a cancel function).
 
 ### 7. Named Route Type Hints Differ by Platform
 

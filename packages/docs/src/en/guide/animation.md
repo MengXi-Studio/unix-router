@@ -72,7 +72,7 @@ const openDetail = () => {
 
 ## Full AnimationType Table
 
-17 values in total, grouped into general, enter, and exit:
+18 values in total, grouped into general, enter, and exit:
 
 | Group | Values |
 | --- | --- |
@@ -108,7 +108,7 @@ import { useRouter } from '@meng-xi/unix-router'
 const router = useRouter()
 
 const goBack = () => {
-	// App / Mini Programs: the native window plays slide-out-right;
+	// App: the native window plays slide-out-right (animation fields not supported officially on Mini Programs);
 	// H5: the 300ms exit animation plays to completion first, then navigateBack actually executes
 	router.back()
 }
@@ -125,7 +125,8 @@ const goBack = () => {
 
 | Platform | Implementation |
 | --- | --- |
-| App / Mini Programs | Passes `animationType` / `animationDuration` through to the native `uni.*` navigation APIs (native window animation) |
+| App | Passes `animationType` / `animationDuration` through to the native `uni.*` navigation APIs (native window animation, officially App-only) |
+| Mini Programs | Animation fields not supported officially, no animation |
 | H5 | Web Animations API (`element.animate`) plays enter / exit animations on the page container — no CSS `@keyframes` needed |
 
 Two timing details on H5:
@@ -170,7 +171,7 @@ type NavigationAnimation = {
 
 | Member | Type | Description |
 | --- | --- | --- |
-| `type` | `AnimationType` | Animation type; 17 values, see the "Full AnimationType Table" above |
+| `type` | `AnimationType` | Animation type; 18 values, see the "Full AnimationType Table" above |
 | `duration` | `number` (optional) | Animation duration; defaults to `DEFAULT_ANIMATION_DURATION = 300` |
 
 ### Animation Configuration Entrypoints
@@ -206,7 +207,7 @@ This plugin produces no navigation failures (no `PLUGIN_REQUIRED` or other error
 
 ### Platform Notes
 
-- **App / Mini Programs**: the resolved `animationType` / `animationDuration` are passed through directly to the native `uni.*` navigation APIs and rendered as native window animations;
+- **App**: the resolved `animationType` / `animationDuration` are passed through directly to the native `uni.*` navigation APIs and rendered as native window animations (Mini Programs do not support the animation fields officially, no animation);
 - **H5**: keyframes are played on the page container (the `uni-page` element) via the Web Animations API (`element.animate`), without CSS `@keyframes`; the enter animation **applies its starting styles synchronously and forces a reflow** inside the navigation-complete callback, then plays one frame later, avoiding the "content flashes in place, then slides in" artifact; on back, the exit animation plays first (awaited by duration) before `navigateBack` actually executes;
 - H5 keyframe names correspond one-to-one with the App-side `animationType` values (8 enter, 8 exit); unmatched types play no animation.
 

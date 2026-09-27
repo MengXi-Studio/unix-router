@@ -72,7 +72,7 @@ const openDetail = () => {
 
 ## AnimationType 全表
 
-共 17 个值，分为通用、进入型、退出型三组：
+共 18 个值，分为通用、进入型、退出型三组：
 
 | 分类 | 值 |
 | --- | --- |
@@ -108,7 +108,7 @@ import { useRouter } from '@meng-xi/unix-router'
 const router = useRouter()
 
 const goBack = () => {
-	// App / 小程序：原生窗口播放 slide-out-right；
+	// App：原生窗口播放 slide-out-right（小程序官方不支持动画字段）；
 	// H5：先播完 300ms 退出动画，再真正执行 navigateBack
 	router.back()
 }
@@ -125,7 +125,8 @@ const goBack = () => {
 
 | 平台 | 实现方式 |
 | --- | --- |
-| App / 小程序 | 透传 `animationType` / `animationDuration` 给 `uni.*` 原生导航 API（原生窗口动画） |
+| App | 透传 `animationType` / `animationDuration` 给 `uni.*` 原生导航 API（原生窗口动画，官方仅 App 支持） |
+| 小程序 | 官方不支持动画字段，无动画 |
 | H5 | Web Animations API（`element.animate`）对页面容器播放进入 / 退出动画，无需 CSS `@keyframes` |
 
 H5 端的两个时序细节：
@@ -170,7 +171,7 @@ type NavigationAnimation = {
 
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
-| `type` | `AnimationType` | 动画类型，17 个取值见上文「AnimationType 全表」 |
+| `type` | `AnimationType` | 动画类型，18 个取值见上文「AnimationType 全表」 |
 | `duration` | `number`（可选） | 动画时长，默认 `DEFAULT_ANIMATION_DURATION = 300` |
 
 ### 动画配置入口
@@ -206,7 +207,7 @@ type NavigationAnimation = {
 
 ### 平台注意
 
-- **App / 小程序**：解析后的 `animationType` / `animationDuration` 直接透传给 `uni.*` 原生导航 API，由原生窗口动画呈现；
+- **App**：解析后的 `animationType` / `animationDuration` 直接透传给 `uni.*` 原生导航 API，由原生窗口动画呈现（小程序官方不支持动画字段，无动画）；
 - **H5**：通过 Web Animations API（`element.animate`）对页面容器（`uni-page` 元素）播放关键帧，不使用 CSS `@keyframes`；进入动画在导航完成回调中**同步应用起点样式并强制 reflow**，再延后一帧播放，避免「内容原位闪现后再滑入」；返回时先播退出动画（按时长等待完成）再真正 `navigateBack`；
 - H5 关键帧命名与 App 端 `animationType` 一一对应（进入型 8 种、退出型 8 种），未匹配的类型不播放动画。
 

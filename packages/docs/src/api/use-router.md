@@ -13,8 +13,8 @@ const router = useRouter()
 `useRouter()` 按以下顺序解析路由器实例：
 
 1. **setup 上下文内 inject 优先**：处于组件 `setup`（或 `script setup`）时，优先读取 `app.use(router)` 在 H5 端 `provide` 的路由器。多实例场景下，组件拿到的是**离它最近的已安装实例**。
-2. **非 setup 上下文回退全局活跃路由器**：在选项式 `methods`、事件回调等非 setup 上下文中（此时 `inject` 不可用），回退到全局注册的活跃路由器（最近一次 `app.use(router)` 注册的实例）。
-3. **均无则抛错**：既未注入也未安装时抛出——`未找到路由器实例，请先 app.use(router)`。
+2. **inject 为空或非 setup 上下文回退全局活跃路由器**：在选项式 `methods`、事件回调等非 setup 上下文（此时 `inject` 不可用），或 setup 内未注入到路由器时，回退到全局注册的活跃路由器（最近一次 `app.use(router)` 注册的实例）。
+3. **均无则抛错**：既未注入也未安装时抛出——`未找到路由器实例，请先 app.use(router) 后再调用 useRouter()`。
 
 ## `app.use(router)` 的作用
 

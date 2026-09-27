@@ -7,7 +7,7 @@
 ### `currentRoute`
 
 - 签名：`get currentRoute(): RouteLocation`（**只读**）
-- 说明：当前路由位置，响应式对象，[useRoute()](./use-route) 基于它派生。导航完成（页面栈顶确认后）与 `syncRoute()` 状态同步时更新。
+- 说明：当前路由位置，导航完成（页面栈顶确认后）与 `syncRoute()` 状态同步时更新。与 [useRoute()](./use-route) 返回的全局响应式状态**独立维护**：前进导航时二者同步一致，`back()` / `syncRoute()` 仅更新本属性，不回写 `useRoute()`。
 
 ```ts
 console.log(router.currentRoute.path) // /pages/index/index
@@ -86,7 +86,7 @@ off()
 ### `resolve(location)`
 
 - 签名：`resolve(location: RouteLocationRaw): RouteLocation`
-- 说明：解析路由位置为完整 `RouteLocation`，**不执行导航**。解析非法位置（如命名路由不存在）时抛 `RouterError ROUTE_NOT_FOUND`。
+- 说明：解析路由位置为完整 `RouteLocation`，**不执行导航**。解析非法位置（如 `path` 与 `name` 均未提供）时抛 `RouterError ROUTE_NOT_FOUND`；`strict`（默认 `true`）下命名路由未注册同样抛出，`strict: false` 时仅警告并按路径处理。
 
 ```ts
 const to = router.resolve({ name: 'detail' })
@@ -129,7 +129,7 @@ router.onRouteChange((to, from) => {
 ### `guardRoute(location?, options?)`
 
 - 签名：`guardRoute(location?: RouteLocationRaw, options?: GuardRouteOptions): Promise<RouteLocation>`
-- 说明：对指定路由补执行守卫链（冷启动场景，如 H5 直达 / deeplink），**不执行实际导航**。守卫放行时 resolve 目标位置；中止时触发 `options.onAbort(failure)` 并 reject；重定向时按重定向模式**真实导航**（缺省 `relaunch`）。
+- 说明：对指定路由补执行 `beforeEach` 守卫链（冷启动场景，如 H5 直达 / deeplink；不经过 `beforeEnter` / `beforeResolve` / `afterEach`），**不执行实际导航**。守卫放行时 resolve 目标位置；中止时触发 `options.onAbort(failure)` 并 reject；重定向时按重定向模式**真实导航**（缺省 `relaunch`）。
 
 ```ts
 router.isReady().then(() => {

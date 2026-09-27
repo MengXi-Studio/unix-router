@@ -5,8 +5,7 @@
  * 核心仅提供路由匹配、导航执行、守卫链、状态同步等原生能力；
  * 扩展能力（如拦截 uni 导航 API）通过插件提供，用户按需注册。
  *
- * PluginContext / RouterPlugin 采用 class：非蒸汽（Kotlin/Swift）端
- * 不支持「含方法的对象字面量 type」。
+ * PluginContext 采用 class：非蒸汽（Kotlin/Swift）端不支持「含方法的对象字面量 type」。
  */
 import type { App } from 'vue'
 import type { Router, RouterOptions } from './router'

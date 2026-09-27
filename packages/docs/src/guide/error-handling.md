@@ -22,7 +22,7 @@ Error
 
 ## isNavigationFailure 精准判断
 
-`isNavigationFailure(error, codes?)` 判断错误是否为（指定类型的）导航失败：
+`isNavigationFailure(error, type?)` 判断错误是否为（指定类型的）导航失败：
 
 ```ts
 import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
@@ -66,7 +66,7 @@ async function goDetail() {
 }
 
 // 模式二：.catch
-router.push({ name: 'detail' }).catch((e: any) => {
+router.push({ name: 'detail' }).catch((e: any | null) => {
 	const failure = e as NavigationFailure
 	console.warn('导航失败', failure.message)
 })
@@ -99,7 +99,7 @@ offError()
 
 - **守卫中止 / 取消**：`afterEach(to, from, failure)` 收到失败，各 `onError` 回调被调用；
 - **原生 API 失败**：`currentRoute` 回退到来源路由，并触发错误处理；
-- **重复导航**：仅 reject `DUPLICATED`，可按需忽略。
+- **重复导航**：reject `DUPLICATED`，同样会触发 `afterEach` / `onError`（可按需忽略）。
 
 ## 常见失败排查表
 

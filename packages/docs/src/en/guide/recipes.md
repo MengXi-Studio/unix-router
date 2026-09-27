@@ -67,7 +67,7 @@ When landing directly on a protected page on a cold start, the guard has not exe
 
 ## TabBar Apps
 
-Pages with `meta.isTab: true` automatically switch to `uni.switchTab` on navigation (this applies to `push` / `replace` / `relaunch` alike). Note that **`switchTab` cannot carry a query**, so the query is dropped when navigating to a tabBar page.
+Pages with `meta.isTab: true` automatically switch to `uni.switchTab` on navigation (this applies to `push` / `replace` / `relaunch` alike). Note that **`uni.switchTab` discards the entire query string**, so neither `query` nor `params` (which travels via an internal query key) reaches the tabBar page — use global state or storage to pass data:
 
 ```ts
 const routes: RouteConfig[] = [
@@ -78,22 +78,6 @@ const routes: RouteConfig[] = [
 await router.push({ name: 'home' }) // switchTab automatically
 ```
 
-To pass data to a tabBar page, use `params` ([ParamsPlugin](./params)) instead of query:
-
-```ts
-// Sender: params travel through the internal-key channel, unaffected by switchTab's restriction
-await router.push({
-	name: 'mine',
-	params: new Map<string, string>([['entry', 'settings']])
-})
-
-// Read on the tabBar page (Mine)
-const route = useRoute()
-const entry = route.params.get('entry')
-```
-
-Or use storage (for large payloads / cross-session):
-
 ```ts
 // Write before navigating
 uni.setStorageSync('mine_entry', 'settings')
@@ -102,6 +86,8 @@ await router.push({ name: 'mine' })
 // Read and clean up in the tabBar page's onShow
 uni.removeStorageSync('mine_entry')
 ```
+
+For complex structured data, keep it in a module-level reactive global state instead of storage.
 
 ## Detail Page Parameter Passing
 
@@ -237,7 +223,7 @@ router.isReady().then(() => {
 
 ## Cold Start Guard
 
-When a user lands directly via an H5 direct URL or an App deeplink / scheme, the page has loaded but **the guard chain never executed**. `guardRoute()` only re-runs the guard chain without performing actual navigation:
+When a user lands directly via an H5 direct URL or an App deeplink / scheme, the page has loaded but **the guard chain never executed**. `guardRoute()` only re-runs the global `beforeEach` (it does not run `beforeEnter` / `beforeResolve` / `afterEach` again) without performing actual navigation:
 
 ```ts
 router.isReady().then(() => {

@@ -1,0 +1,40 @@
+// 应用路由配置：createRouter 实例与全局守卫（业务数据见 data/，全局状态见 store/）
+import { createRouter, ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
+// 路由表由 @meng-xi/unix-router/vite-plugin 从页面 defineUniPage 宏自动生成（routes.gen.uts 勿手改）
+import { routes } from '../routes.gen.uts'
+import { isLoggedIn } from '../store/index.uts'
+
+export const router = createRouter({
+	routes,
+	strict: true,
+	plugins: [new ParamsPlugin(), new InterceptorPlugin(), new AnimationPlugin(), new EventsPlugin()],
+	interceptUniApi: true, // 拦截 uni 原生导航 API：外部直接 uni.navigateTo 也走守卫
+	animation: { type: 'slide-in-right', duration: 300 } // 默认导航动画（App 原生透传 / H5 WAAPI）
+})
+
+// 全局前置守卫：requireAuth 未登录 → 重定向登录页并携带回跳地址
+router.beforeEach((to, from): any => {
+	if (to.meta.requireAuth === true && !isLoggedIn()) {
+		return {
+			name: 'login',
+			query: new Map<string, string>([['redirect', to.fullPath]])
+		} as any
+	}
+	return true
+})
+
+// 全局解析守卫：打印导航时序
+router.beforeResolve((to, from): any => {
+	console.log('[unix-router] beforeResolve ->', to.fullPath)
+	return true
+})
+
+// 全局后置守卫：导航结束（成功或失败）
+router.afterEach((to, from, failure: Error | null): void => {
+	console.log('[unix-router] afterEach ->', to.fullPath, 'failure =', failure !== null ? failure.message : 'null')
+})
+
+// 全局错误订阅
+router.onError((error: Error, to, from): void => {
+	console.log('[unix-router] onError ->', error.message)
+})

@@ -25,10 +25,10 @@ const options: RouterOptions = {
 | `interceptUniApi` | `boolean` | `false` | **opt-in**。启用后拦截 `uni.*` 原生导航 API（`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`），外部直接调用也转交 `router.*` 走完整守卫链。**须配合 `InterceptorPlugin`**。受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / HarmonyOS 4.61，缺失时自动降级并警告 |
 | `plugins` | `RouterPlugin[]` | — | 插件列表，按需注册扩展能力。**传入实例**：`[new ParamsPlugin(), new InterceptorPlugin(), new EventsPlugin(), new AnimationPlugin()]`，见[插件系统](../guide/plugins) |
 | `paramsPersistent` | `boolean` | `false` | 是否默认将 params 持久化到 storage（写入失败自动回退内存）。**须配合 `ParamsPlugin`** |
-| `animation` | `NavigationAnimation` | — | 全局默认导航动画 `{ type: AnimationType, duration?: number }`（`duration` 默认 300ms）。App / 小程序透传原生 `animationType`，H5 端由插件以 Web Animations API 实现。**须配合 `AnimationPlugin`** |
+| `animation` | `NavigationAnimation` | — | 全局默认导航动画 `{ type: AnimationType, duration?: number }`（`duration` 默认 300ms）。App 端透传原生 `animationType`（官方仅 App 支持），H5 端由插件以 Web Animations API 实现。**须配合 `AnimationPlugin`** |
 
 ::: warning 插件相关选项须配合对应插件
-`interceptUniApi` / `paramsPersistent` / `animation` 分别依赖 `InterceptorPlugin` / `ParamsPlugin` / `AnimationPlugin`，注册了选项但未注册对应插件时选项被忽略并输出警告。
+`interceptUniApi` / `paramsPersistent` 分别依赖 `InterceptorPlugin` / `ParamsPlugin`，注册了选项但未注册对应插件时选项被忽略并输出警告；`animation` 未注册 `AnimationPlugin` 时被静默忽略（无警告）。
 :::
 
 > **注意**：微信小程序端 `<navigator>` 组件跳转与点击 tabBar（底层不触发 `uni.switchTab`）无法被拦截，此场景需在页面 `onShow` 兜底守卫。

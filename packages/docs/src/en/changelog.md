@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.8.0] - 2026-09-27
+
+### Added
+
+- **File-based routing plugin** (build-time dev tool, shipped inside the router package):
+  - Declare `defineUniPage` macros near your pages (or `<route-config lang="jsonc|uts">` custom blocks); the plugin generates `pages.json` (including tabBar / subPackages) and the `routes.gen.uts` route table at build
+    time, eliminating duplicated manual maintenance of path / title / tabBar / isTab
+  - Priority chain: macro > block > plugin inference (`titleFallback` / `tabBar` config as fallback), with field-level merging
+  - Automatic name normalization: last-segment camelCase → full-path camelCase fallback on collision → terminal conflicts handled by `errorStrategy` (strict abort / warn skip)
+  - `beforeEnter` and extended meta declared via the macro (UTS expressions injected verbatim into the generated file, must be self-contained)
+  - `preserveRouteChanges` (default on): your modifications and custom routes in the route file survive regeneration
+  - Hand-written non-page fields in pages.json (globalStyle, uniIdRouter, etc.) are merged and preserved
+  - watch: adding / removing / editing pages triggers a debounced (200 ms), serialized two-phase pipeline rerun
+  - Generates `route-name.gen.d.ts` (WEB-side `RouteNameMap` literal types) and `define-uni-page.d.ts` (macro typing), both optional
+- **New subpath export `@meng-xi/unix-router/vite-plugin`**: vite / webpack adapters (unplugin bundled in, zero runtime dependencies); the `node/` source directory sits outside UTS compile scanning, leaving the main
+  entry unaffected
+- **Plugins split into three independent implementations** (`node/` reorganized into `route-gen` / `pages-gen` / `routes-gen` + `shared` directories), registrable independently or in combination without affecting each
+  other:
+  - `routeGen`: page files → `pages.json` + `routes.gen.uts` full pipeline (behavior unchanged)
+  - `pagesGen`: page files → `pages.json` only (including the macro dts), never touches route files
+  - `routesGen`: `pages.json` → route table only, never touches `pages.json`; supports the `routes.ext.uts` extension declaration file (path / name ↔ explicit name / extended meta / beforeEnter, functions injected
+    verbatim; `router.extensions` changes the path or `false` disables it)
+  - Options split along with the plugins: common options (`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`) + the `pages` / `router` sections
+
+### Fixed
+
+- **Android cloud-packaging compile errors (UTS strong typing)**:
+  - `Promise.catch` callback parameter type changed from `any` to `any | null`: UTS's `any` compiles to a non-null Kotlin `Any`, which cannot match the `UTSPromise.catch` overloads requiring a nullable callback parameter
+  - `isNavigationFailure` first parameter widened from `Error | null` to `any | null` (narrowed internally via `instanceof`), fixing chained usage like `.catch((e) => isNavigationFailure(e))`
+- **Compile type warnings for `uni.*` navigation APIs on H5**: WEB-side navigation options are consolidated into the unified bridge function `applyWebNavOptions` (dynamic fields bridged via `as any`), eliminating compile
+  warnings for `uni.navigateTo` etc. with runtime behavior unchanged
+- **`router.push` crash on H5**: `pickAnimation` / `toUniAnimation` / `pickEvents` checked optional fields against `=== null` then read `.length` / `.size`; on H5 (JS runtime) the absent value is `undefined`, throwing a
+  `TypeError` that aborted navigation; normalized with `?? null` before checking
+- **Missing navigation animation pass-through on App**: `AnimationPlugin` previously did not actually pass animation parameters on App; now `uni.navigateTo` / `uni.navigateBack` carry `animationType` /
+  `animationDuration` in their named Options (official type declarations mark **App-only** support: Android 4.18+ / iOS 4.25+ / HarmonyOS 4.61+); Mini Programs (animation fields not supported officially) and `redirectTo`
+  / `reLaunch` / `switchTab` (no animation fields in the official Options) carry none
+
 ## [0.7.0] - 2026-09-20
 
 ### Breaking

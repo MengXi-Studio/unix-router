@@ -13,8 +13,8 @@ const router = useRouter()
 `useRouter()` resolves the router instance in the following order:
 
 1. **Inject first inside setup**: when inside a component's `setup` (or `script setup`), it first reads the router `provide`d by `app.use(router)` on the H5 side. In multi-instance scenarios, a component gets the **nearest installed instance**.
-2. **Fall back to the global active router outside setup**: in option-style `methods`, event callbacks, and other non-setup contexts (where `inject` is unavailable), it falls back to the globally registered active router (the instance registered by the most recent `app.use(router)`).
-3. **Throw when neither exists**: if it is neither injected nor installed, it throws — `Router instance not found. Please call app.use(router) first`.
+2. **Fall back to the global active router when `inject` is empty or outside setup**: in option-style `methods`, event callbacks, and other non-setup contexts (where `inject` is unavailable), or when nothing was injected inside `setup`, it falls back to the globally registered active router (the instance registered by the most recent `app.use(router)`).
+3. **Throw when neither exists**: if it is neither injected nor installed, it throws — `未找到路由器实例，请先 app.use(router) 后再调用 useRouter()` ("router instance not found; call `app.use(router)` before `useRouter()`").
 
 ## What `app.use(router)` Does
 

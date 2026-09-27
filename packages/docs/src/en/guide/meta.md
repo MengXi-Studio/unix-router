@@ -72,7 +72,7 @@ onShow(() => {
 
 ## isTab: TabBar Page Detection
 
-When the target route has `meta.isTab === true`, the router automatically switches to `uni.switchTab` navigation (applies to `push` / `replace` / `relaunch`). Note that `switchTab` **does not carry query** — pass parameters to tab pages via global state or [inter-page communication](./events).
+When the target route has `meta.isTab === true`, the router automatically switches to `uni.switchTab` navigation (applies to `push` / `replace` / `relaunch`). Note that `switchTab` **discards the entire query**, so `query` / `params` / `events` all fail to reach the target tab page — pass data to it via global state or storage.
 
 ::: warning Don't forget to mark TabBar pages
 Every page listed in the `pages.json` tabBar list must be configured with `isTab: true` in its route config, otherwise it will be opened via `navigateTo` and fail.

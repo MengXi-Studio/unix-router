@@ -22,11 +22,12 @@
 - **Route guards** - `beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / `onBeforeRouteLeave` / `onBeforeRouteEnter` / `onBeforeRouteUpdate`, controllable redirects, guard timeout protection (`guardTimeout`), and redirect depth limit
 - **Cold-start guard** - `guardRoute()` re-runs the guard chain for H5 deep links / scene values / deeplink pages, with redirect and abort callbacks (`onAbort`)
 - **Named routes & route meta** - navigate by `name`, carry custom data in `meta` (including `isTab`); under strict mode (`strict`) an unmatched named route throws `RouterError`
-- **Page parameter passing** - `params` (`Map<string,string>`) passed across pages via **ParamsPlugin** (`__params__` keyed store); readable from `route.params` on the target page without exposing plaintext keys; requires registering `plugins: [ParamsPlugin]`
+- **File-based routing (build-time dev tool, opt-in)** - import the vite plugin from `@meng-xi/unix-router/vite-plugin`, declare a `defineUniPage` macro (or a `<route-config>` block) next to your pages, and `pages.json` plus the route table (`routes.gen.uts`) are generated at build time — no more duplicated manual maintenance of path / title / isTab; three independent plugins (`routeGen` / `pagesGen` / `routesGen`: full pipeline / pages.json only / route table only) can be registered alone or in combination
+- **Page parameter passing** - `params` (`Map<string,string>`) passed across pages via **ParamsPlugin** (`__params__` keyed store); readable from `route.params` on the target page without exposing plaintext keys; requires registering `plugins: [new ParamsPlugin()]`
 - **Enhanced query parsing** - `route.query` is a `Map`, plus `queryInt()` / `queryNumber()` / `queryBool()` convenience helpers (provided by the library's built-in utilities)
 - **Declarative navigation** - `useLink()` composable returning a reactive target route, active state (`isActive` / `isExactActive`), and a navigate function, for building custom link / menu components; a ready-made **`RouterLink`** component is also exported
 - **Automatic route state sync** - `app.use(router)` injects a global mixin that calls `syncRoute()` on page `onShow`, keeping the reactive `currentRoute` aligned with non-router navigation (back button / TabBar switches)
-- **Navigation window animation (opt-in)** - registering **AnimationPlugin** (`plugins: [AnimationPlugin]`) adds window transition animations: App / Mini Program pass native `animationType` / `animationDuration` through, H5 plays enter / exit animations with WAAPI; supports a global default (`animation` option) and per-navigation overrides (`animationType` / `animationDuration`)
+- **Navigation window animation (opt-in)** - registering **AnimationPlugin** (`plugins: [new AnimationPlugin()]`) adds window transition animations: App passes native `animationType` / `animationDuration` through (the animation fields are officially App-only; Mini Programs do not support them and have no animation), H5 plays enter / exit animations with WAAPI; supports a global default (`animation` option) and per-navigation overrides (`animationType` / `animationDuration`)
 - **Error handling** - `RouterError` / `NavigationFailure` / `UniNavigationApiError`, `RouterErrorCode` codes, `isNavigationFailure()` precise checks, `onError` global capture
 - **Composition API** - `useRouter()` / `useRoute()` / `useLink()` / `onBeforeRouteLeave()`, reactive `currentRoute`, `isReady` / `onRouteChange` subscriptions
 - **uni API interception (opt-in)** - with `interceptUniApi: true`, native navigations that bypass the router (direct `uni.navigateTo` / `switchTab` calls) are also intercepted and routed through the guard chain, sinking guards down to the uni API layer
@@ -35,7 +36,7 @@
 
 Don't want to start from scratch? Install the trial Android App directly (built from the example project `packages/playground`, covering navigation, guards, params passing, RouterLink, navigation animations, and more):
 
-[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789882378601-__UNI__B6A50A8_1789882365595.apk)
+[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1790413072682-__UNI__B6A50A8_1790413055611.apk)
 
 ## Installation
 
@@ -142,7 +143,7 @@ Common options of `createRouter`:
 | `strict`       | `boolean`       | `true`   | Strict mode; an unmatched named route throws `RouterError`     |
 | `guardTimeout` | `number`        | `10000`  | Guard timeout (ms); warns and aborts navigation, `0` disables  |
 | `readyTimeout` | `number`        | `0`      | Ready timeout (ms); prevents `await router.isReady()` hanging  |
-| `plugins`      | `RouterPlugin[]`| -        | Optional plugins, e.g. `[ParamsPlugin]` / `[InterceptorPlugin]` / `[AnimationPlugin]` |
+| `plugins`      | `RouterPlugin[]`| -        | Optional plugins, **pass instances**, e.g. `[new ParamsPlugin()]` / `[new InterceptorPlugin()]` / `[new AnimationPlugin()]` |
 | `paramsPersistent` | `boolean`  | `false`  | Whether to persist `params` to storage by default (requires `ParamsPlugin`) |
 | `interceptUniApi` | `boolean`   | `false`  | Opt-in: intercept `uni.*` native navigation so direct calls also pass through the guard chain (runtime support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61) |
 | `animation`    | `NavigationAnimation` | - | Global default navigation animation `{ type, duration }` (requires `AnimationPlugin` to take effect) |
@@ -154,7 +155,7 @@ const router = createRouter({ routes, interceptUniApi: true })
 // Optional: register plugins + a global default animation
 const router2 = createRouter({
   routes,
-  plugins: [ParamsPlugin, InterceptorPlugin, AnimationPlugin],
+  plugins: [new ParamsPlugin(), new InterceptorPlugin(), new AnimationPlugin()],
   animation: { type: 'slide-in-right', duration: 300 }
 })
 ```

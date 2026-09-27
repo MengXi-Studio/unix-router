@@ -51,7 +51,7 @@ await router.push({ name: 'mine' }) // 自动走 switchTab
 ```
 
 ::: warning switchTab 不携带 query
-uni 的 `switchTab` 不支持 query 参数，路由器也不会为它拼 URL 查询串。tabBar 页传参请用 `params`（ParamsPlugin）或全局状态（见[实战指南](./recipes#tabbar-页面数据传递)）。
+uni 的 `switchTab` 不支持 query 参数，路由器也不会为它拼 URL 查询串。因此 tabBar 页**既无法用 query、也无法用 params 传参**（params 依赖的内部通道同样经 query 桥接），请改用全局状态或 storage（见[实战指南](./recipes#tabbar-应用)）。
 :::
 
 ## 返回 back

@@ -25,7 +25,8 @@ export function pickEvents(location: RouteLocationRaw | null): EventsMap | null 
 		return null
 	}
 	const raw = location as RawLocation
-	const events = raw.events
+	// H5 端可选字段缺省为 undefined（非 null），统一归一化后判断
+	const events: EventsMap | null = raw.events ?? null
 	if (events === null || events.size === 0) {
 		return null
 	}

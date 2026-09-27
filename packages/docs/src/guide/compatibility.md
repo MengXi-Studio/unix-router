@@ -12,7 +12,7 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 | `<RouterLink>` 组件 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ParamsPlugin（参数传递） | ✅ | ✅ | ✅ | ✅ | ✅ |
 | EventsPlugin（页面间通信） | ✅ | ✅ | ✅ | ✅ | ✅ |
-| AnimationPlugin（导航动画） | ✅（Web Animations API） | ✅（原生透传） | ✅（原生透传） | ✅（原生透传） | ✅（原生透传） |
+| AnimationPlugin（导航动画） | ✅（Web Animations API） | ⚠️（官方不支持动画字段，无动画） | ✅（原生透传） | ✅（原生透传） | ✅（原生透传） |
 | InterceptorPlugin（uni API 拦截） | ✅（≥ 4.0） | ✅（≥ 4.41） | ✅（≥ 3.97） | ✅（≥ 4.11） | ✅（≥ 4.61） |
 
 > 底层仅依赖 `uni.navigateTo / redirectTo / reLaunch / navigateBack / switchTab` 与 `getCurrentPages`，各平台由 uni-app x 原生适配层抹平。
@@ -78,7 +78,7 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 | 差异点 | H5（Web） | 原生端（App / 小程序） |
 | --- | --- | --- |
 | `router.install()`（`app.use(router)`） | 注册 `provide`（`useRouter` setup 注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（自动 `syncRoute()`） | 仅注册全局活跃路由器（`useRouter` 非 setup 回退可用）；建议在页面 `onShow` 手动调用 `router.syncRoute()` |
-| 导航动画 | AnimationPlugin 用 **Web Animations API**（`element.animate`）对页面容器播放进入 / 退出动画 | 透传原生 `animationType` / `animationDuration` 给 `uni.*` 导航 API |
+| 导航动画 | AnimationPlugin 用 **Web Animations API**（`element.animate`）对页面容器播放进入 / 退出动画 | App：透传原生 `animationType` / `animationDuration` 给 `uni.*` 导航 API（官方仅 App 支持）；小程序：官方不支持动画字段，无动画 |
 | `RouteName` 路由名类型增强 | 经 `RouteNameMap` 模块增强，推导字面量提示（`keyof RouteNameMap & string`） | UTS 不支持 keyof 组合类型，退化为 `string`（配合 `strict` 校验兜底） |
 | `hash` | 恒为 `''`（uni-app x 不支持 hash 路由，保留字段） | 恒为 `''` |
 | 物理返回 / 侧滑 | 不经过路由器 | 不经过路由器，由 `syncRoute()` 在 `onShow` 对齐状态 |
@@ -89,7 +89,7 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 
 - **query / params 是 `Map<string, string>`**，不是普通对象：读取用 `.get(key)`、判断用 `.has(key)`、写入用 `.set(key, value)`；构造时带泛型 `new Map<string, string>([['id', '1']])`。
 - **没有 `undefined`**：可空值统一为 `null`（如 `route.name` 为 `string | null`），判断用 `!= null` 而非 `!= undefined`；条件语句须为显式布尔表达式（`if (redirect != null)`，不能写 truthy 判断 `if (redirect)`）。
-- **插件 / 含方法的配置必须用 class**：非蒸汽（Kotlin/Swift）端对象字面量含方法会被推断为 `UTSJSONObject`，见[插件系统 - 平台注意](./plugins#平台注意-uts-强类型)。
+- **插件 / 含方法的配置必须用 class**：非蒸汽（Kotlin/Swift）端对象字面量含方法会被推断为 `UTSJSONObject`，见[插件系统 - 平台注意](./plugins#平台注意uts-强类型)。
 
 ## 验证方式
 

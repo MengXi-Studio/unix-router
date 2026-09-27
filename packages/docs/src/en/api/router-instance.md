@@ -7,7 +7,7 @@ The `Router` instance returned by `createRouter()` provides navigation, guards, 
 ### `currentRoute`
 
 - Signature: `get currentRoute(): RouteLocation` (**read-only**)
-- Description: the current route location, a reactive object from which [useRoute()](./use-route) is derived. Updated when a navigation completes (after stack-top confirmation) and when `syncRoute()` syncs state.
+- Description: the **router-internal** current route location (a shallow ref held by the router, read-only). Updated when a forward navigation completes (after stack-top confirmation) and when `back()` / `syncRoute()` re-align the internal state. It is maintained independently of [useRoute()](./use-route) — the latter is a separate global reactive object written by forward navigations only.
 
 ```ts
 console.log(router.currentRoute.path) // /pages/index/index
@@ -86,7 +86,7 @@ off()
 ### `resolve(location)`
 
 - Signature: `resolve(location: RouteLocationRaw): RouteLocation`
-- Description: resolves a route location into a full `RouteLocation`, **without navigating**. Resolving an invalid location (e.g. a missing named route) throws `RouterError ROUTE_NOT_FOUND`.
+- Description: resolves a route location into a full `RouteLocation`, **without navigating**. For a named location: under `strict` (default) an unregistered name throws `RouterError ROUTE_NOT_FOUND`; under `strict: false` it only warns and falls back to handling the name as a path. An invalid location (neither `name` nor `path`) always throws `ROUTE_NOT_FOUND`.
 
 ```ts
 const to = router.resolve({ name: 'detail' })
@@ -124,12 +124,12 @@ router.onRouteChange((to, from) => {
 ### `syncRoute()`
 
 - Signature: `syncRoute(): void`
-- Description: syncs the route state from the page stack (`getCurrentPages`) into `currentRoute`. On H5, `app.use(router)` registers an `onShow` mixin that syncs automatically; **on native platforms it is recommended to call it yourself in each page's `onShow`**.
+- Description: syncs the page stack (`getCurrentPages`) state into the **router-internal** `currentRoute` (the `useRoute()` reactive object is not written). On H5, `app.use(router)` registers an `onShow` mixin that syncs automatically; **on native platforms it is recommended to call it yourself in each page's `onShow`**.
 
 ### `guardRoute(location?, options?)`
 
 - Signature: `guardRoute(location?: RouteLocationRaw, options?: GuardRouteOptions): Promise<RouteLocation>`
-- Description: runs the guard chain for a given route (cold-start scenarios such as H5 direct URLs / deeplinks), **without performing actual navigation**. If the guard allows, it resolves with the target location; if it aborts, it fires `options.onAbort(failure)` and rejects; if it redirects, a **real navigation** is performed in the redirect mode (default `relaunch`).
+- Description: re-runs the **global `beforeEach` only** for a given route (cold-start scenarios such as H5 direct URLs / deeplinks) — it does not run `beforeEnter` / `beforeResolve` / `afterEach` again — **without performing actual navigation**. If the guard allows, it resolves with the target location; if it aborts, it fires `options.onAbort(failure)` and rejects; if it redirects, a **real navigation** is performed in the redirect mode (default `relaunch`).
 
 ```ts
 router.isReady().then(() => {

@@ -82,7 +82,7 @@ uni-app x 页面每次导航创建新实例，**无 keep-alive**：
 - `onBeforeRouteLeave`：最可靠，页面离开（含 back）前触发。
 - `onBeforeRouteUpdate`：同组件复用场景几乎不存在，极少触发。
 - `onBeforeRouteEnter`：组件实例尚未创建，无法访问组件状态，效果有限。
-- 三者均基于 beforeResolve 过滤实现，注册返回取消函数。
+- 三者均基于 beforeResolve 过滤实现（注册调用本身无返回值、不支持注销，随路由器实例存活）。
 
 ### 7. 命名路由的类型提示分端不同
 

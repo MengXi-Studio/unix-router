@@ -43,12 +43,12 @@ onLoad((options: UTSJSONObject) => {
 
 ## switchTab Drops query
 
-Navigations to pages with `meta.isTab === true` automatically switch to `uni.switchTab`, and the **switchTab API does not support carrying a query** — any query passed to a tab page is lost.
+Navigations to pages with `meta.isTab === true` automatically switch to `uni.switchTab`, and the **switchTab API discards the entire query string** — neither `query` nor `params` reaches the target tab page (plugin params and `events` travel via internal query keys, which are dropped as well).
 
 To pass data to a tab page, use instead:
 
-- **params** (ParamsPlugin — the internal key channel does not rely on the URL)
-- **EventsPlugin / eventBus** event communication
+- **Global state / storage** (recommended — see [Recipes — TabBar Apps](./recipes#tabbar-apps))
+- **eventBus** (EventsPlugin's app-level bus, which does not depend on the navigation URL)
 
 ## Guards Not Taking Effect
 
@@ -120,7 +120,7 @@ const router = createRouter({
 
 ## Duplicate Navigation Error (DUPLICATED)
 
-Pushing to the same location (identical path + query) rejects with `DUPLICATED` (detected by push only; unlike vue-router's `resolve(false)`, this is a real reject).
+Pushing to the same location (path + query + params + hash all identical to the current route) rejects with `DUPLICATED` (detected by `push` only; unlike vue-router's `resolve(false)`, this is a real reject).
 
 ```ts
 import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
@@ -167,7 +167,7 @@ See [Platform Compatibility](./compatibility).
 
 **Cause**: the guard chain is attached to navigation calls. A cold-start deep link does not issue a `router.push`, so the guards naturally don't run.
 
-**Solution**: in `App.uvue`'s `onLaunch`, wait for the router to be ready, then use `guardRoute` to **re-run the guard chain** on the real entry page (no actual navigation happens; a guard abort triggers `onAbort` and rejects, while a redirect is executed by default as a real `relaunch` jump):
+**Solution**: in `App.uvue`'s `onLaunch`, wait for the router to be ready, then use `guardRoute` to **re-run the global `beforeEach` only** on the real entry page (it does not run `beforeEnter` / `beforeResolve` / `afterEach` again; no actual navigation happens — a guard abort triggers `onAbort` and rejects, while a redirect is executed by default as a real `relaunch` jump):
 
 ```uts
 import { onLaunch } from '@dcloudio/uni-app'
@@ -209,7 +209,7 @@ Complex object data must be serialized first; for structured data across pages, 
 
 ## switchTab Pages Receive No Params
 
-See "[switchTab drops query](#switchtab-drops-query)" above — `switchTab` does not support query; use params or event communication instead.
+See "[switchTab drops query](#switchtab-drops-query)" above — `switchTab` discards the entire query, so `params` cannot reach the tab page either; use global state / storage instead.
 
 ## Page Stack Overflow
 

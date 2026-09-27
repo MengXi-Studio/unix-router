@@ -1,0 +1,82 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view class="container">
+	<!-- #endif -->
+		<view class="page">
+			<view class="profile-card">
+				<view class="avatar">
+					<text class="avatar-text">梦</text>
+				</view>
+				<view class="profile-info">
+					<text class="nickname">梦曦同学</text>
+					<text class="uid">UID：MX-0001</text>
+				</view>
+			</view>
+
+			<view class="stat-card">
+				<view class="stat-item">
+					<text class="stat-num">{{ orders.length }}</text>
+					<text class="stat-label">订单</text>
+				</view>
+				<view class="stat-divider"></view>
+				<view class="stat-item">
+					<text class="stat-num">{{ cartTotalCount() }}</text>
+					<text class="stat-label">购物车</text>
+				</view>
+			</view>
+
+			<view class="card">
+				<text class="card-title">eventBus 广播演示</text>
+				<text class="card-desc">点击后通过 eventBus.emit('user:updated', ...) 全局广播，「路由能力演示」页监听并展示收到的数据（两页需同处页面栈中，可先从演示页进入本页再点击）。</text>
+				<button class="primary-btn" @click="broadcast">保存资料并广播</button>
+			</view>
+
+			<view class="card">
+				<text class="card-title">全局守卫演示</text>
+				<text class="card-desc">本页 meta 声明 requireAuth: true，未登录访问会被全局 beforeEach 重定向到登录页并携带 redirect 参数，登录后自动跳回本页。</text>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+defineUniPage({
+	title: '个人资料',
+	name: 'profile',
+	meta: { requireAuth: true }
+})
+import { eventBus } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { orders, cartTotalCount as calCount } from '../../store/index.uts'
+
+/** 本地包装：外部顶层函数在非蒸汽 Kotlin 下以属性对象暴露，需转成本地函数供模板调用 */
+function cartTotalCount(): number { return calCount() }
+
+function broadcast(): void {
+	// 演示 eventBus：跨页面全局事件广播（需注册 EventsPlugin）
+	eventBus.emit('user:updated', { nickname: '梦曦同学', savedAt: Date.now().toString() })
+	uni.showToast({ title: '已广播 user:updated', icon: 'none' })
+}
+</script>
+
+<style>
+.container { flex: 1; background-color: #f5f6f8; }
+.page { flex-direction: column; padding: 24rpx; }
+.profile-card { flex-direction: row; align-items: center; background-color: #ff6034; border-radius: 20rpx; padding: 32rpx 28rpx; }
+.avatar { width: 112rpx; height: 112rpx; border-radius: 56rpx; background-color: #ffffff; align-items: center; justify-content: center; margin-right: 24rpx; }
+.avatar-text { font-size: 48rpx; font-weight: bold; color: #ff6034; }
+.profile-info { flex-direction: column; }
+.nickname { font-size: 34rpx; font-weight: bold; color: #ffffff; }
+.uid { font-size: 24rpx; color: #ffe3d9; margin-top: 12rpx; }
+.stat-card { flex-direction: row; align-items: center; background-color: #ffffff; border-radius: 20rpx; padding: 28rpx 0; margin-top: 20rpx; }
+.stat-item { flex: 1; flex-direction: column; align-items: center; }
+.stat-divider { width: 1rpx; height: 48rpx; background-color: #f0f0f0; }
+.stat-num { font-size: 36rpx; font-weight: bold; color: #1a1a1a; }
+.stat-label { font-size: 24rpx; color: #9a9a9a; margin-top: 8rpx; }
+.card { background-color: #ffffff; border-radius: 20rpx; padding: 28rpx; margin-top: 20rpx; }
+.card-title { font-size: 30rpx; font-weight: bold; color: #1a1a1a; }
+.card-desc { font-size: 24rpx; color: #9a9a9a; margin-top: 12rpx; line-height: 1.6; }
+.primary-btn { margin-top: 24rpx; background-color: #ff6034; color: #ffffff; border-radius: 44rpx; padding: 22rpx 0; font-size: 28rpx; }
+</style>

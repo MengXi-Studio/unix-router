@@ -20,6 +20,7 @@ pages/                                routes:
 | --- | --- | --- |
 | `path` | `string` | **必填**。页面路径，与 `pages.json` 注册一致，**不带前导斜杠**，如 `pages/index/index` |
 | `name` | `string?` | 命名路由，用于按名导航（推荐） |
+| `redirect` | `RouteLocationRaw?` | 重定向目标（0.7.0 仅声明类型，导航流程暂未消费，预留字段） |
 | `meta` | `RouteMeta?` | 路由元信息（见[路由元信息](./meta)） |
 | `beforeEnter` | `NavigationGuard \| NavigationGuard[]?` | 路由独享前置守卫（仅进入本路由时执行） |
 

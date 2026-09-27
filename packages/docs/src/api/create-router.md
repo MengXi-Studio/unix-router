@@ -24,10 +24,10 @@ const router = createRouter({
 | `interceptUniApi` | `boolean` | `false` | **opt-in**。启用后拦截 `uni.*` 原生导航 API（`navigateTo` / `redirectTo` / `switchTab` / `reLaunch` / `navigateBack`），外部直接调用也会转交路由器走完整守卫链。**须配合 `InterceptorPlugin`**，见 [uni API 拦截](../guide/interceptor) |
 | `plugins` | `RouterPlugin[]` | — | 插件列表，按需注册扩展能力。**传入实例**：`[new ParamsPlugin(), new InterceptorPlugin()]`，见[插件系统](../guide/plugins) |
 | `paramsPersistent` | `boolean` | `false` | 是否默认将 params 持久化到 storage（写入失败自动回退内存）。**须配合 `ParamsPlugin`** |
-| `animation` | `NavigationAnimation` | — | 全局默认导航动画 `{ type: AnimationType, duration?: number }`（`duration` 默认 300ms）。App / 小程序透传原生 `animationType`，H5 由插件以 Web Animations API 实现。**须配合 `AnimationPlugin`**，见[导航动画](../guide/animation) |
+| `animation` | `NavigationAnimation` | — | 全局默认导航动画 `{ type: AnimationType, duration?: number }`（`duration` 默认 300ms）。App 端透传原生 `animationType`（官方仅 App 支持），H5 由插件以 Web Animations API 实现。**须配合 `AnimationPlugin`**，见[导航动画](../guide/animation) |
 
 ::: warning 插件相关选项须配合对应插件
-`interceptUniApi` / `paramsPersistent` / `animation` 分别依赖 `InterceptorPlugin` / `ParamsPlugin` / `AnimationPlugin`。注册了选项但未注册对应插件时，选项被忽略并输出警告。
+`interceptUniApi` / `paramsPersistent` 分别依赖 `InterceptorPlugin` / `ParamsPlugin`，注册了选项但未注册对应插件时，选项被忽略并输出警告；`animation` 未注册 `AnimationPlugin` 时被静默忽略（无警告）。
 :::
 
 ## 返回值

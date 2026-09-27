@@ -1,5 +1,36 @@
 # 更新日志
 
+## [0.8.0] - 2026-09-27
+
+### 新增
+
+- **基于文件的路由生成插件**（构建期 dev 工具，随路由库同包分发）：
+  - 页面就近声明 `defineUniPage` 宏（或 `<route-config lang="jsonc|uts">` 自定义块），构建期自动生成 `pages.json`（含 tabBar / subPackages）与 `routes.gen.uts` 路由表，消除 path / title / tabBar / isTab 双份手工维护
+  - 优先级链：宏 > 块 > 插件推导（`titleFallback` / `tabBar` 配置兜底），字段级合并
+  - name 自动规范化：末段 camelCase → 冲突回退全路径 camelCase → 终极冲突按 `errorStrategy`（strict 抛错 / warn 告警）
+  - `beforeEnter` / meta 扩展经宏声明（UTS 表达式原样注入生成文件，须自包含）
+  - `preserveRouteChanges`（默认开启）：重生成时保留你对路由文件的既有修改与自定义路由
+  - pages.json 手写的非页面字段（globalStyle、uniIdRouter 等）重生成时合并保留
+  - watch：页面新增/删除/修改 200ms 去抖串行重跑两阶段流水线
+  - 生成 `route-name.gen.d.ts`（WEB 端 `RouteNameMap` 字面量类型）与 `define-uni-page.d.ts`（宏类型声明），均可关闭
+- **新增子路径导出 `@meng-xi/unix-router/vite-plugin`**：vite / webpack 适配器（unplugin 打包内置，运行时零额外依赖），`node/` 源码目录在 UTS 编译扫描范围外，主入口 UTS 编译不受影响
+- **插件拆分为三个独立实现**（`node/` 重组为 `route-gen` / `pages-gen` / `routes-gen` + `shared` 目录），可独立或组合注册、互不影响：
+  - `routeGen`：页面文件 → `pages.json` + `routes.gen.uts` 全量流水线（行为与此前一致）
+  - `pagesGen`：页面文件 → 仅 `pages.json`（含宏 dts），不触碰路由文件
+  - `routesGen`：`pages.json` → 仅路由表，不触碰 `pages.json`；支持扩展声明文件 `routes.ext.uts`（path / name ↔ 显式 name / meta 扩展 / beforeEnter，函数原文注入；`router.extensions` 可改路径或 `false` 关闭）
+  - 选项随插件拆分：公共选项（`pagesJsonPath` / `watch` / `verbose` / `errorStrategy`）+ `pages` 段 / `router` 段
+
+### 修复
+
+- **Android 云打包编译错误（UTS 强类型）**：
+  - `Promise.catch` 回调参数类型由 `any` 调整为 `any | null`：UTS 的 `any` 编译为 Kotlin 非空 `Any`，无法匹配 `UTSPromise.catch` 要求可空回调参数的重载
+  - `isNavigationFailure` 首参签名由 `Error | null` 放宽为 `any | null`（内部 `instanceof` 收窄），修复 `.catch((e) => isNavigationFailure(e))` 链式用法编译失败
+- **H5 端 `uni.*` 导航 API 编译类型警告**：WEB 端导航 options 收敛为统一桥接函数 `applyWebNavOptions`（动态字段经 `as any` 桥接），消除 `uni.navigateTo` 等的编译警告，运行时行为不变
+- **H5 端 `router.push` 崩溃**：`pickAnimation` / `toUniAnimation` / `pickEvents` 对可选字段 `=== null` 判断后直接取 `.length` / `.size`，H5（JS 运行时）缺省值是 `undefined` 导致 `TypeError`、导航中断；统一 `?? null`
+  归一化后判断
+- **App 端导航动画透传缺失**：`AnimationPlugin` 此前 App 端实际未透传动画参数，现 `uni.navigateTo` / `uni.navigateBack` 具名 Options 携带 `animationType` / `animationDuration`（官方类型声明标注**仅 App 支持**：Android
+  4.18+ / iOS 4.25+ / HarmonyOS 4.61+）；小程序端官方不支持动画字段，`redirectTo` / `reLaunch` / `switchTab` 官方 Options 无动画字段，均不携带
+
 ## [0.7.0] - 2026-09-20
 
 ### 变更（破坏性）

@@ -22,7 +22,7 @@ There is also `UniNavigationApiError` (an interface): the error payload (`errMsg
 
 ## Precise Checks with isNavigationFailure
 
-`isNavigationFailure(error, codes?)` checks whether an error is a navigation failure (of the specified types):
+`isNavigationFailure(error, type?)` checks whether an error is a navigation failure (of the specified type):
 
 ```ts
 import { isNavigationFailure, RouterErrorCode } from '@meng-xi/unix-router'
@@ -66,7 +66,7 @@ async function goDetail() {
 }
 
 // Pattern 2: .catch
-router.push({ name: 'detail' }).catch((e: any) => {
+router.push({ name: 'detail' }).catch((e: any | null) => {
 	const failure = e as NavigationFailure
 	console.warn('navigation failed', failure.message)
 })
@@ -99,7 +99,7 @@ Trigger timing summary:
 
 - **Guard abort / cancellation**: `afterEach(to, from, failure)` receives the failure and each `onError` callback is invoked;
 - **Native API failure**: `currentRoute` falls back to the source route and error handling is triggered;
-- **Duplicate navigation**: only rejects with `DUPLICATED`; ignore it as needed.
+- **Duplicate navigation**: rejects with `DUPLICATED`, and like every other failure it still goes through `afterEach(to, from, failure)` + each `onError` callback; ignore it as needed.
 
 ## Troubleshooting Table for Common Failures
 

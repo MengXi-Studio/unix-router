@@ -60,7 +60,7 @@ const routes: RouteConfig[] = [
 ]
 ```
 
-> 可选字段读取时用 `=== true` / `=== undefined` 显式判断（UTS 强类型，无 truthy 隐式转换）。更多说明见[路由元信息指南](../guide/meta)。
+> 可选字段读取时用 `=== true`（布尔）/ `!= null`（存在性）显式判断（UTS 强类型，无 `undefined`，不做 truthy 隐式转换）。更多说明见[路由元信息指南](../guide/meta)。
 
 ## 相关 API
 

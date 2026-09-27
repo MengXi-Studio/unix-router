@@ -1,0 +1,66 @@
+// 商品域 mock 数据与查询工具（供列表/详情/分类/首页等页面使用）
+
+/** 商品 */
+export type Goods = {
+	id: number
+	name: string
+	price: number
+	/** 分类 key（对应 Category.key） */
+	category: string
+	tag: string
+	desc: string
+}
+
+/** 分类 */
+export type Category = {
+	key: string
+	name: string
+}
+
+export const categories: Category[] = [
+	{ key: 'phone', name: '手机' },
+	{ key: 'pc', name: '电脑' },
+	{ key: 'audio', name: '音频' },
+	{ key: 'home', name: '家电' },
+	{ key: 'wear', name: '穿戴' }
+]
+
+export const goodsList: Goods[] = [
+	{ id: 1001, name: '梦曦 X1 Pro 智能手机', price: 4999, category: 'phone', tag: '骁龙旗舰', desc: '6.7 英寸 2K 屏，骁龙 8 Gen3，5000mAh 大电池' },
+	{ id: 1002, name: '梦曦 X1 标准版', price: 3999, category: 'phone', tag: '轻薄', desc: '6.4 英寸直屏，旗舰影像，轻薄机身' },
+	{ id: 1003, name: '梦曦 Note 入门机', price: 1299, category: 'phone', tag: '性价比', desc: '大电池长续航，流畅日常使用' },
+	{ id: 2001, name: '梦曦 Book 16 轻薄本', price: 5999, category: 'pc', tag: '办公', desc: '16 英寸 2.5K 屏，32G 内存，全金属机身' },
+	{ id: 2002, name: '梦曦 Pad 平板', price: 2799, category: 'pc', tag: '影音', desc: '11 英寸 120Hz 高刷，四扬声器，手写笔支持' },
+	{ id: 3001, name: '梦曦 Buds 降噪耳机', price: 699, category: 'audio', tag: '降噪', desc: '主动降噪，30 小时续航，低延迟' },
+	{ id: 3002, name: '梦曦 Sound 音箱', price: 399, category: 'audio', tag: '便携', desc: '360° 环绕声，IPX7 防水，支持串联' },
+	{ id: 4001, name: '梦曦 Air 变频空调', price: 3299, category: 'home', tag: '一级能效', desc: '1.5 匹新一级能效，智能除湿，静音运行' },
+	{ id: 4002, name: '梦曦 Fresh 空气净化器', price: 1499, category: 'home', tag: '除醛', desc: 'CADR 500³/h，实时 PM2.5 显示，静音睡眠模式' },
+	{ id: 5001, name: '梦曦 Watch S 智能手表', price: 1599, category: 'wear', tag: '健康', desc: '血氧/心率/睡眠监测，14 天续航' },
+	{ id: 5002, name: '梦曦 Band 手环', price: 249, category: 'wear', tag: '轻量', desc: '轻至 20g，50 米防水，30 天超长续航' }
+]
+
+/** 按分类取商品 */
+export function goodsByCategory(key: string): Goods[] {
+	const result: Goods[] = []
+	for (let i = 0; i < goodsList.length; i++) {
+		if (goodsList[i].category == key) {
+			result.push(goodsList[i])
+		}
+	}
+	return result
+}
+
+/** 按 id 取商品 */
+export function goodsById(id: number): Goods | null {
+	for (let i = 0; i < goodsList.length; i++) {
+		if (goodsList[i].id == id) {
+			return goodsList[i]
+		}
+	}
+	return null
+}
+
+/** 格式化价格（元） */
+export function formatPrice(price: number): string {
+	return '¥' + Math.floor(price) + ''
+}

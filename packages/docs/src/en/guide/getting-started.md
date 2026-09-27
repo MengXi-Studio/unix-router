@@ -148,7 +148,7 @@ console.log(route.params.get('id')) // '1024'
 
 Don't want to set up a project yourself? Install the trial Android App directly (built from the example project; includes all examples — tabBar, navigation guards, params passing, RouterLink, navigation animations, and more):
 
-[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1789882378601-__UNI__B6A50A8_1789882365595.apk)
+[⬇️ Download the trial Android App (.apk)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1790413072682-__UNI__B6A50A8_1790413055611.apk)
 
 > Note: the trial build is mainly for previewing features quickly. For production integration, follow the steps above to install and use the library in your own uni-app x project.
 
