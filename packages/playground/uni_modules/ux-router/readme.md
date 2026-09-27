@@ -12,11 +12,16 @@ uni-app x 原生提供 `uni.navigateTo / redirectTo / reLaunch / navigateBack / 
 - **路由匹配**：path / name 双索引，字符串 / 对象 / 命名三种解析，`strict` 严格模式
 - **路由守卫**：`beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` / 组件内守卫，支持重定向、守卫超时与重定向深度上限
 - **组合式 API**：`useRouter()` / `useRoute()` / `useLink()`，响应式 `currentRoute`
-- **参数传递**：`params`（`Map<string,string>`）经 **ParamsPlugin**（`__params__` 关联存储）跨页传递；`query` 以字符串经 URL 传递，配合 `queryInt()` / `queryNumber()` / `queryBool()` 便捷解析
 - **导航控制**：重复导航自动拒绝（`DUPLICATED`）、并发导航自动排队
 - **错误体系**：`RouterError` / `NavigationFailure` / `UniNavigationApiError`，`RouterErrorCode` 错误码，`isNavigationFailure()` 精准判断，`onError` 全局捕获
 - **冷启动守卫**：`guardRoute()` 对 H5 直达 / 场景值 / deeplink 补执行守卫链，支持重定向与中止回调（`onAbort`）
 - **路由状态同步**：页面 `onShow` 自动 `syncRoute()`，物理返回 / TabBar 切换等非路由器导航自动对齐
+- **基于文件的路由生成（构建期 dev 工具，opt-in）**：从 npm 包 `@meng-xi/unix-router/vite-plugin`（uni_modules 分发版随包附带 `plugins/` 适配器）引入 vite 插件，页面就近声明 `defineUniPage` 宏，构建期自动生成 `pages.json` 与路由表 `routes.gen.uts`，消除 path / title / isTab 双份手工维护；提供 `routeGen` / `pagesGen` / `routesGen` 三个独立插件
+- **插件体系（opt-in，注册须实例化）**：
+  - **ParamsPlugin** 页面参数传递：`params`（`Map<string,string>`）经 `__params__` 关联存储跨页传递，键名不暴露明文
+  - **InterceptorPlugin** uni API 拦截：`interceptUniApi: true` 时，直调 `uni.navigateTo` / `switchTab` 等原生导航也转入守卫链
+  - **AnimationPlugin** 导航窗口动画：App 端透传原生 `animationType` / `animationDuration`（动画字段官方仅 App 支持，小程序端官方不支持、无动画），H5 端通过 WAAPI 播放进入 / 退出动画；支持全局默认（`animation` 选项）与单次覆盖
+  - **EventsPlugin** 页面事件通信：对齐官方 `navigateTo` 的 `events` 语义，被打开页经 `useOpenerEventChannel()` 回传 / 接收数据
 
 ## 目录结构
 
@@ -25,6 +30,7 @@ ux-router/
 ├── package.json          # uni_modules 插件清单（id / displayName / 版本等）
 ├── changelog.md          # 更新日志
 ├── readme.md             # 本说明
+├── plugins/              # 构建期文件路由 vite 插件适配器（JS 产物，routeGen / pagesGen / routesGen）
 └── utssdk/               # UTS 源码（核心逻辑）
     ├── index.uts         # 公共入口
     ├── router/           # 路由器（createRouter 主实现）
@@ -33,7 +39,9 @@ ux-router/
     ├── history/          # 页面栈适配
     ├── navigation/       # uni.* 导航封装
     ├── state/ store/     # 路由状态
-    ├── composables/      # useRouter / useRoute / useLink / 组件内守卫
+    ├── composables/      # useRouter / useRoute / useLink / useOpenerEventChannel / 组件内守卫
+    ├── plugins/          # 内置插件：params / interceptor / animation / events
+    ├── components/       # RouterLink.uvue 声明式导航组件
     ├── errors/ enums/    # 错误与错误码
     ├── types/            # 类型定义
     ├── utils/            # path / query / params 工具
@@ -70,6 +78,13 @@ import { createRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 import { routes } from './router.config'
 
 export const router = createRouter({ routes, strict: true })
+
+// 可选：按需注册插件（注册须实例化，0.7.0 起为破坏性变更）
+// import { ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
+// export const router = createRouter({
+// 	routes,
+// 	plugins: [new ParamsPlugin(), new InterceptorPlugin(), new AnimationPlugin(), new EventsPlugin()]
+// })
 ```
 
 ### 3. 安装到应用
@@ -112,6 +127,10 @@ function go() {
 | `strict`       | `boolean`       | `true`   | 严格模式，未匹配的命名路由抛出 `RouterError`               |
 | `guardTimeout` | `number`        | `10000`  | 守卫超时（ms），超时警告并自动中止导航，设 `0` 关闭        |
 | `readyTimeout` | `number`        | `0`      | 就绪超时（ms），防止 `await router.isReady()` 挂起          |
+| `plugins`      | `RouterPlugin[]`| -        | 可选插件列表，**传入实例**：`[new ParamsPlugin()]` / `[new InterceptorPlugin()]` / `[new AnimationPlugin()]` / `[new EventsPlugin()]` |
+| `paramsPersistent` | `boolean`  | `false`  | 是否默认将 `params` 持久化到 storage（需配合 `ParamsPlugin`） |
+| `interceptUniApi`  | `boolean`  | `false`  | opt-in：拦截 `uni.*` 原生导航，使直调也走守卫链（运行时版本要求：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61，需配合 `InterceptorPlugin`） |
+| `animation`    | `NavigationAnimation` | - | 全局默认导航动画 `{ type, duration }`（需配合 `AnimationPlugin` 才生效） |
 
 ## 路由导航
 
@@ -166,12 +185,12 @@ router.isReady().then(() => {
 ## 参数传递
 
 - **`query`**：URL 可见，适合少量、简单、可分享的数据
-- **`params`**：经 **ParamsPlugin**（`__params__` 关联存储）跨页传递，键名不暴露明文，适合命名参数（需注册 `plugins: [ParamsPlugin]`）
+- **`params`**：经 **ParamsPlugin**（`__params__` 关联存储）跨页传递，键名不暴露明文，适合命名参数（需注册 `plugins: [new ParamsPlugin()]`）
 
 两者均为 `Map<string,string>`：
 
 ```uts
-import { queryInt, queryBool } from '@/uni_modules/ux-router/utssdk/utils/index.uts'
+import { queryInt, queryBool } from '@/uni_modules/ux-router/utssdk/index.uts'
 
 router.push({ name: 'detail', params: new Map([['id', '42'], ['from', '首页']]) })
 
@@ -191,7 +210,8 @@ const flag  = queryBool(route.query, 'vip', false) // 便捷解析布尔
 
 - `useRouter()`：获取路由器实例
 - `useRoute()`：响应式当前路由（脚本/模板直接访问字段，如 `route.path` / `route.query.get()`）
-- `useLink()`：声明式导航的响应式状态与触发（`isActive` / `navigate` 等）
+- `useLink()`：声明式导航的响应式状态与触发（`isActive` / `navigate` 等），配套 `RouterLink` 组件直接使用
+- `useOpenerEventChannel()`：获取打开方事件通道（需 `EventsPlugin`），不依赖路由同步时机，`onShow` 内即可使用
 
 ## API 概览
 
@@ -200,9 +220,11 @@ const flag  = queryBool(route.query, 'vip', false) // 便捷解析布尔
 | 创建 | `createRouter(options)` |
 | 导航 | `push` / `replace` / `relaunch` / `back` |
 | 守卫 | `beforeEach` / `beforeResolve` / `afterEach` / `beforeEnter` |
-| 组合式 | `useRouter` / `useRoute` / `useLink` / `onBeforeRouteLeave/Enter/Update` |
+| 组合式 | `useRouter` / `useRoute` / `useLink` / `useOpenerEventChannel` / `onBeforeRouteLeave/Enter/Update` |
 | 查询 | `getRoutes` / `hasRoute` / `resolve` / `currentRoute` / `isReady` |
 | 同步/扩展 | `syncRoute` / `guardRoute` / `onError` / `onRouteChange` |
+| 插件 | `ParamsPlugin` / `InterceptorPlugin` / `AnimationPlugin` / `EventsPlugin` / `eventBus`（注册须实例化） |
+| 组件 | `RouterLink`（声明式导航） |
 | 错误 | `RouterError` / `NavigationFailure` / `RouterErrorCode` / `isNavigationFailure` |
 
 > 完整 API 与「从入门到精通」教程见仓库 `packages/docs`。
@@ -210,9 +232,10 @@ const flag  = queryBool(route.query, 'vip', false) // 便捷解析布尔
 ## 平台兼容性
 
 - Web / H5、微信小程序：编译为 JS
-- App-Android（VDOM / 蒸汽模式）：编译为 Kotlin / JS
-- iOS（VDOM）：编译为 Swift
+- App-Android / App-HarmonyOS（VDOM / 蒸汽模式）：编译为 Kotlin / JS（HarmonyOS 需 HBuilderX 4.61+）
+- App-iOS：编译为 Swift
 - 底层仅依赖 `uni.*` 原生导航 API（`navigateTo / redirectTo / reLaunch / navigateBack / switchTab`）
+- 导航动画字段官方仅 App 支持（Android 4.18+ / iOS 4.25+ / HarmonyOS 4.61+），小程序端官方不支持；H5 端由 AnimationPlugin 以 WAAPI 实现
 - 物理返回键 / TabBar 切换不经过路由器，通过 `syncRoute()` 在 `onShow` 自动对齐
 
 ## License
