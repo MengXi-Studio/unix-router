@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
-import uni from '@dcloudio/vite-plugin-uni'
+import uniDefault from '@dcloudio/vite-plugin-uni'
 import { routeGen } from './uni_modules/ux-router/plugins/index.mjs'
+
+// ESM 加载时默认导出是模块命名空间对象，真正的函数在 .default 上
+const uni = (uniDefault as unknown as { default?: typeof uniDefault }).default ?? uniDefault
 
 export default defineConfig({
 	plugins: [
-		uni(),
 		routeGen({
 			verbose: true,
 			pages: {
@@ -16,13 +18,15 @@ export default defineConfig({
 					selectedColor: '#007AFF',
 					backgroundColor: '#FFFFFF'
 				},
-				dts: 'define-uni-page.d.ts'
+				dts: 'types/define-uni-page.d.ts'
 			},
 			router: {
-				outputPath: 'routes.gen.uts',
+				outputPath: 'router/routes.gen.uts',
 				importFrom: '@/uni_modules/ux-router/utssdk/index.uts',
-				dts: 'route-name.gen.d.ts'
+				dts: 'types/route-name.gen.d.ts'
 			}
-		})
+		}),
+
+		uni()
 	]
 })
