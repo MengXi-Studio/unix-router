@@ -42,7 +42,7 @@ onNavigationAbort (plugin cleanup, exceptions swallowed)
 `router.back(delta)` is shorter and **does not pass through the plugins' enrich / afterResolve** (pluginData is empty):
 
 1. Concurrent queueing: wait for any in-progress navigation to finish.
-2. Validate `delta`: defaults to `1` (passing `null` is also treated as 1); a non-positive integer → `ABORTED`; an insufficient page stack (stack length < 2 or `delta >= stack length`) → `CANCELLED`.
+2. Validate `delta`: defaults to `1` (passing `null` is also treated as 1); a non-positive integer → `ABORTED`; an insufficient page stack (stack length < 2 or `delta >= stack length`) → falls back to `relaunch` on the first `meta.isTab` route (running the full navigation flow described above for push/replace; no `isTab` route → `CANCELLED`).
 3. Compute the target page from the page stack and resolve it into `to`.
 4. `beforeEach` → `beforeResolve` (guards may redirect; a redirect is handled as a real navigation).
 5. `prepareNavigation` → `beforeNavigation` hooks (`mode: 'back'`, e.g. after playing the exit animation).

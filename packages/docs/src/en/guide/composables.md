@@ -11,7 +11,7 @@ import { useRouter } from '@meng-xi/unix-router'
 const router = useRouter()
 
 router.push('/pages/about/about')  // navigate
-router.back()                      // go back
+router.back(1)                     // go back (delta must be passed explicitly)
 router.currentRoute.path           // current path (getter, not reactive)
 ```
 

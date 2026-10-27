@@ -206,7 +206,7 @@ const confirmPick = () => {
 		// send back first, then go back: the channel survives while the page is on the stack, so emit reaches the opener immediately
 		channel.emit('selected', result)
 	}
-	router.back()
+	router.back(1)
 }
 </script>
 

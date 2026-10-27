@@ -41,12 +41,16 @@ const to = await router.push({ name: 'detail', query: new Map<string, string>([[
 - 签名：`back(delta?: number | null): Promise<NavigationResult>`
 - 说明：返回上一页或多级页面，对应 `uni.navigateBack`。`delta` 默认 `1`（传 `null` 同样按 `1` 处理）：
   - 非正整数 → reject `ABORTED`；
-  - 页面栈不足（栈长 < 2 或 `delta >= 栈长`）→ reject `CANCELLED`。
+  - 页面栈不足（栈长 < 2 或 `delta >= 栈长`）→ 兜底 `relaunch` 到首个 `meta.isTab` 路由（走完整守卫链）；无 `isTab` 路由时 reject `CANCELLED`。
 - 返回前只执行 `beforeEach` + `beforeResolve` 守卫链，不经过插件的 enrich / afterResolve。
+
+::: warning App 端 delta 必须显式传参
+UTS 接口方法签名不支持默认值，App 端（Kotlin）可选参数会生成必填形参——`router.back()` 省略实参将编译报错 `No value passed for parameter 'delta'`。跨端可靠写法是始终显式传值：`router.back(1)`。
+:::
 
 ```ts
 await router.push({ name: 'about' })
-await router.back()      // 返回上一页
+await router.back(1)     // 返回上一页
 await router.back(2)     // 返回两级
 ```
 

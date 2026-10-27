@@ -110,7 +110,7 @@ const router = useRouter()
 const goBack = () => {
 	// App：原生窗口播放 slide-out-right（小程序官方不支持动画字段）；
 	// H5：先播完 300ms 退出动画，再真正执行 navigateBack
-	router.back()
+	router.back(1)
 }
 </script>
 

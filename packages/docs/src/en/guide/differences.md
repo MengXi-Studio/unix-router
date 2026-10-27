@@ -48,7 +48,7 @@ uni-app x has no browser URL; "history" is handled by the native page stack (`ge
 - There is no `createWebHistory / createWebHashHistory / createMemoryHistory`.
 - `route.hash` is always `''`; `fullPath` is composed of path + query.
 - There is no `scrollBehavior`; scrolling behavior is managed natively.
-- Going back pops the stack — `back(delta)` is based on the page stack depth. A delta that is not a positive integer rejects with `ABORTED`, and insufficient stack depth rejects with `CANCELLED`.
+- Going back pops the stack — `back(delta)` is based on the page stack depth. A delta that is not a positive integer rejects with `ABORTED`; when the stack depth is insufficient (cold start / H5 refresh landing on a non-home page), it falls back to `relaunch` on the first tabBar page (in vue-router, `go(-1)` with empty browser history is a no-op; here it explicitly returns to the entry page).
 
 ### 3. query / params Are Both Map&lt;string, string&gt;
 

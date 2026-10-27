@@ -206,7 +206,7 @@ const confirmPick = () => {
 		// 先回传，再返回：页面正常入栈后通道保留，emit 立即触达打开方
 		channel.emit('selected', result)
 	}
-	router.back()
+	router.back(1)
 }
 </script>
 
