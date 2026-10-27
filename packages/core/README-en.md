@@ -84,9 +84,11 @@ await router.push({ name: 'about', query: new Map([['a', '1']]) })
 await router.push('/pages/detail/detail')
 await router.replace({ path: '/pages/detail/detail', params: new Map([['from', 'Home']]) })
 await router.relaunch('/pages/index/index')
-await router.back()      // back one step
+await router.back(1)     // back one step (delta must be passed explicitly, see note below)
 await router.back(2)     // back two steps
 ```
+
+> **Note**: `back(delta)` requires an explicit argument (e.g. `back(1)`). UTS interface method signatures do not support default values — on App (Kotlin) builds, optional parameters compile into required ones, and omitting the argument causes a `No value passed for parameter 'delta'` compile error.
 
 > If the target route is declared as a TabBar page via `meta.isTab`, `push` / `replace` / `relaunch` automatically use `uni.switchTab`.
 

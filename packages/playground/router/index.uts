@@ -1,7 +1,7 @@
 // 应用路由配置：createRouter 实例与全局守卫（业务数据见 data/，全局状态见 store/）
 import { createRouter, ParamsPlugin, InterceptorPlugin, AnimationPlugin, EventsPlugin } from '@/uni_modules/ux-router/utssdk/index.uts'
 // 路由表由 @meng-xi/unix-router/vite-plugin 从页面 defineUniPage 宏自动生成（routes.gen.uts 勿手改）
-import { routes } from '../routes.gen.uts'
+import { routes } from './routes.gen.uts'
 import { isLoggedIn } from '../store/index.uts'
 
 export const router = createRouter({

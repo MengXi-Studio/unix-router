@@ -72,3 +72,14 @@
 
 ### 6. WEB 分支动态构造 uni.* options 须集中 as any 桥接
 - H5 端 `uni.navigateTo/switchTab/redirectTo/reLaunch` 的 options 含 required 字段 `url`，UTSJSONObject 下标动态赋值无法静态满足 → 每次编译刷 4 条类型警告（navigateBack 无 required 字段故不报）。收敛到单个 `#ifdef WEB` 桥接函数（注入回调 + 按需动画字段 + `return options as any`），差异字段（url/delta）留在调用处；运行时 JS 输出不变。验证断言点：动画字段桥接后 H5 进入动画仍播放（`H5 进入动画播放 -> slide-in-right 300ms` 日志）。
+
+## 2026-10-27 uni_modules 修复回流（云打包 Android Kotlin 编译实测）
+
+### 1. UTS 接口方法参数不支持默认值，可选参数生成必填 Kotlin 参数
+- 现象：`router.back()` 云打包报 `No value passed for parameter 'delta'`（`Router` 接口声明 `back(delta: number | null)`，实现无默认值）。
+- 实测约束：UTS 接口方法签名不支持初始值（`delta?: T = 1` 报 "Parameter cannot have question mark and initializer"，`delta: T = 1` 报语法错误）；实现带默认值则生成 `override fun back(delta: Number? = 1)`，违反 Kotlin「override 不允许自带默认值」。
+- 处置：库侧无 API 级修复空间，唯一可靠写法是调用端显式传参（`router.back(1)`）。已在 `back()` 注释与两份 README（back 示例 + 注意事项）固化该约束。
+- 关联：UTS→Kotlin 局部函数按源码顺序生成（先用后声明编译失败，见 unix-ui 仓库 LESSONS_LEARNED #29）；云打包 SDK 版本须与生成端 HBuilderX 配套（同 #31）。
+
+### 2. 双发行版同步方向是双向的
+- uni_modules（unix-ui playground）是 core `src/` 的静态拷贝，但修复可能先发生在任意一侧（本次 delta 修复与注释去品牌化均先落在 uni_modules）。同步后须做双向哈希比对确认一致（换行符差异属设计内：core CRLF / unix-ui LF，内容归一化后应逐字节一致）。

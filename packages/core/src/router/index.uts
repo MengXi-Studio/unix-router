@@ -1,9 +1,9 @@
 /**
  * 路由器主类与 createRouter
  *
- * 提供 vue-router 风格的导航、守卫注册、状态查询与插件扩展能力，适配 uni-app x 静态页面模型。
+ * 提供导航、守卫注册、状态查询与插件扩展能力，适配 uni-app x 静态页面模型。
  * 底层基于 uni.* 原生导航 API 与原生页面栈（getCurrentPages）实现；
- * 扩展能力通过插件（plugins）提供，对齐 uni-router 的核心 + 插件架构。
+ * 扩展能力通过插件（plugins）提供，采用核心 + 插件架构。
  */
 import type { App } from 'vue'
 import type {
@@ -91,7 +91,7 @@ class UniRouter implements Router {
 		return this.performNavigation(location, 'relaunch')
 	}
 
-	/** 返回上一页或多级页面（uni.navigateBack） */
+	/** 返回上一页或多级页面（uni.navigateBack）；调用端需显式传 delta（UTS 接口默认值不受支持，App 端可选参数会生成必填 Kotlin 参数） */
 	async back(delta: number | null): Promise<NavigationResult> {
 		if (this.pendingNavigation != null) {
 			await this.pendingNavigation.catch(() => {})

@@ -84,9 +84,11 @@ await router.push({ name: 'about', query: new Map([['a', '1']]) })
 await router.push('/pages/detail/detail')
 await router.replace({ path: '/pages/detail/detail', params: new Map([['from', '首页']]) })
 await router.relaunch('/pages/index/index')
-await router.back()      // 返回上一页
+await router.back(1)     // 返回上一页（delta 必须显式传参，见下方说明）
 await router.back(2)     // 返回两级
 ```
+
+> **注意**：`back(delta)` 必须显式传参（如 `back(1)`）。UTS 接口方法签名不支持默认值，App 端（Kotlin）可选参数会生成必填形参，省略实参将导致 `No value passed for parameter 'delta'` 编译错误。
 
 > 目标路由若在 `meta.isTab` 中声明为 TabBar 页面，`push` / `replace` / `relaunch` 会自动改用 `uni.switchTab`。
 
