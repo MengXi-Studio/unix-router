@@ -83,3 +83,9 @@
 
 ### 2. 双发行版同步方向是双向的
 - uni_modules（unix-ui playground）是 core `src/` 的静态拷贝，但修复可能先发生在任意一侧（本次 delta 修复与注释去品牌化均先落在 uni_modules）。同步后须做双向哈希比对确认一致（换行符差异属设计内：core CRLF / unix-ui LF，内容归一化后应逐字节一致）。
+
+### 3. H5 返回箭头在栈深=1 时走 uni.reLaunch('/')，不经过 navigateBack（CDP 实测）
+- 现象：H5 冷启动直连非首页（如详情页刷新）后点导航栏返回箭头无效，且 `router.back()` 未被调用、无任何日志。
+- 根因（框架源码 uni-h5.es.js `onPageHeadBackButton`）：栈深>1 才调 `uni.navigateBack`（会被 InterceptorPlugin 转交 router.back）；栈深=1 调的是 `uni.reLaunch({ url: '/' })`。该调用被拦截后，dispatch 里 `parsed.path.length <= 1` 直接 return 放弃，同时返回 false 阻止原始调用 → 双重无效。
+- 修复（两处，均经浏览器实测）：① dispatch 对根路径 reLaunch 转交入口页兜底（首个 isTab 路由，经 relaunch 走完整守卫链）；② router.back() 页面栈不足时同样兜底（直调 API / App 端场景），无 tabBar 路由维持 CANCELLED 失败。共享助手 findFirstTabRoutePath（router/location.uts）。
+- 验证陷阱：browser_evaluate 中 `uni.navigateBack(...)` 若把被拦截的 Promise 作为表达式返回会挂起超时（框架源码注释「传入空方法，避免返回Promise」同理）——触发脚本须 `void uni.navigateBack(...)` 且返回普通字符串。
