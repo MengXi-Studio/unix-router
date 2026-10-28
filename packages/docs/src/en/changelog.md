@@ -1,12 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [0.8.1] - 2026-10-28
 
 ### Fixed
 
 - **Back does nothing after H5 refresh / cold start on a non-home page**: on H5, when the page stack has only one page, the navbar back arrow actually calls `uni.reLaunch({ url: '/' })`. That call was previously intercepted by InterceptorPlugin and silently dropped (no valid page for the root path), while the original call was blocked — so back did nothing at all. Root-path `reLaunch` is now handed over as an entry-page fallback (`relaunch` on the first `meta.isTab` route, running the full guard chain)
 - **`back()` insufficient page stack fallback**: when stack length < 2 or `delta >= stack length`, instead of rejecting with `CANCELLED` it now automatically `relaunch`es to the first `meta.isTab` route (fixes "nowhere to go back" after an App cold-start deep link); still rejects with `CANCELLED` when the route table has no tabBar route
-- **Docs correction**: `back(delta)` must be passed explicitly on App (Kotlin) — UTS interface method signatures do not support default values, and omitting the argument fails to compile with `No value passed for parameter 'delta'`; examples now uniformly use `back(1)`
 
 ## [0.8.0] - 2026-09-27
 
