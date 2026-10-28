@@ -41,12 +41,16 @@ const to = await router.push({ name: 'detail', query: new Map<string, string>([[
 - Signature: `back(delta?: number | null): Promise<NavigationResult>`
 - Description: goes back one or multiple pages, mapping to `uni.navigateBack`. `delta` defaults to `1` (passing `null` is also treated as `1`):
   - a non-positive integer → rejects `ABORTED`;
-  - an insufficient page stack (stack length < 2 or `delta >= stack length`) → rejects `CANCELLED`.
+  - an insufficient page stack (stack length < 2 or `delta >= stack length`) → falls back to `relaunch` on the first `meta.isTab` route (running the full guard chain); rejects `CANCELLED` when no `isTab` route exists.
 - Before returning it only runs the `beforeEach` + `beforeResolve` guard chain; it does not pass through the plugins' enrich / afterResolve.
+
+::: warning delta must be passed explicitly on App
+UTS interface method signatures do not support default values — on App (Kotlin) builds, optional parameters compile into required parameters, so `router.back()` without an argument fails to compile with `No value passed for parameter 'delta'`. The reliable cross-platform style is always passing the value explicitly: `router.back(1)`.
+:::
 
 ```ts
 await router.push({ name: 'about' })
-await router.back()      // back one page
+await router.back(1)     // back one page
 await router.back(2)     // back two pages
 ```
 

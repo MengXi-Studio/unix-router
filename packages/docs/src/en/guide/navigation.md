@@ -57,14 +57,15 @@ uni's `switchTab` discards the entire query string, so **neither `query` nor `pa
 ## Going Back
 
 ```ts
-await router.back()   // delta defaults to 1, back one page
+await router.back(1)  // back one page (delta must be passed explicitly, see note below)
 await router.back(2)  // back two levels
 ```
 
 Behavior details:
 
-- `delta` defaults to `1`; it must be a **positive integer**, otherwise no navigation is started and the promise rejects with `ABORTED` immediately
-- Insufficient page stack (fewer than two pages, or `delta` exceeds the stack depth) → rejects with `CANCELLED`
+- `delta` must be a **positive integer**, otherwise no navigation is started and the promise rejects with `ABORTED` immediately
+- **On App (Kotlin), `delta` must be passed explicitly** (e.g. `back(1)`): UTS interface method signatures do not support default values — on App builds, optional parameters compile into required Kotlin parameters, and omitting the argument causes a `No value passed for parameter 'delta'` compile error
+- Insufficient page stack (fewer than two pages, or `delta` exceeds the stack depth) → **entry-page fallback**: automatically `relaunch`es to the first `meta.isTab` route in the route table (running the full guard chain), fixing "back does nothing" after a cold start / H5 refresh landing on a non-home page; if the route table has no `isTab` route it still rejects with `CANCELLED`
 - The back target is resolved by the **page stack** (the `delta`-th page counting from the top), then matched back to a route record by path
 - The guard phase before going back only runs the global `beforeEach` + `beforeResolve` (the route-exclusive `beforeEnter` does not participate); `afterEach` still fires after a successful back
 

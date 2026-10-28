@@ -57,14 +57,15 @@ uni 的 `switchTab` 不支持 query 参数，路由器也不会为它拼 URL 查
 ## 返回 back
 
 ```ts
-await router.back()   // delta 默认 1，返回上一页
+await router.back(1)  // 返回上一页（delta 需显式传参，见下方注意）
 await router.back(2)  // 返回两级
 ```
 
 行为细节：
 
-- `delta` 默认 `1`；必须为**正整数**，否则不发起导航、直接 reject `ABORTED`
-- 页面栈不足（少于两级，或 `delta` 超出栈深）→ reject `CANCELLED`
+- `delta` 必须为**正整数**，否则不发起导航、直接 reject `ABORTED`
+- **App 端（Kotlin）调用必须显式传 `delta`**（如 `back(1)`）：UTS 接口方法签名不支持默认值，App 端可选参数会生成必填 Kotlin 形参，省略实参将编译报错 `No value passed for parameter 'delta'`
+- 页面栈不足（少于两级，或 `delta` 超出栈深）→ **兜底重载入口页**：自动 `relaunch` 到路由表中首个 `meta.isTab` 路由（走完整守卫链），解决冷启动 / H5 刷新直连非首页后"返回无效"的问题；路由表无 `isTab` 路由时仍 reject `CANCELLED`
 - 返回目标按**页面栈**解析（栈中倒数第 `delta` 个页面），再按路径匹配回路由记录
 - 返回前的守卫阶段只执行全局 `beforeEach` + `beforeResolve`（路由独享 `beforeEnter` 不参与）；`afterEach` 在返回成功后照常触发
 

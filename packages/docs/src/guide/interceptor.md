@@ -188,6 +188,7 @@ interceptUniApi?: boolean // 默认 false
 - 外部直调被转交后，原始调用被阻止（`invoke` 返回 `false`，同时清空 `url` 作为双保险）；
 - Web 端 `switchTab` 特殊处理：放行原始调用，仅在其 `success` 回调中 `syncRoute()` 同步状态（阻止会导致 TabBar 组件状态卡死）；
 - 转交映射：`navigateTo → push`、`redirectTo → replace`、`reLaunch → relaunch`、`switchTab → push`（路由器按 `meta.isTab` 自动分发）、`navigateBack → back`（`delta > 0` 时透传返回层级）；query 会随 `parseUrl` 解析后透传给路由器。
+- 根路径兜底：外部 `reLaunch` 的 url 为根路径 `/` 时（典型场景：H5 导航栏返回箭头在页面栈仅 1 层时，框架会调用 `uni.reLaunch({ url: '/' })`）→ 转交 `relaunch` 到首个 `meta.isTab` 路由，避免"返回无效"；无 `isTab` 路由时忽略该调用。
 
 ## 下一步
 

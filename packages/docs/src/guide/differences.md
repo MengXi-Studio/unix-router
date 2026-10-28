@@ -48,7 +48,7 @@ uni-app x 无浏览器 URL，"历史"由原生页面栈（`getCurrentPages`）�
 - 无 `createWebHistory / createWebHashHistory / createMemoryHistory`。
 - `route.hash` 恒为 `''`；`fullPath` 由 path + query 组成。
 - 无 `scrollBehavior`，滚动行为由原生管理。
-- 返回即出栈：`back(delta)` 基于页面栈深度，delta 非正整数返回 `ABORTED`，栈深度不足返回 `CANCELLED`。
+- 返回即出栈：`back(delta)` 基于页面栈深度，delta 非正整数返回 `ABORTED`；栈深度不足（冷启动 / H5 刷新直连非首页）时兜底 `relaunch` 到首个 tabBar 页（vue-router 中浏览器历史为空时 `go(-1)` 是无操作，此处为显式回入口页）。
 
 ### 3. query / params 均为 Map<string, string>
 

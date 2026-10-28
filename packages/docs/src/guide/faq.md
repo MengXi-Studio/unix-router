@@ -219,6 +219,10 @@ route.query.has('id')
 
 uni-app x H5 端使用 hash 模式，请访问形如 `https://example.com/#/pages/index/index` 的地址；避免直接访问不带 hash 的深层 URL。
 
+## H5 刷新后返回无效
+
+在 H5 端刷新页面（或冷启动直连非首页）后，页面栈只有当前 1 层，`uni.navigateBack` 无处可退。此时点导航栏返回箭头，框架实际调用的是 `uni.reLaunch({ url: '/' })`。当前版本已内置兜底：`back()` 与拦截器在页面栈不足时都会自动 `relaunch` 到路由表中首个 `meta.isTab` 路由（走完整守卫链）。若仍无效，确认路由表中存在声明 `meta.isTab: true` 的 tabBar 路由。
+
 ## 路由跳转白屏
 
 1. 路径是否正确（应为 `pages/xxx/xxx` 完整页面路径，不带前导 `/`）

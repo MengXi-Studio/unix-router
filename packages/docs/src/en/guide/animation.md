@@ -110,7 +110,7 @@ const router = useRouter()
 const goBack = () => {
 	// App: the native window plays slide-out-right (animation fields not supported officially on Mini Programs);
 	// H5: the 300ms exit animation plays to completion first, then navigateBack actually executes
-	router.back()
+	router.back(1)
 }
 </script>
 

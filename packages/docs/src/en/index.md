@@ -51,7 +51,3 @@ features:
     title: UTS / TypeScript First
     details: Strict typing (generic Maps, no implicit conversions); the full composition API set — useRouter / useRoute / useLink / useOpenerEventChannel
 ---
-
-## Quick Start Path
-
-[Introduction](/en/guide/introduction) → [Getting Started](/en/guide/getting-started) → [Route Configuration](/en/guide/route-config) → [Navigation](/en/guide/navigation) → [Route Guards](/en/guide/guards) → [Recipes](/en/guide/recipes)

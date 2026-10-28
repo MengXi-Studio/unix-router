@@ -11,7 +11,7 @@ import { useRouter } from '@meng-xi/unix-router'
 const router = useRouter()
 
 router.push('/pages/about/about')  // 导航
-router.back()                      // 返回
+router.back(1)                     // 返回（delta 需显式传参）
 router.currentRoute.path           // 当前路径（getter，非响应式）
 ```
 

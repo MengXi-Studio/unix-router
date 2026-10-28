@@ -219,6 +219,10 @@ Mini Program page stacks have a limit; switch to `relaunch` when approaching it.
 
 uni-app x's H5 side uses hash mode. Visit addresses like `https://example.com/#/pages/index/index` and avoid opening deep URLs without a hash directly.
 
+## Back Does Nothing After H5 Refresh
+
+After refreshing an H5 page (or cold-starting directly on a non-home page), the page stack has only the current page, so `uni.navigateBack` has nowhere to go. Clicking the navbar back arrow then actually calls `uni.reLaunch({ url: '/' })` internally. The current version has a built-in fallback: both `back()` and the interceptor automatically `relaunch` to the first `meta.isTab` route in the route table when the page stack is insufficient (running the full guard chain). If it still does nothing, verify that your route table declares a tabBar route with `meta.isTab: true`.
+
 ## White Screen on Navigation
 
 1. Is the path correct (it should be the full page path `pages/xxx/xxx`, without a leading `/`)?

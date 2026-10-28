@@ -42,7 +42,7 @@ onNavigationAbort（插件清理，异常被吞掉）
 `router.back(delta)` 更短，**不经过插件的 enrich / afterResolve**（pluginData 为空）：
 
 1. 并发排队：等待进行中的导航完成。
-2. 校验 `delta`：默认 `1`（传 `null` 同样按 1 处理）；非正整数 → `ABORTED`；页面栈不足（栈长 < 2 或 `delta >= 栈长`）→ `CANCELLED`。
+2. 校验 `delta`：默认 `1`（传 `null` 同样按 1 处理）；非正整数 → `ABORTED`；页面栈不足（栈长 < 2 或 `delta >= 栈长`）→ 兜底 `relaunch` 首个 `meta.isTab` 路由（经完整导航流程，见上文 push/replace；无 `isTab` 路由 → `CANCELLED`）。
 3. 从页面栈计算出目标页并解析为 `to`。
 4. `beforeEach` → `beforeResolve`（守卫可重定向，重定向按真实导航处理）。
 5. `prepareNavigation` → `beforeNavigation` hooks（`mode: 'back'`，如播放退出动画后）。

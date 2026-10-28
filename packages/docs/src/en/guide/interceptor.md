@@ -188,6 +188,7 @@ This plugin produces no navigation-failure error codes (no `PLUGIN_REQUIRED` and
 - When an external direct call is handed over, the original call is blocked (`invoke` returns `false`, and `url` is cleared as a second safeguard);
 - Special handling for `switchTab` on Web: the original call is let through, and only its `success` callback runs `syncRoute()` to sync state (blocking it would deadlock the TabBar component's state);
 - Hand-over mapping: `navigateTo → push`, `redirectTo → replace`, `reLaunch → relaunch`, `switchTab → push` (the router dispatches automatically based on `meta.isTab`), `navigateBack → back` (with `delta > 0` passed through for the back levels); query is parsed via `parseUrl` and passed through to the router.
+- Root-path fallback: when an external `reLaunch` targets the root path `/` (typical case: on H5, when the page stack has only one page, the framework's navbar back arrow calls `uni.reLaunch({ url: '/' })`) → handed over as `relaunch` to the first `meta.isTab` route, preventing "back does nothing"; the call is ignored when no `isTab` route exists.
 
 ## Next Steps
 

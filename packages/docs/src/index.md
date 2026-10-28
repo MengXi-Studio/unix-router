@@ -51,7 +51,3 @@ features:
     title: UTS / TypeScript 优先
     details: 严格类型（Map 带泛型、无隐式转换），useRouter / useRoute / useLink / useOpenerEventChannel 全套组合式 API
 ---
-
-## 快速上手路径
-
-[介绍](/guide/introduction) → [快速开始](/guide/getting-started) → [路由配置](/guide/route-config) → [路由导航](/guide/navigation) → [路由守卫](/guide/guards) → [完整实战](/guide/recipes)
