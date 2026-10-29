@@ -8,18 +8,15 @@
   },
   "uni-app-x": {
     "styleIsolationVersion": "2",
-    "vapor": true,
-    "vapor-render-target": "bytecode",
     "compilerVersion": "5.26"
   },
   "app-android": {
     "distribute": {
       "modules": {
-        "uni-storage": {},
-        "uni-prompt": {},
-        "uni-exit": {},
         "uni-getAppBaseInfo": {},
-        "uni-form": {}
+        "uni-exit": {},
+        "uni-prompt": {},
+        "uni-storage": {}
       },
       "icons": {
         "hdpi": "static/app-icon/ic_launcher_hdpi.png",

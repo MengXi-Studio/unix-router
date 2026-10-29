@@ -57,6 +57,12 @@ console.log(router.currentRoute.path) // '/' (initial placeholder; becomes the r
 
 > For a complete runnable example, see `packages/playground` at the repository root (open it with HBuilderX to run).
 
+## Trial App
+
+Not ready to set up a project? Try the routing capabilities on a real Android device first (the example project `packages/playground`, cloud-packaged; covers navigation, guards, params passing, event communication, navigation animations, and more):
+
+[⬇️ Download the trial App (APK)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793254436307-__UNI__B6A50A8_1793254425364.apk)
+
 ## Next Steps
 
 - Ready to build something? Head to [Getting Started](./getting-started).

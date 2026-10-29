@@ -56,3 +56,9 @@ console.log(router.currentRoute.path) // '/'（初始占位，首次导航/同�
 ```
 
 > 完整可运行示例见仓库根目录下的 `packages/playground`（用 HBuilderX 打开即可运行）。
+
+## 体验版 App
+
+不想先搭工程？直接在 Android 真机体验路由能力（示例项目 `packages/playground` 云打包，覆盖导航、守卫、参数传递、事件通信、导航动画等功能）：
+
+[⬇️ 下载体验版 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793254436307-__UNI__B6A50A8_1793254425364.apk)

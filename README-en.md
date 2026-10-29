@@ -133,7 +133,7 @@ const router2 = createRouter({
 
 Example project [packages/playground](https://github.com/MengXi-Studio/unix-router/tree/master/packages/playground) (covering navigation, guards, params passing, event communication, RouterLink, navigation animations, and more).
 
-**On a real Android device**: [download the trial App (APK)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1790413072682-__UNI__B6A50A8_1790413055611.apk) — a cloud-packaged build with real native rendering; the package is rebuilt with each release, and the link follows the latest release notes.
+**On a real Android device**: [download the trial App (APK)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793254436307-__UNI__B6A50A8_1793254425364.apk) — a cloud-packaged build with real native rendering; the package is rebuilt with each release, and the link follows the latest release notes.
 
 ## Community & Support
 

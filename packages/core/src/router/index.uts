@@ -154,7 +154,7 @@ class UniRouter implements Router {
 	 * 场景：H5 刷新 / 冷启动直连非首页（页面栈仅 1 层），uni.navigateBack 无处可退导致返回无效。
 	 * 兜底经 relaunch 走完整守卫链（requireAuth 等拦截仍然生效）；无 tabBar 路由时维持 CANCELLED 失败。
 	 */
-	private backWithStackFallback(from: RouteLocation): Promise<NavigationResult> {
+	private async backWithStackFallback(from: RouteLocation): Promise<NavigationResult> {
 		const entryPath = findFirstTabRoutePath(this.matcher.getRoutes())
 		if (entryPath !== null) {
 			warn(`back() 页面栈中无上一页（冷启动/刷新直连），兜底重载入口页: /${entryPath}`)
