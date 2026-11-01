@@ -89,3 +89,14 @@
 - 根因（框架源码 uni-h5.es.js `onPageHeadBackButton`）：栈深>1 才调 `uni.navigateBack`（会被 InterceptorPlugin 转交 router.back）；栈深=1 调的是 `uni.reLaunch({ url: '/' })`。该调用被拦截后，dispatch 里 `parsed.path.length <= 1` 直接 return 放弃，同时返回 false 阻止原始调用 → 双重无效。
 - 修复（两处，均经浏览器实测）：① dispatch 对根路径 reLaunch 转交入口页兜底（首个 isTab 路由，经 relaunch 走完整守卫链）；② router.back() 页面栈不足时同样兜底（直调 API / App 端场景），无 tabBar 路由维持 CANCELLED 失败。共享助手 findFirstTabRoutePath（router/location.uts）。
 - 验证陷阱：browser_evaluate 中 `uni.navigateBack(...)` 若把被拦截的 Promise 作为表达式返回会挂起超时（框架源码注释「传入空方法，避免返回Promise」同理）——触发脚本须 `void uni.navigateBack(...)` 且返回普通字符串。
+
+### 4. UTS 非 async 函数裸 return `Promise<never>` → 云打包 Kotlin 报 Return type mismatch（云打包实测）
+- 现象：云打包 kotlinc 报 `Return type mismatch: expected 'UTSPromise<RouteLocation>', actual 'UTSPromise<Any?>'`，UTS 编译（H5/本地）完全正常。
+- 根因：`failNavigation` 声明返回 `Promise<never>`，UTS→Kotlin 映射为 `UTSPromise<Any?>`；所有调用方若在 **async** 函数内（生成 `wrapUTSPromise(suspend w@{...})`，promise 返回值被链式扁平化）则无事，非 async 函数裸 `return this.failNavigation(...)` 则直接类型不匹配。
+- 修复：给返回 failNavigation 的函数加 `async`（backWithStackFallback 实测）。新增返回 Promise 的函数时，凡内部 return `failNavigation(...)` 一律 async 化。
+- 验证手段：`cli publish app-android --type appResource --project <项目名或绝对路径>` 本地导出后检查生成的 `index.kt`（5.26 会落地 .kt 可核对签名形态；5.34 起导出不再落地 .kt，Kotlin 级验证只能依赖云打包）。注意 `--project` 同时支持项目名与绝对路径，多仓库同名项目（如多个 playground）必须用绝对路径消歧。
+
+### 5. 返回栈底兜底对「无 tabBar 工程」存在目标缺口（unix-ui playground 实测）
+- 现象：无 `meta.isTab` 路由的工程（自绘导航组件演示应用）H5 刷新子页后点返回，报 `Uncaught (in promise)`（指向 backWithStackFallback）——0.8.1 兜底只认 isTab 路由，无 tab 工程无兜底目标，`back()` reject `CANCELLED` 且调用方（demo-navbar）无 catch。
+- 修复（0.8.2）：新增 `RouterOptions.backFallback` 显式配置（优先级高于 isTab 推断）；拦截器根路径分支无 isTab 时委托 `back(1)` 统一走兜底。有 tab 工程零配置不变。
+- 运行验证：配置分支实测「配置目标优先于 isTab 推断」（backFallback: mine 冷启动返回落地 mine 页）；unix-ui playground 真机场景复现修复（冷启动子页 → 点返回 → 回首页、警告正确、无未捕获异常）。

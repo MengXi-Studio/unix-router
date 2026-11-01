@@ -116,6 +116,7 @@ Common options of `createRouter`:
 | `paramsPersistent` | `boolean`  | `false`  | Whether to persist `params` to storage by default (requires `ParamsPlugin`) |
 | `interceptUniApi` | `boolean`   | `false`  | Opt-in: intercept `uni.*` native navigation so direct calls also pass through the guard chain (runtime support: Web 4.0 / WeChat 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61) |
 | `animation`    | `NavigationAnimation` | - | Global default navigation animation `{ type, duration }` (requires `AnimationPlugin` to take effect) |
+| `backFallback` | `RouteLocationRaw` | - | Entry-page fallback for exhausted stacks: `back()` auto-`relaunch`es here when the page stack is insufficient (H5 refresh / cold start on a non-home page); unset → the first `meta.isTab` route is used, explicit config wins |
 
 ```typescript
 // With this enabled, business code that directly calls uni.navigateTo('/pages/xxx') also triggers the guard chain

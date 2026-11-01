@@ -116,6 +116,7 @@ route.query.get('id') // '1'
 | `paramsPersistent` | `boolean`  | `false`  | 是否默认将 `params` 持久化到 storage（需配合 `ParamsPlugin`） |
 | `interceptUniApi` | `boolean`  | `false`  | opt-in：拦截 `uni.*` 原生导航，使直调也走守卫链（受运行时版本支持：Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61） |
 | `animation`   | `NavigationAnimation` | - | 全局默认导航动画 `{ type, duration }`（需配合 `AnimationPlugin` 才生效） |
+| `backFallback` | `RouteLocationRaw` | - | 返回栈底兜底目标：`back()` 页面栈不足时（H5 刷新 / 冷启动直连非首页）自动 `relaunch` 到该页；未配置时自动取首个 `meta.isTab` 路由，显式配置优先 |
 
 ```typescript
 // 开启后，业务中直接调用 uni.navigateTo('/pages/xxx') 等原生导航同样会触发守卫链

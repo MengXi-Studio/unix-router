@@ -3,20 +3,25 @@
   "name": "unix-router",
   "description": "@meng-xi/unix-router 的示例项目",
   "version": {
-    "name": "0.5.0",
-    "code": "050"
+    "name": "0.8.1",
+    "code": "081"
   },
   "uni-app-x": {
     "styleIsolationVersion": "2",
-    "compilerVersion": "5.26"
+    "vapor": true,
+    "vapor-render-target": "bytecode",
+    "compilerVersion": "5.34",
+    "minRuntimeVersion": "5.31",
+    "compilerRuleVersion": 1
   },
   "app-android": {
     "distribute": {
       "modules": {
-        "uni-getAppBaseInfo": {},
-        "uni-exit": {},
+        "uni-storage": {},
         "uni-prompt": {},
-        "uni-storage": {}
+        "uni-exit": {},
+        "uni-getAppBaseInfo": {},
+        "uni-form": {}
       },
       "icons": {
         "hdpi": "static/app-icon/ic_launcher_hdpi.png",

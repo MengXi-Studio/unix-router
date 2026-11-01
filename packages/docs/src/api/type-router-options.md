@@ -26,6 +26,7 @@ const options: RouterOptions = {
 | `plugins` | `RouterPlugin[]` | — | 插件列表，按需注册扩展能力。**传入实例**：`[new ParamsPlugin(), new InterceptorPlugin(), new EventsPlugin(), new AnimationPlugin()]`，见[插件系统](../guide/plugins) |
 | `paramsPersistent` | `boolean` | `false` | 是否默认将 params 持久化到 storage（写入失败自动回退内存）。**须配合 `ParamsPlugin`** |
 | `animation` | `NavigationAnimation` | — | 全局默认导航动画 `{ type: AnimationType, duration?: number }`（`duration` 默认 300ms）。App 端透传原生 `animationType`（官方仅 App 支持），H5 端由插件以 Web Animations API 实现。**须配合 `AnimationPlugin`** |
+| `backFallback` | `RouteLocationRaw` | — | 返回栈底兜底目标（路径或命名路由）。`back()` 页面栈不足时（H5 刷新 / 冷启动直连非首页、App 端冷启动深链）自动 `relaunch` 到该页（走完整守卫链）。未配置时自动取路由表中首个 `meta.isTab` 路由；两者皆无时栈深不足维持 `CANCELLED` 失败。**显式配置优先级高于 isTab 自动推断** |
 
 ::: warning 插件相关选项须配合对应插件
 `interceptUniApi` / `paramsPersistent` 分别依赖 `InterceptorPlugin` / `ParamsPlugin`，注册了选项但未注册对应插件时选项被忽略并输出警告；`animation` 未注册 `AnimationPlugin` 时被静默忽略（无警告）。

@@ -1,11 +1,18 @@
 # Changelog
 
+## [0.8.2] - 2026-11-01
+
+### Added
+
+- **`RouterOptions.backFallback`**: the entry-page fallback target (a path or named-route location). When `back()` hits an insufficient page stack, it automatically `relaunch`es to this page (running the full guard chain), covering **projects without tabBar pages** (e.g. component-library demos with `navigationStyle: custom` self-drawn navbars) — previously such projects could only reject with `CANCELLED` on an exhausted stack, surfacing on H5 as an "Uncaught (in promise)" error when tapping back after a refresh. When unset the original behavior is kept: the first `meta.isTab` route is used automatically; an explicit config takes priority over the isTab inference. The interceptor's root-path fallback now delegates to `back()` when no `isTab` route exists, so this config applies there too
+
 ## [0.8.1] - 2026-10-28
 
 ### Fixed
 
 - **Back does nothing after H5 refresh / cold start on a non-home page**: on H5, when the page stack has only one page, the navbar back arrow actually calls `uni.reLaunch({ url: '/' })`. That call was previously intercepted by InterceptorPlugin and silently dropped (no valid page for the root path), while the original call was blocked — so back did nothing at all. Root-path `reLaunch` is now handed over as an entry-page fallback (`relaunch` on the first `meta.isTab` route, running the full guard chain)
 - **`back()` insufficient page stack fallback**: when stack length < 2 or `delta >= stack length`, instead of rejecting with `CANCELLED` it now automatically `relaunch`es to the first `meta.isTab` route (fixes "nowhere to go back" after an App cold-start deep link); still rejects with `CANCELLED` when the route table has no tabBar route
+- **Android cloud-packaging Kotlin compile error (Return type mismatch)**: a non-async function bare-`return`ing an internal `Promise<never>` (`failNavigation`) produced `UTSPromise<Any?>`, which did not match the function's declared `UTSPromise<RouteLocation>`; fixed by making the function (`backWithStackFallback`) async
 
 ## [0.8.0] - 2026-09-27
 
