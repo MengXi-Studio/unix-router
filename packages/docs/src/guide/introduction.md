@@ -46,7 +46,7 @@ unix-router 用一套与 vue-router 一致的 API 抹平这些差异。
 | 页面事件通信 | EventsPlugin：push 携带 events 监听表创建通道，被打开页 `useOpenerEventChannel` 回传/接收，另导出全局 `eventBus` |
 | 导航动画 | AnimationPlugin：App 端透传原生 `animationType` / `animationDuration`（官方仅 App 支持），H5 用 Web Animations API 实现，back 自动映射退出型动画 |
 | uni API 拦截 | InterceptorPlugin + `interceptUniApi`：外部直接调用 `uni.navigateTo` 等也走守卫链（基于 `uni.addInterceptor`，运行时缺失自动降级） |
-| 状态同步 | `syncRoute()` 按页面栈同步 `currentRoute`；H5 端 `install` 自动注册 onShow 全局 mixin；`onRouteChange` 监听路由变化 |
+| 状态同步 | `syncRoute()` 按页面栈同步 `currentRoute`；H5 / 微信小程序端 `install` 自动注册 onShow 全局 mixin；导航前按页面栈自愈兜底；`onRouteChange` 监听路由变化 |
 | 错误体系 | RouterError / NavigationFailure，7 类错误码（ABORTED / CANCELLED / DUPLICATED / ROUTE_NOT_FOUND / NAVIGATION_API_ERROR / SETUP_ERROR / PLUGIN_REQUIRED），导航失败一律 reject；onError + isNavigationFailure |
 | 插件体系 | RouterPlugin 抽象类 + PluginContext 8 个 hook；内置 4 个插件：ParamsPlugin / EventsPlugin / AnimationPlugin / InterceptorPlugin，实例化注册 |
 

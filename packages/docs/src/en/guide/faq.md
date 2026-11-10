@@ -41,6 +41,19 @@ onLoad((options: UTSJSONObject) => {
 })
 ```
 
+## Navigation Rejected as Duplicate (DUPLICATED) After a Mini Program Native Back
+
+**Symptom**: on WeChat Mini Program, after tapping the nav-bar back button or edge-swiping to the previous page, the next `router.push` call (to any target, including the page you just returned to) rejects with `code === 16` (`DUPLICATED`) and nothing navigates; no other error is logged.
+
+**Cause**: a Mini Program native back bypasses every `uni.*` routing API, so the router-internal `currentRoute` still points at the page you left. Earlier versions registered the `onShow` mixin on H5 only, so the state stopped syncing on Mini Program; the duplicate check compared the stale `from` with the new `to` and concluded "already on that page".
+
+**Solution**: upgrade to 0.8.3+, which ships two layers of protection:
+
+- `app.use(router)` registers the `onShow` global mixin on **H5 and WeChat Mini Program**, calling `syncRoute()` whenever a page shows;
+- every `push` / `replace` / `back` runs `healRouteStateFromStack()` before reading the current route, healing the state from the real page stack — covering the window where the stack has popped but `onShow` has not fired yet.
+
+If the problem persists, check in order: is `app.use(router)` called, and are you accidentally using two router instances (npm vs uni_modules distribution). On App, still call `router.syncRoute()` manually in each page's `onShow`.
+
 ## switchTab Drops query
 
 Navigations to pages with `meta.isTab === true` automatically switch to `uni.switchTab`, and the **switchTab API discards the entire query string** — neither `query` nor `params` reaches the target tab page (plugin params and `events` travel via internal query keys, which are dropped as well).

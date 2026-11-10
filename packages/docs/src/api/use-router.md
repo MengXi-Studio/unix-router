@@ -20,8 +20,10 @@ const router = useRouter()
 
 `router.install(app)` 由 `app.use(router)` 触发：
 
-- **H5（Web）端**：注册 `provide`（供 `useRouter` setup 内注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（自动调用 `router.syncRoute()`）。
-- **原生端（App / 小程序）**：注册全局活跃路由器，供 `useRouter()` 在非 setup 上下文回退使用；建议在页面 `onShow` 手动调用 `router.syncRoute()`。
+- **H5（Web）/ 微信小程序端**：注册 `provide`（供 `useRouter` setup 内注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（页面每次显示时自动调用 `router.syncRoute()`，覆盖原生返回、TabBar 切换等非路由器导航）。
+- **App 端（Android / iOS / HarmonyOS）**：注册全局活跃路由器，供 `useRouter()` 在非 setup 上下文回退使用；建议在页面 `onShow` 手动调用 `router.syncRoute()`。
+
+所有端在 `push` / `replace` / `back` 读取「当前路由」前都会先按真实页面栈自愈状态（`healRouteStateFromStack`），因此即使 `onShow` 尚未触发，也不会把真实跳转误判为重复导航。
 
 两端均会触发插件的 app 级 hook（`onAppInstall`）。
 

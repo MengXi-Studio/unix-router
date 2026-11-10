@@ -126,7 +126,7 @@ vue-router extends meta through declaration merging: `declare module 'vue-router
 
 - **Forgetting `meta.isTab`**: a TabBar page opened via `navigateTo` will fail. Always set `isTab: true` for TabBar pages.
 - **Truthiness checks on optional fields**: under UTS's strict typing, use explicit checks like `=== true` / `!= null`, e.g. `if (to.meta.requireAuth === true)`.
-- **Reading meta at the wrong time**: route state is synced by the router at page `onShow` (handled automatically via `app.use(router)`); don't read the target page's meta any earlier.
+- **Reading meta at the wrong time**: route state is synced by the router at page `onShow` (`app.use(router)` handles it automatically on H5 / WeChat Mini Program; on App call `syncRoute()` yourself in `onShow`); don't read the target page's meta any earlier.
 
 ## Next Steps
 

@@ -41,6 +41,19 @@ onLoad((options: UTSJSONObject) => {
 })
 ```
 
+## 小程序原生返回后再导航被判重复（DUPLICATED）
+
+**现象**：微信小程序点击导航栏返回 / 侧滑返回上一页后，再调用 `router.push`（任意目标，包括刚返回的那个页面）被 reject，`code === 16`（`DUPLICATED`），页面没有任何跳转，控制台无其他报错。
+
+**原因**：小程序原生返回不经过任何 `uni.*` 路由 API，路由器内部的 `currentRoute` 仍停留在返回前的页面。早期版本只在 H5 注册 `onShow` mixin 回写状态，小程序端状态从此不再同步；重复导航检测拿陈旧的 `from` 与新 `to` 比较，误判为「已经在该页面」。
+
+**方案**：升级到 0.8.3+，两层保障均已内置：
+
+- `app.use(router)` 在 **H5 与微信小程序**均注册 `onShow` 全局 mixin，页面显示时自动 `syncRoute()`；
+- 每次 `push` / `replace` / `back` 读取当前路由前先执行 `healRouteStateFromStack()`，按真实页面栈自愈，覆盖「栈已回退但 `onShow` 尚未触发」的窗口期。
+
+排查遗留问题时依次确认：`app.use(router)` 是否调用、是否混用了另一份路由库实例（npm 与 uni_modules 双形态）。App 端仍建议在页面 `onShow` 手动调用 `router.syncRoute()`。
+
 ## switchTab 丢 query
 
 `meta.isTab === true` 的页面导航会自动转用 `uni.switchTab`，而 **switchTab API 不支持携带 query**——传给 tab 页的 query 会丢失。

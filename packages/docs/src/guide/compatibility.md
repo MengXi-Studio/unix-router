@@ -75,13 +75,17 @@ unix-router 以 **UTS**（`.uts`）编写，由 uni-app x 编译链按平台现�
 
 ## H5 与原生差异
 
-| 差异点 | H5（Web） | 原生端（App / 小程序） |
+| 差异点 | H5（Web） / 微信小程序 | 原生端（App） |
 | --- | --- | --- |
-| `router.install()`（`app.use(router)`） | 注册 `provide`（`useRouter` setup 注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（自动 `syncRoute()`） | 仅注册全局活跃路由器（`useRouter` 非 setup 回退可用）；建议在页面 `onShow` 手动调用 `router.syncRoute()` |
-| 导航动画 | AnimationPlugin 用 **Web Animations API**（`element.animate`）对页面容器播放进入 / 退出动画 | App：透传原生 `animationType` / `animationDuration` 给 `uni.*` 导航 API（官方仅 App 支持）；小程序：官方不支持动画字段，无动画 |
+| `router.install()`（`app.use(router)`） | 注册 `provide`（`useRouter` setup 注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（页面显示时自动 `syncRoute()`） | 仅注册全局活跃路由器（`useRouter` 非 setup 回退可用）；建议在页面 `onShow` 手动调用 `router.syncRoute()` |
+| 导航动画 | AnimationPlugin 用 **Web Animations API**（`element.animate`）对页面容器播放进入 / 退出动画 | 透传原生 `animationType` / `animationDuration` 给 `uni.*` 导航 API（官方仅 App 支持） |
 | `RouteName` 路由名类型增强 | 经 `RouteNameMap` 模块增强，推导字面量提示（`keyof RouteNameMap & string`） | UTS 不支持 keyof 组合类型，退化为 `string`（配合 `strict` 校验兜底） |
 | `hash` | 恒为 `''`（uni-app x 不支持 hash 路由，保留字段） | 恒为 `''` |
-| 物理返回 / 侧滑 | 不经过路由器 | 不经过路由器，由 `syncRoute()` 在 `onShow` 对齐状态 |
+| 物理返回 / 侧滑 | 不经过路由器，由 `onShow` 全局 mixin 自动对齐状态 | 不经过路由器，建议在 `onShow` 手动 `syncRoute()` 对齐状态 |
+
+::: tip 导航前状态自愈
+无论哪种平台，`push` / `replace` / `back` 等导航动作在读取「当前路由」前都会先比对真实页面栈并自愈内部状态（`healRouteStateFromStack`）。因此即使原生返回后尚未触发 `onShow`，也不会把一次真实跳转误判为重复导航（`DUPLICATED`）。
+:::
 
 ## UTS 强类型相关注意
 

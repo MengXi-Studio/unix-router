@@ -108,8 +108,9 @@ stop()
 
 `router.currentRoute` 与真实页面栈之间靠 `syncRoute()` 对齐（注意：当前版本 `useRoute()` 返回的全局对象不随 `syncRoute()` 回写，见上文「它何时更新」）：
 
-- **H5 端**：`app.use(router)` 注册全局 mixin，在每个页面 `onShow` 自动调用 `syncRoute()`，无需手动处理。
-- **原生端**（App / 小程序）：建议在页面 `onShow` 中自行调用 `router.syncRoute()`，覆盖物理返回、TabBar 切换等非路由器导航。
+- **H5 / 微信小程序端**：`app.use(router)` 注册全局 mixin，在页面每次 `onShow` 自动调用 `syncRoute()`，无需手动处理。
+- **App 端**（Android / iOS / HarmonyOS）：建议在页面 `onShow` 中自行调用 `router.syncRoute()`，覆盖物理返回、TabBar 切换等非路由器导航。
+- **兜底自愈**：无论哪个平台，`push` / `replace` / `back` 读取当前路由前都会先比对真实页面栈并自愈内部状态，避免原生返回后状态陈旧导致误判 `DUPLICATED`。
 
 `onShow` 触发早于同步完成时（如需要在首帧读参数），建议直接在 `onLoad(options)` 里读启动 query：
 

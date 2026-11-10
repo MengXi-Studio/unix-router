@@ -98,6 +98,8 @@ class UniRouter implements Router {
 		if (this.pendingNavigation != null) {
 			await this.pendingNavigation.catch(() => {})
 		}
+		// 原生返回等不经过路由器的行为会令内部状态陈旧，先按真实页面栈自愈
+		this.healRouteStateFromStack()
 		const from = this.routeState.currentRoute.value
 		const d = delta === null ? 1 : delta
 		if (d <= 0 || !Number.isInteger(d)) {
@@ -234,6 +236,22 @@ class UniRouter implements Router {
 		}
 	}
 
+	/**
+	 * 路由状态自愈：内部 currentRoute 与真实页面栈顶路径不一致时（小程序 / App 原生返回、侧滑等
+	 * 不经过路由器的行为），先按页面栈重建状态，避免重复导航检测使用陈旧状态误判 DUPLICATED。
+	 */
+	private healRouteStateFromStack(): void {
+		try {
+			const stack = this.history.currentStack()
+			if (normalizePath(stack.path) === normalizePath(this.routeState.currentRoute.value.path)) {
+				return
+			}
+			this.syncRoute()
+		} catch (e) {
+			warn(`路由状态自愈失败: ${e}`)
+		}
+	}
+
 	/** 对指定路由补执行守卫链（冷启动），不执行实际导航 */
 	async guardRoute(location?: RouteLocationRaw, options?: GuardRouteOptions): Promise<RouteLocation> {
 		const target = location != null ? this.matcher.resolve(location) : this.routeState.currentRoute.value
@@ -271,6 +289,9 @@ class UniRouter implements Router {
 				get: () => this.routeState.currentRoute.value
 			})
 		}
+		// #endif
+		// H5 / 小程序：注册 onShow 全局 mixin，页面显示（原生返回、侧滑、TabBar 切换等不经过路由器的行为）时自动同步页面栈
+		// #ifdef WEB || MP
 		const router = this
 		app.mixin({
 			onShow() {
@@ -337,6 +358,8 @@ class UniRouter implements Router {
 		if (this.pendingNavigation != null) {
 			await this.pendingNavigation.catch(() => {})
 		}
+		// 原生返回等不经过路由器的行为会令内部状态陈旧，先按真实页面栈自愈（避免误判 DUPLICATED、守卫 from 错误）
+		this.healRouteStateFromStack()
 		// 使用 params 但未注册 ParamsPlugin → PLUGIN_REQUIRED
 		if (!this.pluginHooks.hasPlugin('params') && location != null && typeof location !== 'string' && location.params != null && location.params.size > 0) {
 			const from = this.routeState.currentRoute.value

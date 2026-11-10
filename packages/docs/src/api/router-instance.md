@@ -128,7 +128,7 @@ router.onRouteChange((to, from) => {
 ### `syncRoute()`
 
 - 签名：`syncRoute(): void`
-- 说明：从页面栈（`getCurrentPages`）同步路由状态到 `currentRoute`。H5 端 `app.use(router)` 已注册 `onShow` mixin 自动同步；**原生端建议在页面 `onShow` 自行调用**。
+- 说明：从页面栈（`getCurrentPages`）同步路由状态到 `currentRoute`。H5 / 微信小程序端 `app.use(router)` 已注册 `onShow` mixin 自动同步；**App 端建议在页面 `onShow` 自行调用**。所有端导航前还会自动执行一次页面栈自愈（`healRouteStateFromStack`）。
 
 ### `guardRoute(location?, options?)`
 
@@ -149,7 +149,7 @@ router.isReady().then(() => {
 ### `install(app)`
 
 - 签名：`install(app: any): void`
-- 说明：安装路由器到 Vue 应用实例，通常由 `app.use(router)` 调用。**仅 H5** 注册 `provide`（`useRouter` setup 注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（自动 `syncRoute()`）；**原生端**注册全局活跃路由器（供非 setup 上下文回退），并触发插件的 app 级 hook。
+- 说明：安装路由器到 Vue 应用实例，通常由 `app.use(router)` 调用。**H5 / 微信小程序** 注册 `provide`（`useRouter` setup 注入）、挂载 `$router` / `$route` 全局属性、注册 `onShow` 全局 mixin（页面显示时自动 `syncRoute()`）；**App 端**注册全局活跃路由器（供非 setup 上下文回退），并触发插件的 app 级 hook（全端均会触发）。
 
 ## 相关 API
 

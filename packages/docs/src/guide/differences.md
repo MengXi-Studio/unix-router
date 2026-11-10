@@ -29,7 +29,7 @@ unix-router 在 API 风格上对齐 vue-router 4，但由于 uni-app x 采用**�
 | **命名视图 / RouterView** | ❌ 不支持（无页内渲染占位） |
 | **scrollBehavior** | ❌ 不支持（滚动由 uni-app 原生管理） |
 | hash 路由模式 | ❌ 不支持（`route.hash` 恒为 `''`） |
-| `app.use(router)` 注入 provide / mixin | ⚠️ 仅 **H5 端**注册（`$router`/`$route` provide + onShow 全局 mixin 自动同步）；原生端均不注册，`useRouter` 回退全局活跃路由器 |
+| `app.use(router)` 注入 provide / mixin | ⚠️ 仅 **H5 / 微信小程序端**注册（`$router`/`$route` provide + onShow 全局 mixin 自动同步）；App 端不注册，`useRouter` 回退全局活跃路由器 |
 
 ## 关键差异说明
 
@@ -102,8 +102,9 @@ declare module '@meng-xi/unix-router' {
 
 ### 8. app.use(router) 的端差异
 
-- **H5 端**：`install` 注册 `$router` / `$route` provide 与全局属性，并注册全局 mixin 在 `onShow` 自动 `syncRoute()`。
-- **原生端**：以上均不注册，仅将路由器设为全局活跃路由器（供 `useRouter()` 回退）；建议在页面 `onShow` 中自行调用 `router.syncRoute()`。
+- **H5 / 微信小程序端**：`install` 注册 `$router` / `$route` provide 与全局属性，并注册全局 mixin 在 `onShow` 自动 `syncRoute()`。
+- **App 端**：以上均不注册，仅将路由器设为全局活跃路由器（供 `useRouter()` 回退）；建议在页面 `onShow` 中自行调用 `router.syncRoute()`。
+- **全端兜底**：导航动作读取当前路由前会先按真实页面栈自愈状态，原生返回后状态陈旧也不会误判 `DUPLICATED`。
 
 ## 迁移心智
 

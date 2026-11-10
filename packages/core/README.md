@@ -66,7 +66,7 @@ import { router } from './router'
 
 export function createApp() {
   const app = createSSRApp(App)
-  app.use(router) // 注入全局 mixin，onShow 时自动 syncRoute()
+  app.use(router) // H5 / 微信小程序注入全局 mixin，onShow 自动 syncRoute()；App 端建议在页面 onShow 自行调用
   return { app }
 }
 ```

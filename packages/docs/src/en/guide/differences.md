@@ -29,7 +29,7 @@ unix-router aligns with vue-router 4 in API style, but because uni-app x uses a 
 | **Named views / RouterView** | ❌ Not supported (no in-page render outlet) |
 | **scrollBehavior** | ❌ Not supported (scrolling is managed natively by uni-app) |
 | Hash history mode | ❌ Not supported (`route.hash` is always `''`) |
-| `app.use(router)` provide / mixin injection | ⚠️ Registered on **H5 only** (`$router` / `$route` provide + the onShow global mixin for auto sync); none of it is registered on native platforms, where `useRouter` falls back to the global active router |
+| `app.use(router)` provide / mixin injection | ⚠️ Registered on **H5 / WeChat Mini Program only** (`$router` / `$route` provide + the onShow global mixin for auto sync); not registered on App, where `useRouter` falls back to the global active router |
 
 ## Key Differences Explained
 
@@ -102,8 +102,9 @@ declare module '@meng-xi/unix-router' {
 
 ### 8. Platform Differences of app.use(router)
 
-- **H5**: `install` registers the `$router` / `$route` provide and global properties, and registers a global mixin that automatically calls `syncRoute()` in `onShow`.
-- **Native platforms**: none of the above is registered; the router is only set as the global active router (used by the `useRouter()` fallback). It is recommended to call `router.syncRoute()` yourself in each page's `onShow`.
+- **H5 / WeChat Mini Program**: `install` registers the `$router` / `$route` provide and global properties, and registers a global mixin that automatically calls `syncRoute()` in `onShow`.
+- **App**: none of the above is registered; the router is only set as the global active router (used by the `useRouter()` fallback). It is recommended to call `router.syncRoute()` yourself in each page's `onShow`.
+- **Fallback on every platform**: before reading the current route, navigation actions heal the internal state from the real page stack, so stale state after a native back never causes a false `DUPLICATED`.
 
 ## Migration Mindset
 

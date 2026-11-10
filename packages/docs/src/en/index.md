@@ -40,7 +40,7 @@ features:
     details: AnimationPlugin passes through native animationType / animationDuration on App (officially App-only), implements H5 with the Web Animations API, and back automatically maps to exit-style animations
   - icon: 🔄
     title: Automatic Route State Sync
-    details: install registers a global mixin on H5 (onShow auto-syncs via syncRoute); on native platforms pages are advised to call it themselves in onShow; onRouteChange listens for route changes, keeping the page stack and non-router navigations always aligned
+    details: install registers a global mixin on H5 and WeChat Mini Program (onShow auto-syncs via syncRoute); on App, pages are advised to call it themselves in onShow; every platform heals the state from the page stack before navigation, and onRouteChange keeps the page stack and non-router navigations always aligned
   - icon: ⚠️
     title: Predictable Error System
     details: RouterError / NavigationFailure with 7 error codes; navigation failures always reject; onError for global capture + isNavigationFailure for precise checks

@@ -64,7 +64,7 @@ import { router } from './router'
 
 export function createApp() {
 	const app = createSSRApp(App)
-	app.use(router) // on H5 this registers the global mixin (onShow auto-syncs via syncRoute); on App / Mini Program, call router.syncRoute() yourself in each page's onShow
+	app.use(router) // on H5 / WeChat Mini Program this registers the global mixin (onShow auto-syncs via syncRoute); on App, call router.syncRoute() yourself in each page's onShow
 	return { app }
 }
 ```

@@ -58,7 +58,7 @@ uni-app x 中 query 以字符串在 URL 传递，`route.query` / `route.params` 
 ## 更新时机
 
 - **导航完成时**：uni API 调用成功且目标页经页面栈顶确认后自动更新（剥离插件内部 key 后写入）。
-- **仅前进导航写入本对象**：`back()` 与 `syncRoute()` 只更新路由器内部状态（`router.currentRoute`），**不回写本对象**。物理返回、tab 切换等不经过路由器的行为，请通过页面 `onLoad(options)` / `onShow` 直接读取最新状态（H5 端 `app.use(router)` 注册的 `onShow` mixin 会自动调 `syncRoute()`，但同步的是 `router.currentRoute`）。
+- **仅前进导航写入本对象**：`back()` 与 `syncRoute()` 只更新路由器内部状态（`router.currentRoute`），**不回写本对象**。物理返回、tab 切换等不经过路由器的行为，请通过页面 `onLoad(options)` / `onShow` 直接读取最新状态（H5 / 微信小程序端 `app.use(router)` 注册的 `onShow` mixin 会自动调 `syncRoute()`，但同步的是 `router.currentRoute`）。
 
 ## onShow 时机提示
 
