@@ -20,8 +20,10 @@ const router = useRouter()
 
 `router.install(app)` is triggered by `app.use(router)`:
 
-- **H5 (Web)**: registers `provide` (for `useRouter` injection inside setup), mounts the `$router` / `$route` global properties, and registers the `onShow` global mixin (which calls `router.syncRoute()` automatically).
-- **Native platforms (App / Mini Program)**: registers the global active router for `useRouter()`'s non-setup fallback; it is recommended to call `router.syncRoute()` manually in each page's `onShow`.
+- **H5 (Web) / WeChat Mini Program**: registers `provide` (for `useRouter` injection inside setup), mounts the `$router` / `$route` global properties, and registers the `onShow` global mixin (calling `router.syncRoute()` whenever a page shows, covering native back, TabBar switching, and other non-router navigations).
+- **App (Android / iOS / HarmonyOS)**: registers the global active router for `useRouter()`'s non-setup fallback; it is recommended to call `router.syncRoute()` manually in each page's `onShow`.
+
+On every platform, `push` / `replace` / `back` compare the internal state against the real page stack before reading the "current route" (`healRouteStateFromStack`), so a genuine navigation is never misjudged as a duplicate even when `onShow` has not fired yet.
 
 On both platforms the plugins' app-level hook (`onAppInstall`) is triggered.
 

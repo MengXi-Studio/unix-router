@@ -1,3 +1,10 @@
+## 0.8.3 (2026-11-10)
+
+### 修复
+
+- **微信小程序原生返回后再次导航被误判 `DUPLICATED`（code 16）**：`onShow → syncRoute()` 全局 mixin 此前仅在小程序端以外注册，小程序原生返回不经过路由 API，内部 `currentRoute` 停留在返回前页面，重复导航检测用陈旧状态误判。现改为 H5 / 微信小程序均注册，
+  并在 `push` / `replace` / `back` 读取当前路由前新增页面栈自愈（`healRouteStateFromStack`）兜底；App 端行为不变
+
 ## 0.8.2 (2026-11-01)
 
 ### 新增

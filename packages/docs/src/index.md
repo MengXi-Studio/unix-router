@@ -40,7 +40,7 @@ features:
     details: AnimationPlugin 在 App 端透传原生 animationType / animationDuration（官方仅 App 支持），H5 用 Web Animations API 实现，back 自动映射退出型动画
   - icon: 🔄
     title: 路由状态自动同步
-    details: install 在 H5 注册全局 mixin（onShow 自动 syncRoute），原生端建议页面 onShow 自行调用，onRouteChange 监听路由变化，页面栈与非路由器导航始终对齐
+    details: install 在 H5 与微信小程序注册全局 mixin（onShow 自动 syncRoute），App 端建议页面 onShow 自行调用；所有端导航前按页面栈自愈状态，onRouteChange 监听路由变化，页面栈与非路由器导航始终对齐
   - icon: ⚠️
     title: 可预测的错误体系
     details: RouterError / NavigationFailure 共 7 类错误码，导航失败一律 reject，onError 全局捕获 + isNavigationFailure 精准判断

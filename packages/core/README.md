@@ -66,7 +66,7 @@ import { router } from './router'
 
 export function createApp() {
   const app = createSSRApp(App)
-  app.use(router) // 注入全局 mixin，onShow 时自动 syncRoute()
+  app.use(router) // H5 / 微信小程序注入全局 mixin，onShow 自动 syncRoute()；App 端建议在页面 onShow 自行调用
   return { app }
 }
 ```
@@ -134,7 +134,7 @@ const router2 = createRouter({
 
 示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-router/tree/master/packages/playground)（覆盖导航、守卫、参数传递、事件通信、RouterLink、导航动画等功能）。
 
-**Android 真机体验**：[下载体验版 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793514827312-__UNI__B6A50A8_1793514816316.apk)——云打包产物，覆盖真实原生渲染效果；安装包随版本更新重新打包，链接以最新发版说明为准。
+**Android 真机体验**：[下载体验版 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1794274869470-__UNI__B6A50A8_1794274849418.apk)——云打包产物，覆盖真实原生渲染效果；安装包随版本更新重新打包，链接以最新发版说明为准。
 
 ## 交流与支持
 

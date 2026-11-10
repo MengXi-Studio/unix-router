@@ -21,7 +21,7 @@ description: 在 uni-app x 项目中使用 @meng-xi/unix-router（npm）或 ux-r
 1. 定义路由表：`RouteConfig[]`，`path` 与 `pages.json` 注册一致（**不带前导斜杠**），可加 `name` 与 `meta`
 2. `createRouter({ routes })` 创建实例
 3. `src/main.uts` 的 `createApp()` 中 `app.use(router)` —— 不装实例则 `useRouter()` 拿不到路由器
-4. App / 小程序端在每个页面 `onShow` 调 `router.syncRoute()`；H5 端自动同步无需手调
+4. H5 / 微信小程序端由 `app.use(router)` 注册的 `onShow` mixin 自动同步，无需手调；App 端在每个页面 `onShow` 调 `router.syncRoute()`
 
 ## 3. 任务配方
 

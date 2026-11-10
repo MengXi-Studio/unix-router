@@ -128,7 +128,7 @@ router.onRouteChange((to, from) => {
 ### `syncRoute()`
 
 - Signature: `syncRoute(): void`
-- Description: syncs the page stack (`getCurrentPages`) state into the **router-internal** `currentRoute` (the `useRoute()` reactive object is not written). On H5, `app.use(router)` registers an `onShow` mixin that syncs automatically; **on native platforms it is recommended to call it yourself in each page's `onShow`**.
+- Description: syncs the page stack (`getCurrentPages`) state into the **router-internal** `currentRoute` (the `useRoute()` reactive object is not written). On H5 / WeChat Mini Program, `app.use(router)` registers an `onShow` mixin that syncs automatically; **on App it is recommended to call it yourself in each page's `onShow`**. On every platform, navigation also runs a page-stack self-heal (`healRouteStateFromStack`) first.
 
 ### `guardRoute(location?, options?)`
 
@@ -149,7 +149,7 @@ router.isReady().then(() => {
 ### `install(app)`
 
 - Signature: `install(app: any): void`
-- Description: installs the router into the Vue app instance, usually invoked by `app.use(router)`. **On H5 only**, it registers `provide` (for `useRouter` setup injection), mounts the `$router` / `$route` global properties, and registers the `onShow` global mixin (automatic `syncRoute()`); **on native platforms** it registers the global active router (for the non-setup context fallback) and triggers the plugins' app-level hook.
+- Description: installs the router into the Vue app instance, usually invoked by `app.use(router)`. **On H5 / WeChat Mini Program**, it registers `provide` (for `useRouter` setup injection), mounts the `$router` / `$route` global properties, and registers the `onShow` global mixin (automatic `syncRoute()` whenever a page shows); **on App** it registers the global active router (for the non-setup context fallback). The plugins' app-level hook is triggered on every platform.
 
 ## Related APIs
 

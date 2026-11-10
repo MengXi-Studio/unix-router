@@ -64,7 +64,7 @@ import { router } from './router'
 
 export function createApp() {
 	const app = createSSRApp(App)
-	app.use(router) // H5 端注册全局 mixin（onShow 自动 syncRoute）；App/小程序端建议在页面 onShow 自行调用 router.syncRoute()
+	app.use(router) // H5 / 微信小程序注册全局 mixin（onShow 自动 syncRoute）；App 端建议在页面 onShow 自行调用 router.syncRoute()
 	return { app }
 }
 ```
@@ -148,7 +148,7 @@ console.log(route.params.get('id')) // '1024'
 
 不想自己搭工程？直接安装体验版安卓 App（示例项目打包，含 tabBar、导航守卫、参数传递、RouterLink 导航动画等全部示例）：
 
-[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793514827312-__UNI__B6A50A8_1793514816316.apk)
+[⬇️ 下载体验版安卓 App（.apk）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1794274869470-__UNI__B6A50A8_1794274849418.apk)
 
 > 说明：体验版主要用于快速预览功能，正式集成仍建议参考上方步骤在你的 uni-app x 项目中安装使用。
 

@@ -126,7 +126,7 @@ vue-router 通过 `declare module 'vue-router' { interface RouteMeta { … } }` 
 
 - **忘记设 `meta.isTab`**：TabBar 页被 `navigateTo` 打开会失败。给 TabBar 页统一加 `isTab: true`。
 - **可选字段直接 truthy 判断**：UTS 强类型下请用 `=== true` / `!= null` 显式判断，例如 `if (to.meta.requireAuth === true)`。
-- **在错误时机读 meta**：路由状态在页面 `onShow` 时由 `syncRoute()` 对齐（H5 端 `app.use(router)` 已自动接管；原生端需在 `onShow` 自行调用），请勿在更早的时机读取目标页 meta。
+- **在错误时机读 meta**：路由状态在页面 `onShow` 时由 `syncRoute()` 对齐（H5 / 微信小程序端 `app.use(router)` 已自动接管；App 端需在 `onShow` 自行调用），请勿在更早的时机读取目标页 meta。
 
 ## 下一步
 

@@ -47,7 +47,7 @@ export function createApp() {
 4. **`RouteConfig.path` 不带前导斜杠**（`pages/index/index`，与 `pages.json` 一致）；导航输入（`push` 的字符串或对象 path）带不带前导斜杠均可。
 5. **TabBar 页（`meta.isTab: true`）自动走 `uni.switchTab`，无法用 query / params 传参**（原生限制，params 与 events 的内部通道同样经 query 桥接，switchTab 下均不可达）。跨 TabBar 页传数据改用全局状态、`uni.setStorageSync` 或 `eventBus` 广播（不经导航 URL，tab 页可收到）。
 6. **业务代码直调 `uni.navigateTo` / `uni.switchTab` 等不经过路由器与守卫**。需要拦截时初始化 `interceptUniApi: true` 并注册 `new InterceptorPlugin()`；拦截有运行时版本门槛（Web 4.0 / 微信 4.41 / Android 3.97 / iOS 4.11 / Harmony 4.61），不满足自动降级。拦截只覆盖 `uni.*` API 直调：微信小程序 `<navigator>` 组件跳转与 tabBar 点击不经过 `uni.switchTab`，无法拦截，需在页面 `onShow` 用守卫兜底。
-7. **App / 小程序端在每个页面 `onShow` 手动调用 `router.syncRoute()`**（物理返回键、TabBar 切换不经过路由器，需对齐状态）。H5 端 `app.use(router)` 已注入全局 mixin 自动同步，无需手动调。注意 `onShow` 触发早于 `syncRoute()` 完成，此时 `useRoute()` 读到的是旧值——读本页初始 query 应在 `onLoad(options)` 直接取 uni 传入参数。
+7. **路由状态同步分平台**：H5 / 微信小程序端 `app.use(router)` 已注册 `onShow` 全局 mixin（页面显示时自动 `syncRoute()`），无需手动调；**App 端**需在每个页面 `onShow` 手动调用 `router.syncRoute()`（物理返回、TabBar 切换不经过路由器，需对齐状态）。所有端在 `push` / `replace` / `back` 读取当前路由前都有 `healRouteStateFromStack()` 自愈兜底，不会因陈旧状态误判 `DUPLICATED`。注意 `onShow` 触发早于 `syncRoute()` 完成，此时 `useRoute()` 读到的是旧值——读本页初始 query 应在 `onLoad(options)` 直接取 uni 传入参数。
 8. **功能依赖插件，未注册即失效**：
    - `params` 传参 → 必须注册 `new ParamsPlugin()`，否则抛 `PLUGIN_REQUIRED`
    - 页面事件通信（`events` / `useOpenerEventChannel`）→ 必须注册 `new EventsPlugin()`
@@ -70,7 +70,7 @@ export function createApp() {
 | --- | --- | --- | --- |
 | 编译产物 | JS | Kotlin / Swift / ArkTS | JS |
 | 导航动画 | WAAPI 模拟 | 原生 `animationType` / `animationDuration` 透传 | 官方不支持，无动画 |
-| `onShow` 路由同步 | 全局 mixin 自动 | 手动 `router.syncRoute()` | 手动 `router.syncRoute()` |
+| `onShow` 路由同步 | 全局 mixin 自动 | 手动 `router.syncRoute()` | 全局 mixin 自动 |
 | `RouteName` 字面量类型 | `RouteNameMap` 模块增强（字面量提示） | 退化为 `string`（UTS 不支持 keyof 组合类型） | 退化为 `string` |
 | uni API 拦截版本门槛 | 4.0 | 3.97 / 4.11 / 4.61 | 4.41（微信） |
 
@@ -80,7 +80,7 @@ export function createApp() {
 | --- | --- | --- |
 | `ABORTED` | 4 | 导航被守卫中止（返回 false 或重定向异常）；含 `back()` 的 delta 非正整数 |
 | `CANCELLED` | 8 | 守卫抛出异常或重定向超过最大深度；含 `back()` 页面栈不足 |
-| `DUPLICATED` | 16 | 重复 push 当前地址（path+query+params+hash 完全一致；**仅 push 检测**） |
+| `DUPLICATED` | 16 | 重复 push 当前地址（path+query+params+hash 完全一致；**仅 push 检测**；导航前按页面栈自愈，原生返回后不会误判） |
 | `ROUTE_NOT_FOUND` | 32 | 未匹配到路由（strict 模式下未匹配命名路由抛出） |
 | `NAVIGATION_API_ERROR` | 64 | `uni.*` 原生导航 API 调用失败 |
 | `SETUP_ERROR` | 128 | 路由安装环境错误 |

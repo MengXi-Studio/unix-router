@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.3] - 2026-11-10
+
+### Fixed
+
+- **False `DUPLICATED` (code 16) after a WeChat Mini Program native back**: the `onShow → syncRoute()` global mixin installed by `app.use(router)` was previously registered outside the Mini Program target (`#ifdef WEB` only). Tapping the nav-bar back button or edge-swiping on Mini Program bypasses every `uni.*` routing API, so the internal `currentRoute` stayed on the page you left and the duplicate check used stale state. It now compiles for `#ifdef WEB || MP`, and `push` / `replace` / `back` run a new `healRouteStateFromStack()` page-stack self-heal before reading the current route (covering the window before `onShow` fires). App behavior is unchanged: still recommended to call `router.syncRoute()` manually in each page's `onShow`
+
 ## [0.8.2] - 2026-11-01
 
 ### Added

@@ -51,7 +51,7 @@ type RouteMeta = {
 导航行为要点：
 
 - **并发导航自动排队串行执行**（vue-router 是后者取消前者，此处不是）
-- **`DUPLICATED` 仅 `push` 检测**（path+query+params+hash 与当前完全一致）；`replace` / `relaunch` 不检测
+- **`DUPLICATED` 仅 `push` 检测**（path+query+params+hash 与当前完全一致）；`replace` / `relaunch` 不检测。0.8.3+ 每次导航前会按真实页面栈自愈状态，小程序原生返回后不会误判
 - **`back(delta)` 语义**：默认 `1`（传 `null` 同按 `1`）；非正整数 reject `ABORTED`；页面栈不足 reject `CANCELLED`；返回前只执行 `beforeEach` + `beforeResolve`（不经过 `beforeEnter` 与插件 enrich / afterResolve）
 - `currentRoute` 与 `useRoute()` **独立维护**：`back()` / `syncRoute()` 只更新 `currentRoute`，**不回写 `useRoute()`**——需要最新状态时在 `onShow` 里读 `router.currentRoute`
 
@@ -204,12 +204,12 @@ class MyPlugin extends RouterPlugin {
 | --- | --- | --- | --- |
 | 编译产物 | JS | Kotlin / Swift / ArkTS（VDOM）或 JS（蒸汽模式） | JS |
 | 导航动画 | WAAPI（`element.animate`） | 原生 `animationType` / `animationDuration` | 官方不支持，无动画 |
-| `onShow` 路由同步 | `app.use(router)` 注入 mixin 自动 | 手动 `router.syncRoute()` | 手动 `router.syncRoute()` |
-| `install()` 附加行为 | provide + 全局属性 + onShow mixin | 仅注册全局活动路由 | 仅注册全局活动路由 |
+| `onShow` 路由同步 | `app.use(router)` 注入 mixin 自动 | 手动 `router.syncRoute()` | `app.use(router)` 注入 mixin 自动 |
+| `install()` 附加行为 | provide + 全局属性 + onShow mixin | 仅注册全局活动路由 | provide + 全局属性 + onShow mixin |
 | `RouteName` 字面量类型 | `RouteNameMap` 模块增强 | 退化为 `string`（strict 校验兜底） | 退化为 `string` |
 | `route.hash` | 恒为 `''`（uni-app x 不支持 hash 路由） | 恒为 `''` | 恒为 `''` |
 | uni API 拦截版本门槛 | 4.0 | Android 3.97 / iOS 4.11 / Harmony 4.61 | 微信 4.41 |
-| 物理返回 / 边缘滑动 | 不经过路由器 | 不经过路由器（`onShow` 由 `syncRoute()` 对齐） | 不经过路由器 |
+| 物理返回 / 边缘滑动 | 不经过路由器（`onShow` 自动 `syncRoute()`） | 不经过路由器（建议 `onShow` 手动 `syncRoute()`） | 不经过路由器（`onShow` 自动 `syncRoute()`） |
 
 ## 查询工具函数
 

@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.8.3] - 2026-11-10
+
+### 修复
+
+- **微信小程序原生返回后再次导航被误判 `DUPLICATED`（code 16）**：`app.use(router)` 的 `onShow → syncRoute()` 全局 mixin 此前仅在小程序端以外（`#ifdef WEB`）注册，小程序点击导航栏返回 / 侧滑返回不经过任何 `uni.*` 路由 API，内部 `currentRoute` 停留在返回前页面，重复导航检测用陈旧状态误判。现改为 `#ifdef WEB || MP`，并在 `push` / `replace` / `back` 读取当前路由前新增 `healRouteStateFromStack()` 页面栈自愈兜底（覆盖 `onShow` 尚未触发的窗口期）。App 端行为不变，仍建议页面 `onShow` 手动调用 `router.syncRoute()`
+
 ## [0.8.2] - 2026-11-01
 
 ### 新增

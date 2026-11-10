@@ -66,7 +66,7 @@ import { router } from './router'
 
 export function createApp() {
   const app = createSSRApp(App)
-  app.use(router) // injects global mixin; calls syncRoute() on onShow
+  app.use(router) // H5 / WeChat Mini Program: global mixin auto-syncs on onShow; on App, call syncRoute() in each page's onShow
   return { app }
 }
 ```
@@ -134,7 +134,7 @@ const router2 = createRouter({
 
 Example project [packages/playground](https://github.com/MengXi-Studio/unix-router/tree/master/packages/playground) (covering navigation, guards, params passing, event communication, RouterLink, navigation animations, and more).
 
-**On a real Android device**: [download the trial App (APK)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793514827312-__UNI__B6A50A8_1793514816316.apk) — a cloud-packaged build with real native rendering; the package is rebuilt with each release, and the link follows the latest release notes.
+**On a real Android device**: [download the trial App (APK)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1794274869470-__UNI__B6A50A8_1794274849418.apk) — a cloud-packaged build with real native rendering; the package is rebuilt with each release, and the link follows the latest release notes.
 
 ## Community & Support
 

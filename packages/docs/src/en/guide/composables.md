@@ -108,8 +108,9 @@ stop()
 
 The router's internal `currentRoute` (what `router.currentRoute` reads and what `onRouteChange` reports) is aligned with the real page stack via `syncRoute()`:
 
-- **H5**: `app.use(router)` registers a global mixin that automatically calls `syncRoute()` on every page's `onShow` — no manual handling needed.
-- **Native platforms** (App / Mini Program): call `router.syncRoute()` yourself in the page's `onShow` to cover non-router navigation such as the physical back button and TabBar switching.
+- **H5 / WeChat Mini Program**: `app.use(router)` registers a global mixin that automatically calls `syncRoute()` every time a page's `onShow` fires — no manual handling needed.
+- **App** (Android / iOS / HarmonyOS): call `router.syncRoute()` yourself in the page's `onShow` to cover non-router navigation such as the physical back button and TabBar switching.
+- **Self-healing fallback**: on every platform, `push` / `replace` / `back` compares the internal state against the real page stack before reading the current route, so stale state after a native back never causes a false `DUPLICATED` failure.
 
 > Note: `useRoute()` is a separately maintained reactive object — only forward navigations write it. `syncRoute()` / `back()` update the router's internal state only; to read the real page-stack state outside a forward navigation, use `router.currentRoute` or the page's own `onLoad(options)`.
 

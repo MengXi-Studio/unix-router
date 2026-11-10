@@ -75,13 +75,17 @@ The interceptor only applies to **external direct calls**; the uni calls issued 
 
 ## H5 vs Native Differences
 
-| Difference | H5 (Web) | Native (App / Mini Program) |
+| Difference | H5 (Web) / WeChat Mini Program | Native (App) |
 | --- | --- | --- |
-| `router.install()` (`app.use(router)`) | Registers `provide` (for `useRouter` setup injection), mounts `$router` / `$route` global properties, registers the `onShow` global mixin (automatic `syncRoute()`) | Only registers the global active router (usable by `useRouter`'s non-setup fallback); recommended to call `router.syncRoute()` manually in each page's `onShow` |
-| Navigation animation | AnimationPlugin plays enter / exit animations on the page container with the **Web Animations API** (`element.animate`) | App: passes native `animationType` / `animationDuration` through to the `uni.*` navigation APIs (officially App-only); Mini Programs: animation fields not supported officially, no animation |
+| `router.install()` (`app.use(router)`) | Registers `provide` (for `useRouter` setup injection), mounts `$router` / `$route` global properties, registers the `onShow` global mixin (automatic `syncRoute()` whenever a page shows) | Only registers the global active router (usable by `useRouter`'s non-setup fallback); recommended to call `router.syncRoute()` manually in each page's `onShow` |
+| Navigation animation | AnimationPlugin plays enter / exit animations on the page container with the **Web Animations API** (`element.animate`) | Passes native `animationType` / `animationDuration` through to the `uni.*` navigation APIs (officially App-only) |
 | `RouteName` route-name type augmentation | Augmented via the `RouteNameMap` module, inferring literal hints (`keyof RouteNameMap & string`) | UTS does not support keyof composite types; degrades to `string` (with `strict` validation as the backstop) |
 | `hash` | Always `''` (uni-app x does not support hash routing; field kept) | Always `''` |
-| Physical back / edge swipe | Does not pass through the router | Does not pass through the router; `syncRoute()` re-aligns the state in `onShow` |
+| Physical back / edge swipe | Does not pass through the router; the `onShow` global mixin re-aligns the state automatically | Does not pass through the router; recommended to call `syncRoute()` manually in `onShow` to re-align the state |
+
+::: tip Route-state self-healing before navigation
+On every platform, `push` / `replace` / `back` compares the internal state against the real page stack before reading the "current route" and heals it if needed (`healRouteStateFromStack`). So even if `onShow` has not fired yet after a native back, a genuine navigation is never misjudged as a duplicate (`DUPLICATED`).
+:::
 
 ## Notes on UTS Strong Typing
 

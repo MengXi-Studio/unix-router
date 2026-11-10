@@ -56,7 +56,9 @@ uni-app x's physical back button, edge swipe, tab switching, and similar behavio
 2. Run the **routeSync hooks**: plugins extract their data from the URL query (e.g. rebuilding params from the `__params__` key) and strip internal keys.
 3. Recompute `fullPath`, construct a new `RouteLocation`, and update the **router-internal** `currentRoute` via `setCurrentRoute` — the `useRoute()` reactive object is not written (only forward navigations write it).
 
-Sync is triggered when: `createRouter` initializes (page stack non-empty), the `onShow` mixin registered by `router.install()` (H5 only), and manual invocation (on native platforms it is recommended to call it yourself in each page's `onShow`).
+Sync is triggered when: `createRouter` initializes (page stack non-empty), the `onShow` mixin registered by `router.install()` (H5 / WeChat Mini Program), and manual invocation (on App it is recommended to call it yourself in each page's `onShow`).
+
+In addition, every `push` / `replace` / `back` runs a self-healing step (`healRouteStateFromStack`) before reading the current route: it compares the page-stack top path with the internal `currentRoute.path` and calls `syncRoute()` when they differ. This guarantees that, in the window where a native back has already popped the stack but `onShow` has not fired yet, navigation is never misjudged as a duplicate (`DUPLICATED`) due to stale state.
 
 ## Cold Start guardRoute
 
@@ -86,7 +88,7 @@ router.isReady().then(() => {
 ## Design Note: The Page Stack Is the Single Source of Truth
 
 - **The uni API's success callback is not treated as proof of success**: a uni navigation API being accepted does not mean the target page has been pushed onto the stack. After invoking the uni API, the router **polls the page stack** and only records success once the target page is confirmed as the stack top; otherwise it fails with `NAVIGATION_API_ERROR`.
-- **The router-internal `currentRoute` is always derived from the page stack**: what gets written after a successful forward navigation is the stack-top-confirmed target (both the internal state and the `useRoute()` reactive object); system behaviors like physical back and tab switching are re-aligned by `syncRoute()` in `onShow`. Note the two states are maintained independently — `useRoute()` is written by forward navigations alone, and `back()` / `syncRoute()` update the router-internal `currentRoute` only.
+- **The router-internal `currentRoute` is always derived from the page stack**: what gets written after a successful forward navigation is the stack-top-confirmed target (both the internal state and the `useRoute()` reactive object); system behaviors like physical back and tab switching are re-aligned by `syncRoute()` in `onShow`, with a self-healing fallback before every navigation. Note the two states are maintained independently — `useRoute()` is written by forward navigations alone, and `back()` / `syncRoute()` update the router-internal `currentRoute` only.
 
 ## Where Your Code Executes
 
