@@ -36,7 +36,7 @@ defineUniPage({
 	title: '分类',
 	name: 'category',
 	isTab: true,
-	tab: { order: 1, text: '分类', iconPath: 'static/tabbar/category.jpg', selectedIconPath: 'static/tabbar/category-active.jpg' }
+	tab: { order: 1, text: '分类', iconPath: 'static/tabbar/category.png', selectedIconPath: 'static/tabbar/category-active.png' }
 })
 import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
 import { categories, goodsList, goodsByCategory, formatPrice as fmtPrice, type Goods } from '../../data/goods.uts'

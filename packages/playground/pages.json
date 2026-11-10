@@ -91,8 +91,8 @@
 			{
 				"pagePath": "pages/category/category",
 				"text": "分类",
-				"iconPath": "static/tabbar/category.jpg",
-				"selectedIconPath": "static/tabbar/category-active.jpg"
+				"iconPath": "static/tabbar/category.png",
+				"selectedIconPath": "static/tabbar/category-active.png"
 			},
 			{
 				"pagePath": "pages/mine/mine",
