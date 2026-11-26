@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions 讨论区
+    url: https://github.com/MengXi-Studio/unix-router/discussions
+    about: 使用咨询、经验交流与版本公告请前往讨论区
+  - name: 文档站
+    url: https://mengxi-studio.github.io/unix-router/
+    about: 查阅安装、API 与示例文档

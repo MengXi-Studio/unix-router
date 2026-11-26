@@ -44,8 +44,8 @@ function walk(dir, base = dir, out = []) {
 	return out
 }
 
-const sha256 = (abs) => createHash('sha256').update(fs.readFileSync(abs)).digest('hex')
-const rel = (abs) => path.relative(repoRoot, abs)
+const sha256 = abs => createHash('sha256').update(fs.readFileSync(abs)).digest('hex')
+const rel = abs => path.relative(repoRoot, abs)
 
 /** 以 pair.src 为基准算出漂移清单（src / dest 均须存在，调用方保证） */
 function diffPair(pair) {
@@ -67,7 +67,7 @@ function diffPair(pair) {
 	return { added, updated, removed }
 }
 
-const report = (diff) => {
+const report = diff => {
 	for (const f of diff.added) console.error(`  + ${f}（镜像缺失）`)
 	for (const f of diff.updated) console.error(`  ~ ${f}（内容不一致）`)
 	for (const f of diff.removed) console.error(`  - ${f}（基准源已删除）`)

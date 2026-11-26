@@ -1,0 +1,4 @@
+# 归一化：所有文本文件在仓库与工作区统一为 LF。
+# 根因：文件曾以 CRLF 提交，导致 prettier（endOfLine: lf）与 uni_modules 镜像字节比对全量失败。
+# text=auto 自动跳过二进制文件（图片、字体等），不会被改写。
+* text=auto eol=lf

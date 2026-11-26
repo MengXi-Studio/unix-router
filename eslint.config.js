@@ -47,7 +47,11 @@ export default tseslint.config(
 			'**/*.d.uts',
 			// 文档与其他
 			'**/*.md',
-			'**/*.json'
+			'**/*.json',
+			// 构建期产物：tsup 打包输出（vendored 镜像，等价于已忽略的 dist/），不参与 ESLint
+			'packages/playground/uni_modules/ux-router/plugins/',
+			'**/*.d.cts',
+			'**/*.d.mts'
 		]
 	},
 	// ESLint 推荐规则
@@ -77,7 +81,9 @@ export default tseslint.config(
 			'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
 			'no-undef': 'off',
 			'prettier/prettier': 'error',
-			'@typescript-eslint/no-explicit-any': 'off'
+			'@typescript-eslint/no-explicit-any': 'off',
+			// 注释中的零宽空格等为有意为之（如在 JSDoc 中字面书写 */ 又不提前闭合注释），仅校验代码
+			'no-irregular-whitespace': ['error', { skipComments: true }]
 		}
 	}
 )

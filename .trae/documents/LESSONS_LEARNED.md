@@ -100,3 +100,24 @@
 - 现象：无 `meta.isTab` 路由的工程（自绘导航组件演示应用）H5 刷新子页后点返回，报 `Uncaught (in promise)`（指向 backWithStackFallback）——0.8.1 兜底只认 isTab 路由，无 tab 工程无兜底目标，`back()` reject `CANCELLED` 且调用方（demo-navbar）无 catch。
 - 修复（0.8.2）：新增 `RouterOptions.backFallback` 显式配置（优先级高于 isTab 推断）；拦截器根路径分支无 isTab 时委托 `back(1)` 统一走兜底。有 tab 工程零配置不变。
 - 运行验证：配置分支实测「配置目标优先于 isTab 推断」（backFallback: mine 冷启动返回落地 mine 页）；unix-ui playground 真机场景复现修复（冷启动子页 → 点返回 → 回首页、警告正确、无未捕获异常）。
+
+## 2026-11-26 .github 优化与 CRLF 归一化（CI 全绿实测）
+
+### 1. core.autocrlf=true 下「索引 LF / 工作区 CRLF」会让 lint 与镜像字节比对全红
+- 现象：`pnpm lint` 全仓 `prettier/prettier Delete ␍`（9.7MB 输出），`pnpm sync:uni-modules:check` 报 plugins 镜像漂移；但 `git diff` 无任何内容差异。
+- 根因：Windows 开启 `core.autocrlf=true` 时，git 索引存 LF、工作区检出为 CRLF；`.prettierrc` 设 `endOfLine: lf` 却无 `.gitattributes`，于是本地 prettier 与 sync 脚本（字节比对）都拿工作区 CRLF 去对 LF 预期。CI 在 Linux 检出为 LF 反而是绿的——问题只在 Windows 工作区 + 缺 .gitattributes。
+- 诊断：`git ls-files --eol` 精确区分 `i/`（index）与 `w/`（worktree）行尾；若 index 全是 LF，说明仓库本就干净，只需加 `.gitattributes * text=auto eol=lf` 并刷新工作区，**不会产生大规模 renormalize 提交**（index 已 LF，`git diff` 不膨胀）。
+- 修复：新增 `.gitattributes`（`* text=auto eol=lf`，text=auto 自动跳过二进制）；工作区文本文件批量去 `\r`（`.trae/mcp.json`、`.vscode/settings.json` 受沙箱只读保护改不了，但二者均在 eslint ignores 内，不影响门禁）。
+- 验证：`git ls-files --eol` 工作区 CRLF 从 369 → 3（仅剩只读保护文件）；`pnpm lint` / `sync:uni-modules:check` 转绿。
+
+### 2. 生成产物的 vendored 镜像必须加入 eslint ignores
+- `packages/playground/uni_modules/ux-router/plugins/*.{cjs,mjs,d.cts,d.mts}` 是 tsup 打包输出（与 `packages/core/dist/` 同属构建产物），但 `eslint.config.js` 只忽略了 `**/dist/`，漏掉该镜像 → 暴露一万多条 `prettier/prettier` 错误（CRLF 修好后才显现）。
+- 修复：ignores 补 `packages/playground/uni_modules/ux-router/plugins/` + `**/*.d.cts` + `**/*.d.mts`。凡 tsup/rollup 打包产物的镜像目录，都应与 dist 同等忽略。
+
+### 3. no-irregular-whitespace 默认连注释也查，JSDoc 中故意的零宽空格会被误报
+- `packages/core/node/shared/parsing/literal.ts` 的 JSDoc 为字面书写 `*/` 又不提前闭合注释，在 `*​/` 间插入了零宽空格（U+200B）——这是**有意为之**，删了反而破坏注释。
+- 修复：`eslint.config.js` 规则设 `'no-irregular-whitespace': ['error', { skipComments: true }]`，仅校验代码。
+
+### 4. CI 中 sync:uni-modules:check 前必须先 build core
+- `packages/core/dist` 是 gitignored 构建产物，CI fresh clone 不存在；直接跑 `pnpm sync:uni-modules:check` 会因无 dist 而失败。
+- 正确顺序：`pnpm --dir packages/core build` → `pnpm sync:uni-modules:check`（本地实测两镜像均一致、exit 0）。

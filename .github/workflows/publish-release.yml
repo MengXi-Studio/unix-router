@@ -26,7 +26,7 @@ jobs:
     steps:
       # 步骤1：检出仓库代码（fetch-depth:0 拉取全量提交与 tag，兜底正文需要对比历史）
       - name: Checkout
-        uses: actions/checkout@v6 # 官方 checkout action
+        uses: actions/checkout@v7 # 官方 checkout action
         with:
           fetch-depth: 0 # 拉取全部历史，便于生成自上一 tag 以来的提交列表
 

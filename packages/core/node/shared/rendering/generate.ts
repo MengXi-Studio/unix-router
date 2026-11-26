@@ -9,7 +9,7 @@
 import fs from 'node:fs'
 import { FileRef, ResolvedPagesSection, ResolvedRouterSection } from '../common/options'
 import { Draft, ScanResult } from '../common/types'
-import { LiteralEntry, LiteralParseError, LiteralValue, parseUtsArrayLiteral, parseUtsObjectLiteral } from '../parsing/literal'
+import { LiteralEntry, LiteralParseError, LiteralValue, parseUtsArrayLiteral } from '../parsing/literal'
 
 /**
  * 驼峰化：将下划线或短横线分隔的字符串转换为驼峰（'a-b-c' → aBC）
