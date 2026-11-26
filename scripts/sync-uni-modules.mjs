@@ -47,6 +47,29 @@ function walk(dir, base = dir, out = []) {
 const sha256 = abs => createHash('sha256').update(fs.readFileSync(abs)).digest('hex')
 const rel = abs => path.relative(repoRoot, abs)
 
+/** 字节级漂移详情：两侧长度、首处不同偏移、偏移前后窗口文本（CR/LF/Tab 转义可见），供 CI 定位根因 */
+function describeByteDiff(srcPath, destPath) {
+	const a = fs.readFileSync(srcPath)
+	const b = fs.readFileSync(destPath)
+	const out = [`    size: src=${a.length}B  dest=${b.length}B`]
+	const min = Math.min(a.length, b.length)
+	let off = -1
+	for (let i = 0; i < min; i++) {
+		if (a[i] !== b[i]) {
+			off = i
+			break
+		}
+	}
+	if (off === -1) off = min // 一侧是另一侧的前缀（长度不同但公共部分全等）
+	out.push(`    first diff at byte offset ${off}`)
+	const win = 48
+	const s = Math.max(0, off - win)
+	const render = (buf, end) => buf.slice(s, Math.min(buf.length, end)).toString('utf8').replace(/\r/g, '\\r').replace(/\n/g, '\\n').replace(/\t/g, '\\t')
+	out.push(`    src  [${s}..]: ${render(a, off + win)}`)
+	out.push(`    dest [${s}..]: ${render(b, off + win)}`)
+	return out.join('\n')
+}
+
 /** 以 pair.src 为基准算出漂移清单（src / dest 均须存在，调用方保证） */
 function diffPair(pair) {
 	const srcFiles = walk(pair.src)
@@ -86,6 +109,10 @@ if (check) {
 		if (diff.added.length + diff.updated.length + diff.removed.length > 0) {
 			console.error(`镜像漂移（${pair.label}，以 ${rel(pair.src)} 为准）：`)
 			report(diff)
+			for (const f of diff.updated) {
+				console.error(`  · ${f} 字节级差异：`)
+				console.error(describeByteDiff(path.join(pair.src, f), path.join(pair.dest, f)))
+			}
 			drifted = true
 		} else {
 			console.log(`镜像一致：${rel(pair.src)} ≡ ${rel(pair.dest)}`)
