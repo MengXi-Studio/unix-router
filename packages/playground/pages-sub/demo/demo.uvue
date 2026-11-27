@@ -44,7 +44,9 @@
 // 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
 defineUniPage({
 	title: '路由能力演示',
-	name: 'demo'
+	name: 'demo',
+	// 页面级 style：原样合并进 pages.json 的 style 字段（演示导航栏配色）
+	style: { navigationBarTextStyle: 'white', navigationBarBackgroundColor: '#007AFF' }
 })
 import { useRouter, useRoute, queryNumber, isNavigationFailure, RouterErrorCode, eventBus, type NavigationFailure } from '@/uni_modules/ux-router/utssdk/index.uts'
 

@@ -125,6 +125,7 @@ export function buildDrafts(scan: ScanResult, options: { pages: ResolvedPagesSec
 			tabText: spec?.tabText ?? null,
 			name: declaredName ?? '',
 			metaExtra: spec?.metaExtra ?? [],
+			styleExtra: spec?.styleExtra ?? [],
 			beforeEnter: spec?.beforeEnter ?? null,
 			redirect: spec?.redirect ?? null
 		}
@@ -183,6 +184,54 @@ function renderLiteral(v: LiteralValue): string {
 
 		case 'object':
 			return '{ ' + v.entries.map(e => `${e.key}: ${renderLiteral(e.value)}`).join(', ') + ' }'
+	}
+}
+
+/** 字面量 → JSON 值结果：ok=false 表示含函数/标识符等无法序列化为 JSON 的表达式 */
+type JsonResult = { ok: true; value: unknown } | { ok: false }
+
+/**
+ * 字面量 → 可 JSON 序列化的值（pages.json 的 style 字段使用）。
+ *
+ * @remarks
+ * `raw`（函数 / 标识符 / 模板串）无法表达为 JSON，返回 `{ ok: false }` 由调用方告警忽略；
+ * 对象 / 数组递归转换，任一子项不可序列化则整体判为不可序列化。
+ *
+ * @param v - 字面量值
+ * @returns 序列化结果
+ */
+function literalToJson(v: LiteralValue): JsonResult {
+	switch (v.kind) {
+		case 'string':
+		case 'number':
+		case 'boolean':
+			return { ok: true, value: v.value }
+
+		case 'null':
+			return { ok: true, value: null }
+
+		case 'raw':
+			return { ok: false }
+
+		case 'array': {
+			const items: unknown[] = []
+			for (const item of v.items) {
+				const r = literalToJson(item)
+				if (!r.ok) return { ok: false }
+				items.push(r.value)
+			}
+			return { ok: true, value: items }
+		}
+
+		case 'object': {
+			const obj: Record<string, unknown> = {}
+			for (const e of v.entries) {
+				const r = literalToJson(e.value)
+				if (!r.ok) return { ok: false }
+				obj[e.key] = r.value
+			}
+			return { ok: true, value: obj }
+		}
 	}
 }
 
@@ -286,7 +335,25 @@ export function renderPagesJson(drafts: Draft[], options: { pagesJsonPath: FileR
 		warn(`既有 pages.json 解析失败，手写字段将丢失：${String(e)}`)
 	}
 
-	const styleFor = (d: Draft): Record<string, unknown> | undefined => (d.title !== null ? { navigationBarTitleText: d.title } : undefined)
+	// style：title 生成 navigationBarTitleText；styleExtra 原样合并（显式键优先，同名覆盖 title 生成值）
+	const styleFor = (d: Draft): Record<string, unknown> | undefined => {
+		const style: Record<string, unknown> = {}
+
+		if (d.title !== null) style.navigationBarTitleText = d.title
+
+		for (const e of d.styleExtra) {
+			const r = literalToJson(e.value)
+
+			if (!r.ok) {
+				warn(`页面 ${d.path} 的 style.${e.key} 是函数/表达式，无法写入 pages.json，已忽略`)
+				continue
+			}
+
+			style[e.key] = r.value
+		}
+
+		return Object.keys(style).length > 0 ? style : undefined
+	}
 
 	const mainPages = drafts
 		.filter(d => d.pkgRoot === null)
@@ -495,6 +562,8 @@ export function renderMacroDts(): string {
 		'\tisTab?: boolean',
 		'\t/** tabBar 附属信息 */',
 		'\ttab?: { order?: number; iconPath?: string; selectedIconPath?: string; text?: string }',
+		"\t/** 页面级 style，原样合并进 pages.json 的 style（如 navigationStyle: 'custom'）；同名键优先于 title */",
+		'\tstyle?: Record<string, any>',
 		'\t/** 路由 meta 扩展字段（需与 RouteMeta 定义匹配） */',
 		'\tmeta?: Record<string, any>',
 		'\t/** 路由重定向目标（页面路径） */',

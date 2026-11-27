@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0] - 2026-11-27
+
+### Added
+
+- **Page-level `style` for `defineUniPage` (issue #10)**: `defineUniPage({ style: { navigationStyle: 'custom' } })` (or the `style` of a `<route-config>` block) is merged verbatim into the page's `style` in `pages.json`, enabling per-page custom navigation bars, pull-down refresh and the like, including platform sub-objects such as `h5` / `app-plus`. `title` still produces `navigationBarTitleText`; same-name keys defer to `style`; expressions that cannot be serialized to JSON (functions, etc.) are ignored with a warning
+
 ## [0.8.3] - 2026-11-10
 
 ### Fixed

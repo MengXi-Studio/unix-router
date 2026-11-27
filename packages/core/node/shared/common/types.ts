@@ -29,6 +29,8 @@ export type PageSpec = {
 	tabText: string | null
 	/** meta 扩展字段（数据字段；嵌套对象/数组按原文注入） */
 	metaExtra: Array<{ key: string; value: LiteralValue }>
+	/** 页面级 style 字段（原样合并进 pages.json 的 style；如 navigationStyle） */
+	styleExtra: Array<{ key: string; value: LiteralValue }>
 	/** beforeEnter 函数原文（自包含表达式） */
 	beforeEnter: string | null
 	/** 重定向目标（页面路径字符串） */
@@ -105,6 +107,8 @@ export type Draft = {
 	name: string
 	/** meta 扩展字段（数据字段；嵌套对象/数组按原文注入） */
 	metaExtra: Array<{ key: string; value: LiteralValue }>
+	/** 页面级 style 字段（原样合并进 pages.json 的 style；如 navigationStyle） */
+	styleExtra: Array<{ key: string; value: LiteralValue }>
 	/** beforeEnter 函数原文（自包含表达式） */
 	beforeEnter: string | null
 	/** 重定向目标（页面路径字符串） */

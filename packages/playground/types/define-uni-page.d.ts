@@ -11,6 +11,8 @@ declare function defineUniPage(config: {
 	isTab?: boolean
 	/** tabBar 附属信息 */
 	tab?: { order?: number; iconPath?: string; selectedIconPath?: string; text?: string }
+	/** 页面级 style，原样合并进 pages.json 的 style（如 navigationStyle: 'custom'）；同名键优先于 title */
+	style?: Record<string, any>
 	/** 路由 meta 扩展字段（需与 RouteMeta 定义匹配） */
 	meta?: Record<string, any>
 	/** 路由重定向目标（页面路径） */

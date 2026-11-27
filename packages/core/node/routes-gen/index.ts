@@ -30,6 +30,7 @@ function buildDraftsFromPagesJson(data: unknown, warn: (msg: string) => void): {
 		tabText: null,
 		name: '',
 		metaExtra: [],
+		styleExtra: [],
 		beforeEnter: null,
 		redirect: null
 	})

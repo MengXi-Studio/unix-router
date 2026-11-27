@@ -26,6 +26,7 @@ Declare it at the top of each page's `<script setup>` (no import needed; strippe
 | `name` | `string?` | Named route; auto-generated via camelCase normalization when omitted |
 | `isTab` | `boolean?` | Whether it is a tabBar page → `meta.isTab` + `pages.json` `tabBar.list` |
 | `tab` | `{ order?, text?, iconPath?, selectedIconPath? }` | tabBar details; `order` determines tab position |
+| `style` | `Record<string, any>?` | Page-level `style`, merged verbatim into the page's `style` in `pages.json` (e.g. `navigationStyle: 'custom'`, `enablePullDownRefresh`), including platform sub-objects like `h5` / `app-plus`; same-name keys win over the `navigationBarTitleText` generated from `title` |
 | `meta` | `Record<string, any>?` | Extended route meta fields (e.g. `requireAuth`), must match the `RouteMeta` definition |
 | `redirect` | `string?` | Route redirect target (page path) |
 | `beforeEnter` | `(to, from) => any?` | Per-route before guard, **must be self-contained** (the generated file cannot reference page scope) |
