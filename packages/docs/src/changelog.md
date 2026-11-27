@@ -1,5 +1,11 @@
 # 更新日志
 
+## [0.9.0] - 2026-11-27
+
+### 新增
+
+- **`defineUniPage` 支持页面级 `style`（issue #10）**：`defineUniPage({ style: { navigationStyle: 'custom' } })`（或 `<route-config>` 块的 `style`）按字面量原样合并进 `pages.json` 对应页面的 `style` 字段，可用于按页面开启自定义导航栏、下拉刷新等，含 `h5` / `app-plus` 等平台细分嵌套对象；`title` 仍生成 `navigationBarTitleText`，同名键以 `style` 为准；函数等无法序列化为 JSON 的表达式告警并忽略
+
 ## [0.8.3] - 2026-11-10
 
 ### 修复

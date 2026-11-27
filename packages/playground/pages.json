@@ -41,7 +41,9 @@
 				{
 					"path": "demo/demo",
 					"style": {
-						"navigationBarTitleText": "路由能力演示"
+						"navigationBarTitleText": "路由能力演示",
+						"navigationBarTextStyle": "white",
+						"navigationBarBackgroundColor": "#007AFF"
 					}
 				},
 				{

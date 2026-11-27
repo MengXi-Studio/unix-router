@@ -4578,6 +4578,7 @@ var emptySpec = () => ({
   selectedIconPath: null,
   tabText: null,
   metaExtra: [],
+  styleExtra: [],
   beforeEnter: null,
   redirect: null,
   unknownFields: []
@@ -4684,6 +4685,8 @@ function mergeSpecs(macro, block) {
   merged.redirect = pick(macro.redirect, block.redirect);
   const metaKeys = new Set(macro.metaExtra.map((e) => e.key));
   merged.metaExtra = [...macro.metaExtra, ...block.metaExtra.filter((e) => !metaKeys.has(e.key))];
+  const styleKeys = new Set(macro.styleExtra.map((e) => e.key));
+  merged.styleExtra = [...macro.styleExtra, ...block.styleExtra.filter((e) => !styleKeys.has(e.key))];
   merged.unknownFields = [...macro.unknownFields, ...block.unknownFields];
   return merged;
 }
@@ -4718,6 +4721,9 @@ function specFromEntries(entries) {
         break;
       case "meta":
         if (value.kind === "object") spec.metaExtra = [...value.entries];
+        break;
+      case "style":
+        if (value.kind === "object") spec.styleExtra = [...value.entries];
         break;
       default:
         spec.unknownFields.push(key);
@@ -4800,6 +4806,7 @@ function buildDrafts(scan, options) {
       tabText: spec?.tabText ?? null,
       name: declaredName ?? "",
       metaExtra: spec?.metaExtra ?? [],
+      styleExtra: spec?.styleExtra ?? [],
       beforeEnter: spec?.beforeEnter ?? null,
       redirect: spec?.redirect ?? null
     };
@@ -4833,6 +4840,36 @@ function renderLiteral(v) {
       return "[ " + v.items.map(renderLiteral).join(", ") + " ]";
     case "object":
       return "{ " + v.entries.map((e) => `${e.key}: ${renderLiteral(e.value)}`).join(", ") + " }";
+  }
+}
+function literalToJson(v) {
+  switch (v.kind) {
+    case "string":
+    case "number":
+    case "boolean":
+      return { ok: true, value: v.value };
+    case "null":
+      return { ok: true, value: null };
+    case "raw":
+      return { ok: false };
+    case "array": {
+      const items = [];
+      for (const item of v.items) {
+        const r = literalToJson(item);
+        if (!r.ok) return { ok: false };
+        items.push(r.value);
+      }
+      return { ok: true, value: items };
+    }
+    case "object": {
+      const obj = {};
+      for (const e of v.entries) {
+        const r = literalToJson(e.value);
+        if (!r.ok) return { ok: false };
+        obj[e.key] = r.value;
+      }
+      return { ok: true, value: obj };
+    }
   }
 }
 function parseExistingRoutes(existingText, exportName, warn) {
@@ -4886,7 +4923,19 @@ function renderPagesJson(drafts, options, warn) {
   } catch (e) {
     warn(`\u65E2\u6709 pages.json \u89E3\u6790\u5931\u8D25\uFF0C\u624B\u5199\u5B57\u6BB5\u5C06\u4E22\u5931\uFF1A${String(e)}`);
   }
-  const styleFor = (d) => d.title !== null ? { navigationBarTitleText: d.title } : void 0;
+  const styleFor = (d) => {
+    const style = {};
+    if (d.title !== null) style.navigationBarTitleText = d.title;
+    for (const e of d.styleExtra) {
+      const r = literalToJson(e.value);
+      if (!r.ok) {
+        warn(`\u9875\u9762 ${d.path} \u7684 style.${e.key} \u662F\u51FD\u6570/\u8868\u8FBE\u5F0F\uFF0C\u65E0\u6CD5\u5199\u5165 pages.json\uFF0C\u5DF2\u5FFD\u7565`);
+        continue;
+      }
+      style[e.key] = r.value;
+    }
+    return Object.keys(style).length > 0 ? style : void 0;
+  };
   const mainPages = drafts.filter((d) => d.pkgRoot === null).map((d) => {
     const style = styleFor(d);
     return style !== void 0 ? { path: d.path, style } : { path: d.path };
@@ -5023,6 +5072,8 @@ function renderMacroDts() {
     "	isTab?: boolean",
     "	/** tabBar \u9644\u5C5E\u4FE1\u606F */",
     "	tab?: { order?: number; iconPath?: string; selectedIconPath?: string; text?: string }",
+    "	/** \u9875\u9762\u7EA7 style\uFF0C\u539F\u6837\u5408\u5E76\u8FDB pages.json \u7684 style\uFF08\u5982 navigationStyle: 'custom'\uFF09\uFF1B\u540C\u540D\u952E\u4F18\u5148\u4E8E title */",
+    "	style?: Record<string, any>",
     "	/** \u8DEF\u7531 meta \u6269\u5C55\u5B57\u6BB5\uFF08\u9700\u4E0E RouteMeta \u5B9A\u4E49\u5339\u914D\uFF09 */",
     "	meta?: Record<string, any>",
     "	/** \u8DEF\u7531\u91CD\u5B9A\u5411\u76EE\u6807\uFF08\u9875\u9762\u8DEF\u5F84\uFF09 */",
@@ -5554,6 +5605,7 @@ function buildDraftsFromPagesJson(data, warn) {
     tabText: null,
     name: "",
     metaExtra: [],
+    styleExtra: [],
     beforeEnter: null,
     redirect: null
   });

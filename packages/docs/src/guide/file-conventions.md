@@ -26,6 +26,7 @@
 | `name` | `string?` | 命名路由；缺省按 camelCase 规范化自动生成 |
 | `isTab` | `boolean?` | 是否 tabBar 页 → `meta.isTab` + `pages.json` `tabBar.list` |
 | `tab` | `{ order?, text?, iconPath?, selectedIconPath? }` | tabBar 附属信息，`order` 决定 tab 顺序 |
+| `style` | `Record<string, any>?` | 页面级 `style`，原样合并进 `pages.json` 对应页面的 `style`（如 `navigationStyle: 'custom'`、`enablePullDownRefresh`），含 `h5` / `app-plus` 等平台细分嵌套对象；同名键优先于 `title` 生成的 `navigationBarTitleText` |
 | `meta` | `Record<string, any>?` | 路由 meta 扩展字段（如 `requireAuth`），与 `RouteMeta` 定义匹配 |
 | `redirect` | `string?` | 路由重定向目标（页面路径） |
 | `beforeEnter` | `(to, from) => any?` | 路由独享前置守卫，**须自包含**（生成文件内不引用页面作用域变量） |

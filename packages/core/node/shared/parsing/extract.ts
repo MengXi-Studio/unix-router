@@ -23,6 +23,7 @@ const emptySpec = (): PageSpec => ({
 	selectedIconPath: null,
 	tabText: null,
 	metaExtra: [],
+	styleExtra: [],
 	beforeEnter: null,
 	redirect: null,
 	unknownFields: []
@@ -188,6 +189,9 @@ export function mergeSpecs(macro: PageSpec | null, block: PageSpec | null): Page
 	merged.redirect = pick(macro.redirect, block.redirect)
 	const metaKeys = new Set(macro.metaExtra.map(e => e.key))
 	merged.metaExtra = [...macro.metaExtra, ...block.metaExtra.filter(e => !metaKeys.has(e.key))]
+	// style 与 meta 同策略：宏已声明的键优先，块补充去重后的剩余键
+	const styleKeys = new Set(macro.styleExtra.map(e => e.key))
+	merged.styleExtra = [...macro.styleExtra, ...block.styleExtra.filter(e => !styleKeys.has(e.key))]
 	merged.unknownFields = [...macro.unknownFields, ...block.unknownFields]
 
 	return merged
@@ -238,6 +242,11 @@ function specFromEntries(entries: LiteralEntry[]): PageSpec {
 
 			case 'meta':
 				if (value.kind === 'object') spec.metaExtra = [...value.entries]
+				break
+
+			case 'style':
+				// 页面级 style：对象字面量逐键收集，生成 pages.json 时原样合并
+				if (value.kind === 'object') spec.styleExtra = [...value.entries]
 				break
 
 			default:
